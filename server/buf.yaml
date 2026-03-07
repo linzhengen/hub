@@ -1,0 +1,20 @@
+version: v2
+deps:
+  - buf.build/googleapis/googleapis
+lint:
+  use:
+    - STANDARD
+    - UNARY_RPC
+  ignore_only:
+    RPC_NO_SERVER_STREAMING:
+      - proto/ai/app/v1/service.proto
+      - proto/ai/workflow/v1/service.proto
+  disallow_comment_ignores: true
+breaking:
+  use:
+    - FILE
+  except:
+    - EXTENSION_NO_DELETE
+    - FIELD_SAME_DEFAULT
+modules:
+  - path: proto

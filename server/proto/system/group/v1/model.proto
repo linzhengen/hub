@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package system.group.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/group/v1";
+
+message Group {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    STATUS_ACTIVE = 1;
+    STATUS_INACTIVE = 2;
+  }
+
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  Status status = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+
+  repeated string role_ids = 7;
+}

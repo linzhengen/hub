@@ -1,0 +1,41 @@
+services:
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: password#123
+      MARIADB_DATABASE: hub
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./tmp/:/tmp/query_log/
+    ports:
+      - "3307:3306"
+  hub:
+    image: cosmtrek/air:v1.64.5
+    working_dir: /hub
+    environment:
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+    volumes:
+      - ./:/hub
+    env_file:
+      - .env.local
+    ports:
+      - "9090:9090"
+    depends_on:
+      db:
+        condition: service_healthy
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.5
+    command:
+      - start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"

@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package system.permission.v1;
+
+import "google/api/annotations.proto";
+import "system/permission/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/permission/v1";
+
+service PermissionService {
+  rpc GetPermission(GetPermissionRequest) returns (GetPermissionResponse) {
+    option (google.api.http) = {get: "/api/v1/permissions/{id}"};
+  }
+  rpc ListPermission(ListPermissionRequest) returns (ListPermissionResponse) {
+    option (google.api.http) = {get: "/api/v1/permissions"};
+  }
+  rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/permissions"
+      body: "*"
+    };
+  }
+  rpc UpdatePermission(UpdatePermissionRequest) returns (UpdatePermissionResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/permissions/{id}"
+      body: "*"
+    };
+  }
+  rpc DeletePermission(DeletePermissionRequest) returns (DeletePermissionResponse) {
+    option (google.api.http) = {delete: "/api/v1/permissions/{id}"};
+  }
+}
+
+message GetPermissionRequest {
+  string id = 1;
+}
+
+message GetPermissionResponse {
+  Permission permission = 1;
+}
+
+message ListPermissionRequest {
+  uint32 limit = 1;
+  uint32 offset = 2;
+  repeated string permission_ids = 3;
+  string permission_name = 4;
+}
+
+message ListPermissionResponse {
+  repeated Permission permissions = 1;
+  int64 total = 2;
+}
+
+message CreatePermissionRequest {
+  string resource_id = 2;
+  string verb = 3;
+  string description = 4;
+}
+
+message CreatePermissionResponse {
+  Permission permission = 1;
+}
+
+message UpdatePermissionRequest {
+  string id = 1;
+  string verb = 2;
+  string description = 3;
+}
+
+message UpdatePermissionResponse {
+  Permission permission = 1;
+}
+
+message DeletePermissionRequest {
+  string id = 1;
+}
+
+message DeletePermissionResponse {}

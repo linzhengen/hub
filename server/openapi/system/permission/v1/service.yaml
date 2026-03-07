@@ -1,0 +1,229 @@
+components:
+    schemas:
+        PermissionServiceUpdatePermissionBody:
+            properties:
+                description:
+                    type: string
+                verb:
+                    type: string
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1CreatePermissionRequest:
+            properties:
+                description:
+                    type: string
+                resourceId:
+                    type: string
+                verb:
+                    type: string
+            type: object
+        v1CreatePermissionResponse:
+            properties:
+                permission:
+                    $ref: '#/components/schemas/v1Permission'
+            type: object
+        v1DeletePermissionResponse:
+            type: object
+        v1GetPermissionResponse:
+            properties:
+                permission:
+                    $ref: '#/components/schemas/v1Permission'
+            type: object
+        v1ListPermissionResponse:
+            properties:
+                permissions:
+                    items:
+                        $ref: '#/components/schemas/v1Permission'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1Permission:
+            properties:
+                createdAt:
+                    format: date-time
+                    type: string
+                description:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                resourceId:
+                    type: string
+                updatedAt:
+                    format: date-time
+                    type: string
+                verb:
+                    type: string
+            type: object
+        v1UpdatePermissionResponse:
+            properties:
+                permission:
+                    $ref: '#/components/schemas/v1Permission'
+            type: object
+info:
+    title: system/permission/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/permissions:
+        get:
+            operationId: PermissionService_ListPermission
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: permissionIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+                - in: query
+                  name: permissionName
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListPermissionResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - PermissionService
+        post:
+            operationId: PermissionService_CreatePermission
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreatePermissionRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreatePermissionResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - PermissionService
+    /api/v1/permissions/{id}:
+        delete:
+            operationId: PermissionService_DeletePermission
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeletePermissionResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - PermissionService
+        get:
+            operationId: PermissionService_GetPermission
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetPermissionResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - PermissionService
+        put:
+            operationId: PermissionService_UpdatePermission
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PermissionServiceUpdatePermissionBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UpdatePermissionResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - PermissionService
+tags:
+    - name: PermissionService

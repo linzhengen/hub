@@ -1,0 +1,278 @@
+services:
+    - file: proto/system/group/v1/service.proto
+      service: system.group.v1.GroupService
+      methods:
+        - name: GetGroup
+          request: GetGroupRequest
+          response: GetGroupResponse
+          http:
+            method: GET
+            path: /api/v1/groups/{id}
+        - name: ListGroup
+          request: ListGroupRequest
+          response: ListGroupResponse
+          http:
+            method: GET
+            path: /api/v1/groups
+        - name: CreateGroup
+          request: CreateGroupRequest
+          response: CreateGroupResponse
+          http:
+            method: POST
+            path: /api/v1/groups
+            body: '*'
+        - name: UpdateGroup
+          request: UpdateGroupRequest
+          response: UpdateGroupResponse
+          http:
+            method: PUT
+            path: /api/v1/groups/{id}
+            body: '*'
+        - name: DeleteGroup
+          request: DeleteGroupRequest
+          response: DeleteGroupResponse
+          http:
+            method: DELETE
+            path: /api/v1/groups/{id}
+        - name: AssignRole
+          request: AssignRoleRequest
+          response: AssignRoleResponse
+          http:
+            method: POST
+            path: /api/v1/groups/{id}/roles/assign
+            body: '*'
+        - name: AddUsersToGroup
+          request: AddUsersToGroupRequest
+          response: AddUsersToGroupResponse
+          http:
+            method: POST
+            path: /api/v1/groups/{group_id}/users/add
+            body: '*'
+        - name: RemoveUsersFromGroup
+          request: RemoveUsersFromGroupRequest
+          response: RemoveUsersFromGroupResponse
+          http:
+            method: POST
+            path: /api/v1/groups/{group_id}/users/remove
+            body: '*'
+        - name: AssignRolesToGroup
+          request: AssignRolesToGroupRequest
+          response: AssignRolesToGroupResponse
+          http:
+            method: POST
+            path: /api/v1/groups/{group_id}/roles/assignRoles
+            body: '*'
+    - file: proto/system/permission/v1/service.proto
+      service: system.permission.v1.PermissionService
+      methods:
+        - name: GetPermission
+          request: GetPermissionRequest
+          response: GetPermissionResponse
+          http:
+            method: GET
+            path: /api/v1/permissions/{id}
+        - name: ListPermission
+          request: ListPermissionRequest
+          response: ListPermissionResponse
+          http:
+            method: GET
+            path: /api/v1/permissions
+        - name: CreatePermission
+          request: CreatePermissionRequest
+          response: CreatePermissionResponse
+          http:
+            method: POST
+            path: /api/v1/permissions
+            body: '*'
+        - name: UpdatePermission
+          request: UpdatePermissionRequest
+          response: UpdatePermissionResponse
+          http:
+            method: PUT
+            path: /api/v1/permissions/{id}
+            body: '*'
+        - name: DeletePermission
+          request: DeletePermissionRequest
+          response: DeletePermissionResponse
+          http:
+            method: DELETE
+            path: /api/v1/permissions/{id}
+    - file: proto/system/resource/v1/service.proto
+      service: system.resource.v1.ResourceService
+      methods:
+        - name: GetResource
+          request: GetResourceRequest
+          response: GetResourceResponse
+          http:
+            method: GET
+            path: /api/v1/resources/{id}
+        - name: ListResource
+          request: ListResourceRequest
+          response: ListResourceResponse
+          http:
+            method: GET
+            path: /api/v1/resources
+        - name: CreateResource
+          request: CreateResourceRequest
+          response: CreateResourceResponse
+          http:
+            method: POST
+            path: /api/v1/resources
+            body: '*'
+        - name: UpdateResource
+          request: UpdateResourceRequest
+          response: UpdateResourceResponse
+          http:
+            method: PUT
+            path: /api/v1/resources/{id}
+            body: '*'
+        - name: DeleteResource
+          request: DeleteResourceRequest
+          response: DeleteResourceResponse
+          http:
+            method: DELETE
+            path: /api/v1/resources/{id}
+        - name: ListMenuResource
+          request: ListMenuResourceRequest
+          response: ListMenuResourceResponse
+          http:
+            method: GET
+            path: /api/v1/resources/menus
+        - name: CreateMenuResource
+          request: CreateMenuResourceRequest
+          response: CreateMenuResourceResponse
+          http:
+            method: POST
+            path: /api/v1/resources/menus
+            body: '*'
+        - name: UpdateMenuResource
+          request: UpdateMenuResourceRequest
+          response: UpdateMenuResourceResponse
+          http:
+            method: PUT
+            path: /api/v1/resources/{id}/menus
+            body: '*'
+    - file: proto/system/role/v1/service.proto
+      service: system.role.v1.RoleService
+      methods:
+        - name: GetRole
+          request: GetRoleRequest
+          response: GetRoleResponse
+          http:
+            method: GET
+            path: /api/v1/roles/{id}
+        - name: ListRole
+          request: ListRoleRequest
+          response: ListRoleResponse
+          http:
+            method: GET
+            path: /api/v1/roles
+        - name: CreateRole
+          request: CreateRoleRequest
+          response: CreateRoleResponse
+          http:
+            method: POST
+            path: /api/v1/roles
+            body: '*'
+        - name: UpdateRole
+          request: UpdateRoleRequest
+          response: UpdateRoleResponse
+          http:
+            method: PUT
+            path: /api/v1/roles/{id}
+            body: '*'
+        - name: DeleteRole
+          request: DeleteRoleRequest
+          response: DeleteRoleResponse
+          http:
+            method: DELETE
+            path: /api/v1/roles/{id}
+        - name: AssignPermission
+          request: AssignPermissionRequest
+          response: AssignPermissionResponse
+          http:
+            method: POST
+            path: /api/v1/roles/{id}/permissions/assign
+            body: '*'
+        - name: AddPermissionsToRole
+          request: AddPermissionsToRoleRequest
+          response: AddPermissionsToRoleResponse
+          http:
+            method: POST
+            path: /api/v1/roles/{role_id}/permissions
+            body: '*'
+        - name: RemovePermissionsFromRole
+          request: RemovePermissionsFromRoleRequest
+          response: RemovePermissionsFromRoleResponse
+          http:
+            method: POST
+            path: /api/v1/roles/{role_id}/permissions/remove
+            body: '*'
+    - file: proto/user/v1/service.proto
+      service: user.v1.UserService
+      methods:
+        - name: GetMe
+          request: GetMeRequest
+          response: GetMeResponse
+          http:
+            method: GET
+            path: /api/v1/me
+        - name: GetMeMenus
+          request: GetMeMenusRequest
+          response: GetMeMenusResponse
+          http:
+            method: GET
+            path: /api/v1/me/menus
+        - name: UpdateMe
+          request: UpdateMeRequest
+          response: UpdateMeResponse
+          http:
+            method: PUT
+            path: /api/v1/me
+            body: '*'
+        - name: GetUser
+          request: GetUserRequest
+          response: GetUserResponse
+          http:
+            method: GET
+            path: /api/v1/users/{id}
+        - name: ListUser
+          request: ListUserRequest
+          response: ListUserResponse
+          http:
+            method: GET
+            path: /api/v1/users
+        - name: UpdateUser
+          request: UpdateUserRequest
+          response: UpdateUserResponse
+          http:
+            method: PUT
+            path: /api/v1/users/{id}
+            body: '*'
+        - name: DeleteUser
+          request: DeleteUserRequest
+          response: DeleteUserResponse
+          http:
+            method: DELETE
+            path: /api/v1/users/{id}
+        - name: AssignGroup
+          request: AssignGroupRequest
+          response: AssignGroupResponse
+          http:
+            method: POST
+            path: /api/v1/users/{id}/groups/assign
+            body: '*'
+        - name: UnassignGroup
+          request: UnassignGroupRequest
+          response: UnassignGroupResponse
+          http:
+            method: POST
+            path: /api/v1/users/{id}/groups/unassign
+            body: '*'
+        - name: CreateUser
+          request: CreateUserRequest
+          response: CreateUserResponse
+          http:
+            method: POST
+            path: /api/v1/users
+            body: '*'

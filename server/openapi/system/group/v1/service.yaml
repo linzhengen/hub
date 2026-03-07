@@ -1,0 +1,416 @@
+components:
+    schemas:
+        GroupServiceAddUsersToGroupBody:
+            properties:
+                userIds:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        GroupServiceAssignRoleBody:
+            properties:
+                roleId:
+                    type: string
+            type: object
+        GroupServiceAssignRolesToGroupBody:
+            properties:
+                roleIds:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        GroupServiceRemoveUsersFromGroupBody:
+            properties:
+                userIds:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        GroupServiceUpdateGroupBody:
+            properties:
+                description:
+                    type: string
+                name:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/v1GroupStatus'
+            type: object
+        googleRpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        v1AddUsersToGroupResponse:
+            type: object
+        v1AssignRoleResponse:
+            properties:
+                group:
+                    $ref: '#/components/schemas/v1Group'
+            type: object
+        v1AssignRolesToGroupResponse:
+            type: object
+        v1CreateGroupRequest:
+            properties:
+                description:
+                    type: string
+                name:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/v1GroupStatus'
+            type: object
+        v1CreateGroupResponse:
+            properties:
+                group:
+                    $ref: '#/components/schemas/v1Group'
+            type: object
+        v1DeleteGroupResponse:
+            type: object
+        v1GetGroupResponse:
+            properties:
+                group:
+                    $ref: '#/components/schemas/v1Group'
+            type: object
+        v1Group:
+            properties:
+                createdAt:
+                    format: date-time
+                    type: string
+                description:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                roleIds:
+                    items:
+                        type: string
+                    type: array
+                status:
+                    $ref: '#/components/schemas/v1GroupStatus'
+                updatedAt:
+                    format: date-time
+                    type: string
+            type: object
+        v1GroupStatus:
+            default: STATUS_UNSPECIFIED
+            enum:
+                - STATUS_UNSPECIFIED
+                - STATUS_ACTIVE
+                - STATUS_INACTIVE
+            type: string
+        v1ListGroupResponse:
+            properties:
+                groups:
+                    items:
+                        $ref: '#/components/schemas/v1Group'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1RemoveUsersFromGroupResponse:
+            type: object
+        v1UpdateGroupResponse:
+            properties:
+                group:
+                    $ref: '#/components/schemas/v1Group'
+            type: object
+info:
+    title: system/group/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/groups:
+        get:
+            operationId: GroupService_ListGroup
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: groupIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+                - in: query
+                  name: groupName
+                  schema:
+                    type: string
+                - in: query
+                  name: status
+                  schema:
+                    default: STATUS_UNSPECIFIED
+                    enum:
+                        - STATUS_UNSPECIFIED
+                        - STATUS_ACTIVE
+                        - STATUS_INACTIVE
+                    type: string
+                - in: query
+                  name: roleIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+        post:
+            operationId: GroupService_CreateGroup
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateGroupRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+    /api/v1/groups/{groupId}/roles/assignRoles:
+        post:
+            operationId: GroupService_AssignRolesToGroup
+            parameters:
+                - in: path
+                  name: groupId
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GroupServiceAssignRolesToGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1AssignRolesToGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+    /api/v1/groups/{groupId}/users/add:
+        post:
+            operationId: GroupService_AddUsersToGroup
+            parameters:
+                - in: path
+                  name: groupId
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GroupServiceAddUsersToGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1AddUsersToGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+    /api/v1/groups/{groupId}/users/remove:
+        post:
+            operationId: GroupService_RemoveUsersFromGroup
+            parameters:
+                - in: path
+                  name: groupId
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GroupServiceRemoveUsersFromGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1RemoveUsersFromGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+    /api/v1/groups/{id}:
+        delete:
+            operationId: GroupService_DeleteGroup
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeleteGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+        get:
+            operationId: GroupService_GetGroup
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+        put:
+            operationId: GroupService_UpdateGroup
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GroupServiceUpdateGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UpdateGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+    /api/v1/groups/{id}/roles/assign:
+        post:
+            operationId: GroupService_AssignRole
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GroupServiceAssignRoleBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1AssignRoleResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+tags:
+    - name: GroupService

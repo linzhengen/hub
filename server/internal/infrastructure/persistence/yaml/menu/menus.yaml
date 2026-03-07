@@ -1,0 +1,125 @@
+menus:
+  - id: "00000000-0000-0000-1000-000000000000"
+    name: "マイページ"
+    type: "menu"
+    path: "/my"
+    component: "my/index"
+    displayOrder: 1
+    description: ""
+    metadata:
+      hideInMenu: "true"
+      icon: "mdi:account-circle"
+    status: "Active"
+  - id: "00000000-0000-0000-2000-000000000000"
+    name: "ユーザー管理"
+    type: "menu"
+    path: "/user"
+    component: "user/list"
+    displayOrder: 2
+    description: ""
+    metadata:
+      icon: "mdi:account-cog"
+    status: "Active"
+  - id: "00000000-0000-0000-3000-000000000000"
+    name: "フォーム管理"
+    type: "menu"
+    path: "/form"
+    component: "BasicLayout"
+    displayOrder: 3
+    description: ""
+    metadata:
+      icon: "mdi:form-select"
+    status: "Active"
+    children:
+      - id: "00000000-0000-0000-3000-100000000000"
+        name: "フォームビルダー"
+        type: "menu"
+        path: "/form/builder"
+        component: "form/builder"
+        displayOrder: 1
+        description: ""
+        metadata:
+          icon: "mdi:pencil-ruler"
+        status: "Active"
+      - id: "00000000-0000-0000-3000-200000000000"
+        name: "フォーム一覧"
+        type: "menu"
+        path: "/form/list"
+        component: "form/list"
+        displayOrder: 2
+        description: ""
+        metadata:
+          icon: "mdi:format-list-bulleted"
+        status: "Active"
+  - id: "00000000-0000-0000-4000-000000000000"
+    name: "ワークフロー管理"
+    type: "menu"
+    path: "/workflow"
+    component: "BasicLayout"
+    displayOrder: 4
+    description: ""
+    metadata:
+      icon: "mdi:lan"
+    status: "Active"
+    children:
+      - id: "00000000-0000-0000-4000-100000000000"
+        name: "ワークフロービルダー"
+        type: "menu"
+        path: "/workflow/builder"
+        component: "workflow/builder/index"
+        displayOrder: 1
+        description: ""
+        metadata:
+          icon: "mdi:project-scribe-outline"
+        status: "Active"
+      - id: "00000000-0000-0000-4000-200000000000"
+        name: "ワークフロー一覧"
+        type: "menu"
+        path: "/workflow/list"
+        component: "workflow/list"
+        displayOrder: 2
+        description: ""
+        metadata:
+          icon: "mdi:format-list-bulleted"
+        status: "Active"
+  - id: "00000000-0000-0000-9000-000000000000"
+    name: "システム管理"
+    type: "menu"
+    path: "/system"
+    component: "BasicLayout"
+    displayOrder: 5
+    description: ""
+    metadata:
+      icon: "carbon:settings"
+    status: "Active"
+    children:
+      - id: "00000000-0000-0000-9000-100000000000"
+        name: "ロール管理"
+        type: "menu"
+        path: "/system/role"
+        component: "system/role/list"
+        displayOrder: 1
+        description: ""
+        metadata:
+          icon: "mdi:account-group"
+        status: "Active"
+      - id: "00000000-0000-0000-9000-200000000000"
+        name: "グループ管理"
+        type: "menu"
+        path: "/system/group"
+        component: "system/group/list"
+        displayOrder: 2
+        description: ""
+        metadata:
+          icon: "charm:organisation"
+        status: "Active"
+      - id: "00000000-0000-0000-9000-300000000000"
+        name: "メニュー管理"
+        type: "menu"
+        path: "/system/menu"
+        component: "system/menu/list"
+        displayOrder: 3
+        description: ""
+        metadata:
+          icon: "mdi:menu"
+        status: "Active"
