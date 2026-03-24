@@ -12,9 +12,20 @@
       "Bash(golangci-lint run:*)",
       "Bash(go test:*)",
       "Bash(go vet:*)",
-      "Bash(go build:*)"
+      "Bash(go build:*)",
+      "Bash(gofmt:*)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -fd:*)",
+      "Bash(git branch -D:*)",
+      "Bash(rm -rf /:*)",
+      "Bash(rm -rf .git:*)",
+      "Bash(terraform destroy:*)",
+      "Bash(kubectl delete namespace:*)",
+      "Bash(rm -rf *:*)"
+    ]
   },
   "enableAllProjectMcpServers": true
 }
