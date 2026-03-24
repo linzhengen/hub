@@ -1,8 +1,8 @@
 module github.com/linzhengen/hub/server
 
-go 1.26
+go 1.25.0
 
-toolchain go1.26.1
+toolchain go1.25.8
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
