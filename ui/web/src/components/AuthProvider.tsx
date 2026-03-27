@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         };
       } catch (error) {
-        console.error('Failed to initialize Keycloak', error);
+        // console.error('Failed to initialize Keycloak', error);
         setIsInitialized(true);
       }
     };

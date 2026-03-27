@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { resourceService, Resource } from '@/services/resource';
-import { Button } from '@/components/ui/button';
+import { resourceService, Resource, CreateResourceRequest, UpdateResourceRequest, ResourceType } from '@/services/resource';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export function Resources() {
   const queryClient = useQueryClient();
@@ -16,7 +17,7 @@ export function Resources() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['resources'],
-    queryFn: resourceService.listResources,
+    queryFn: () => resourceService.listResources(),
   });
 
   const createMutation = useMutation({
@@ -30,7 +31,7 @@ export function Resources() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Resource> }) => resourceService.updateResource(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateResourceRequest }) => resourceService.updateResource(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resources'] });
       setEditingResource(null);
@@ -53,7 +54,7 @@ export function Resources() {
     const formData = new FormData(e.currentTarget);
     createMutation.mutate({
       name: formData.get('name') as string,
-      type: formData.get('type') as string,
+      type: formData.get('type') as ResourceType,
       description: formData.get('description') as string,
     });
   };
@@ -66,7 +67,7 @@ export function Resources() {
       id: editingResource.id,
       data: {
         name: formData.get('name') as string,
-        type: formData.get('type') as string,
+        type: formData.get('type') as ResourceType,
         description: formData.get('description') as string,
       }
     });
@@ -77,8 +78,8 @@ export function Resources() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Resources</h2>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Add Resource</Button>
+          <DialogTrigger className={cn(buttonVariants())}>
+            <Plus className="mr-2 h-4 w-4" /> Add Resource
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -92,7 +93,16 @@ export function Resources() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">Type</Label>
-                  <Input id="type" name="type" required />
+                  <select
+                    id="type"
+                    name="type"
+                    required
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="TYPE_UNSPECIFIED">Unspecified</option>
+                    <option value="TYPE_MENU">Menu</option>
+                    <option value="TYPE_API">API</option>
+                  </select>
                 </div>
               </div>
               <div className="space-y-2">
@@ -173,7 +183,17 @@ export function Resources() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-type">Type</Label>
-                  <Input id="edit-type" name="type" defaultValue={editingResource.type} required />
+                  <select
+                    id="edit-type"
+                    name="type"
+                    defaultValue={editingResource.type}
+                    required
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="TYPE_UNSPECIFIED">Unspecified</option>
+                    <option value="TYPE_MENU">Menu</option>
+                    <option value="TYPE_API">API</option>
+                  </select>
                 </div>
               </div>
               <div className="space-y-2">

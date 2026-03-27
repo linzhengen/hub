@@ -23,13 +23,17 @@ type resourceHandler struct {
 }
 
 func (h resourceHandler) CreateResource(ctx context.Context, request *pbv1.CreateResourceRequest) (*pbv1.CreateResourceResponse, error) {
+	var identifier resource.Identifier
+	if request.Identifier != nil {
+		identifier = resource.Identifier{
+			Api:      request.Identifier.Api,
+			Category: request.Identifier.Category,
+		}
+	}
 	f := resource.Factory(
 		request.Name,
 		request.ParentId,
-		resource.Identifier{
-			Api:      request.Identifier.Api,
-			Category: request.Identifier.Category,
-		},
+		identifier,
 		resource.ResourceType(request.Type),
 		request.Path,
 		request.GetComponent(),
@@ -37,6 +41,13 @@ func (h resourceHandler) CreateResource(ctx context.Context, request *pbv1.Creat
 		request.GetDescription(),
 		request.Metadata,
 	)
+	if request.Status != pbv1.Status_STATUS_UNSPECIFIED {
+		status, err := toResourceDomainStatus(request.Status)
+		if err != nil {
+			return nil, err
+		}
+		f.Status = status
+	}
 	r, err := h.resourceUseCase.Create(ctx, f)
 	if err != nil {
 		return nil, err
@@ -81,21 +92,29 @@ func (h resourceHandler) ListResource(ctx context.Context, request *pbv1.ListRes
 }
 
 func (h resourceHandler) UpdateResource(ctx context.Context, request *pbv1.UpdateResourceRequest) (*pbv1.UpdateResourceResponse, error) {
-	p, err := h.resourceUseCase.Update(ctx, &resource.Resource{
-		Id:       request.Id,
-		ParentId: request.ParentId,
-		Name:     request.Name,
-		Identifier: resource.Identifier{
+	status, err := toResourceDomainStatus(request.Status)
+	if err != nil {
+		return nil, err
+	}
+	var identifier resource.Identifier
+	if request.Identifier != nil {
+		identifier = resource.Identifier{
 			Api:      request.Identifier.Api,
 			Category: request.Identifier.Category,
-		},
+		}
+	}
+	p, err := h.resourceUseCase.Update(ctx, &resource.Resource{
+		Id:           request.Id,
+		ParentId:     request.ParentId,
+		Name:         request.Name,
+		Identifier:   identifier,
 		Type:         resource.ResourceType(request.Type),
 		Path:         request.Path,
 		Component:    request.GetComponent(),
 		DisplayOrder: request.DisplayOrder,
 		Description:  request.GetDescription(),
 		Metadata:     request.Metadata,
-		Status:       resource.Status(request.Status),
+		Status:       status,
 		UpdatedAt:    time.Now(),
 	})
 	if err != nil {

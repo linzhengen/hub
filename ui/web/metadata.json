@@ -1,5 +1,5 @@
 {
-  "name": "RBAC Console",
+  "name": "Hub",
   "description": "Admin console for User and RBAC management",
   "requestFramePermissions": []
 }

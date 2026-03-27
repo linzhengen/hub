@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { permissionService, Permission } from '@/services/permission';
-import { Button } from '@/components/ui/button';
+import { permissionService, Permission, CreatePermissionRequest, UpdatePermissionRequest } from '@/services/permission';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export function Permissions() {
   const queryClient = useQueryClient();
@@ -16,7 +17,7 @@ export function Permissions() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['permissions'],
-    queryFn: permissionService.listPermissions,
+    queryFn: () => permissionService.listPermissions(),
   });
 
   const createMutation = useMutation({
@@ -30,7 +31,7 @@ export function Permissions() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Permission> }) => permissionService.updatePermission(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdatePermissionRequest }) => permissionService.updatePermission(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setEditingPermission(null);
@@ -52,9 +53,8 @@ export function Permissions() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     createMutation.mutate({
-      name: formData.get('name') as string,
-      resource: formData.get('resource') as string,
-      action: formData.get('action') as string,
+      resourceId: formData.get('resourceId') as string,
+      verb: formData.get('verb') as string,
       description: formData.get('description') as string,
     });
   };
@@ -66,9 +66,7 @@ export function Permissions() {
     updateMutation.mutate({
       id: editingPermission.id,
       data: {
-        name: formData.get('name') as string,
-        resource: formData.get('resource') as string,
-        action: formData.get('action') as string,
+        verb: formData.get('verb') as string,
         description: formData.get('description') as string,
       }
     });
@@ -79,26 +77,22 @@ export function Permissions() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Permissions</h2>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Add Permission</Button>
+          <DialogTrigger className={cn(buttonVariants())}>
+            <Plus className="mr-2 h-4 w-4" /> Add Permission
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create New Permission</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" required />
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="resource">Resource</Label>
-                  <Input id="resource" name="resource" required />
+                  <Label htmlFor="resourceId">Resource ID</Label>
+                  <Input id="resourceId" name="resourceId" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="action">Action</Label>
-                  <Input id="action" name="action" required />
+                  <Label htmlFor="verb">Verb</Label>
+                  <Input id="verb" name="verb" required />
                 </div>
               </div>
               <div className="space-y-2">
@@ -120,8 +114,8 @@ export function Permissions() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Resource</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead>Resource ID</TableHead>
+              <TableHead>Verb</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -143,8 +137,8 @@ export function Permissions() {
               data?.permissions?.map((permission) => (
                 <TableRow key={permission.id}>
                   <TableCell className="font-medium">{permission.name}</TableCell>
-                  <TableCell>{permission.resource}</TableCell>
-                  <TableCell>{permission.action}</TableCell>
+                  <TableCell>{permission.resourceId}</TableCell>
+                  <TableCell>{permission.verb}</TableCell>
                   <TableCell>{permission.description}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -176,16 +170,16 @@ export function Permissions() {
             <form onSubmit={handleUpdate} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Name</Label>
-                <Input id="edit-name" name="name" defaultValue={editingPermission.name} required />
+                <Input id="edit-name" defaultValue={editingPermission.name} disabled />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-resource">Resource</Label>
-                  <Input id="edit-resource" name="resource" defaultValue={editingPermission.resource} required />
+                  <Label htmlFor="edit-resourceId">Resource ID</Label>
+                  <Input id="edit-resourceId" defaultValue={editingPermission.resourceId} disabled />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-action">Action</Label>
-                  <Input id="edit-action" name="action" defaultValue={editingPermission.action} required />
+                  <Label htmlFor="edit-verb">Verb</Label>
+                  <Input id="edit-verb" name="verb" defaultValue={editingPermission.verb} required />
                 </div>
               </div>
               <div className="space-y-2">

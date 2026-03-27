@@ -102,14 +102,18 @@ func toResourcePbType(t resource.ResourceType) pbresourcev1.Type {
 }
 
 func resourceDomainToPb(m *resource.Resource) *pbresourcev1.Resource {
-	return &pbresourcev1.Resource{
-		Id:       m.Id,
-		ParentId: m.ParentId,
-		Name:     m.Name,
-		Identifier: &pbresourcev1.Identifier{
+	var pbIdentifier *pbresourcev1.Identifier
+	if m.Identifier.Api != "" || m.Identifier.Category != "" {
+		pbIdentifier = &pbresourcev1.Identifier{
 			Api:      m.Identifier.Api,
 			Category: m.Identifier.Category,
-		},
+		}
+	}
+	return &pbresourcev1.Resource{
+		Id:           m.Id,
+		ParentId:     m.ParentId,
+		Name:         m.Name,
+		Identifier:   pbIdentifier,
 		Type:         toResourcePbType(m.Type),
 		Path:         m.Path,
 		Component:    nullableStr(m.Component),
