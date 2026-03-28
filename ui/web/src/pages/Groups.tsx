@@ -31,7 +31,7 @@ export function Groups() {
 
   const { data: usersData } = useQuery({
     queryKey: ['users'],
-    queryFn: userService.listUsers,
+    queryFn: () => userService.listUsers(),
   });
 
   const createMutation = useMutation({
