@@ -19,7 +19,7 @@
       "Bash(docker compose exec keycloak ls:*)",
       "Bash(docker compose exec keycloak find:*)",
       "Bash(docker compose exec:*)",
-      "Bash(pnpm:*)",
+      "Bash(pnpm:*)"                                                                                                                                                                                            ,
       "mcp__filesystem__read_multiple_files",
       "mcp__filesystem__edit_file",
       "mcp__filesystem__read_text_file",
@@ -46,6 +46,9 @@
   },
   "enableAllProjectMcpServers": true,
   "modelConfiguration": {
-    "modelContextWindow": 64000
-  }
+    "modelContextWindow": 110000
+  },
+  "model": "deepseek-chat",
+  "alwaysThinkingEnabled": false,
+  "fastMode": false
 }
