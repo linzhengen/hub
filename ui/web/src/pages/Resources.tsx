@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { resourceService, Resource, CreateResourceRequest, UpdateResourceRequest, ResourceType } from '@/services/resource';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button, Modal, Input, Table, Form, Select, Tag, Space } from 'antd';
+
+const { Option } = Select;
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 export function Resources() {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [createForm] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['resources'],
@@ -49,166 +48,216 @@ export function Resources() {
     onError: (error: any) => toast.error(error.message),
   });
 
-  const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+  const handleCreateSubmit = (values: any) => {
     createMutation.mutate({
-      name: formData.get('name') as string,
-      type: formData.get('type') as ResourceType,
-      description: formData.get('description') as string,
+      name: values.name,
+      type: values.type,
+      description: values.description,
     });
   };
 
-  const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleEditSubmit = (values: any) => {
     if (!editingResource) return;
-    const formData = new FormData(e.currentTarget);
+
     updateMutation.mutate({
       id: editingResource.id,
       data: {
-        name: formData.get('name') as string,
-        type: formData.get('type') as ResourceType,
-        description: formData.get('description') as string,
+        name: values.name,
+        type: values.type,
+        description: values.description,
       }
     });
   };
+
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type: string) => {
+        let color = 'default';
+        let text = 'Unspecified';
+
+        if (type === 'TYPE_MENU') {
+          color = 'blue';
+          text = 'Menu';
+        } else if (type === 'TYPE_API') {
+          color = 'green';
+          text = 'API';
+        }
+
+        return <Tag color={color}>{text}</Tag>;
+      },
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: Resource) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setEditingResource(record);
+              editForm.setFieldsValue({
+                name: record.name,
+                type: record.type,
+                description: record.description,
+              });
+            }}
+          />
+          <Button
+            type="text"
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this resource?')) {
+                deleteMutation.mutate(record.id);
+              }
+            }}
+          />
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Resources</h2>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger className={cn(buttonVariants())}>
-            <Plus className="mr-2 h-4 w-4" /> Add Resource
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Resource</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" name="name" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
-                  <select
-                    id="type"
-                    name="type"
-                    required
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="TYPE_UNSPECIFIED">Unspecified</option>
-                    <option value="TYPE_MENU">Menu</option>
-                    <option value="TYPE_API">API</option>
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Input id="description" name="description" />
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Creating...' : 'Create'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setIsCreateOpen(true)}
+        >
+          Add Resource
+        </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center">Loading...</TableCell>
-              </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-red-500">Failed to load resources</TableCell>
-              </TableRow>
-            ) : data?.resources?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center">No resources found</TableCell>
-              </TableRow>
-            ) : (
-              data?.resources?.map((resource) => (
-                <TableRow key={resource.id}>
-                  <TableCell className="font-medium">{resource.name}</TableCell>
-                  <TableCell>{resource.type}</TableCell>
-                  <TableCell>{resource.description}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => setEditingResource(resource)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => {
-                        if (confirm('Are you sure you want to delete this resource?')) {
-                          deleteMutation.mutate(resource.id);
-                        }
-                      }}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <Table
+        columns={columns}
+        dataSource={data?.resources}
+        loading={isLoading}
+        rowKey="id"
+        locale={{
+          emptyText: error ? 'Failed to load resources' : 'No resources found'
+        }}
+      />
 
-      <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Resource</DialogTitle>
-          </DialogHeader>
-          {editingResource && (
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-name">Name</Label>
-                  <Input id="edit-name" name="name" defaultValue={editingResource.name} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-type">Type</Label>
-                  <select
-                    id="edit-type"
-                    name="type"
-                    defaultValue={editingResource.type}
-                    required
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="TYPE_UNSPECIFIED">Unspecified</option>
-                    <option value="TYPE_MENU">Menu</option>
-                    <option value="TYPE_API">API</option>
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Input id="edit-description" name="description" defaultValue={editingResource.description} />
-              </div>
+      <Modal
+        title="Create New Resource"
+        open={isCreateOpen}
+        onCancel={() => setIsCreateOpen(false)}
+        footer={null}
+      >
+        <Form
+          form={createForm}
+          layout="vertical"
+          onFinish={handleCreateSubmit}
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item
+              name="name"
+              label="Name"
+              rules={[{ required: true, message: 'Please input resource name!' }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="type"
+              label="Type"
+              rules={[{ required: true, message: 'Please select resource type!' }]}
+              initialValue="TYPE_UNSPECIFIED"
+            >
+              <Select>
+                <Option value="TYPE_UNSPECIFIED">Unspecified</Option>
+                <Option value="TYPE_MENU">Menu</Option>
+                <Option value="TYPE_API">API</Option>
+              </Select>
+            </Form.Item>
+          </div>
+          <Form.Item
+            name="description"
+            label="Description"
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item className="mb-0">
+            <div className="flex justify-end">
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={createMutation.isPending}
+              >
+                Create
+              </Button>
+            </div>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Edit Resource"
+        open={!!editingResource}
+        onCancel={() => setEditingResource(null)}
+        footer={null}
+      >
+        {editingResource && (
+          <Form
+            form={editForm}
+            layout="vertical"
+            onFinish={handleEditSubmit}
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="name"
+                label="Name"
+                rules={[{ required: true, message: 'Please input resource name!' }]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="type"
+                label="Type"
+                rules={[{ required: true, message: 'Please select resource type!' }]}
+              >
+                <Select>
+                  <Option value="TYPE_UNSPECIFIED">Unspecified</Option>
+                  <Option value="TYPE_MENU">Menu</Option>
+                  <Option value="TYPE_API">API</Option>
+                </Select>
+              </Form.Item>
+            </div>
+            <Form.Item
+              name="description"
+              label="Description"
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item className="mb-0">
               <div className="flex justify-end">
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={updateMutation.isPending}
+                >
+                  Save Changes
                 </Button>
               </div>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
     </div>
   );
 }

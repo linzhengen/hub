@@ -3,14 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { groupService, Group, CreateGroupRequest, UpdateGroupRequest, GroupStatus } from '@/services/group';
 import { roleService, Role } from '@/services/role';
 import { userService, User } from '@/services/user';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Key, Users as UsersIcon } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button, Modal, Input, Table, Form, Select, Tag, Space } from 'antd';
+
+const { Option } = Select;
+import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UserOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 export function Groups() {
   const queryClient = useQueryClient();
@@ -18,6 +15,8 @@ export function Groups() {
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [managingRolesGroup, setManagingRolesGroup] = useState<Group | null>(null);
   const [managingUsersGroup, setManagingUsersGroup] = useState<Group | null>(null);
+  const [createForm] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['groups'],
@@ -122,294 +121,347 @@ export function Groups() {
     onError: (error: any) => toast.error(error.message),
   });
 
-  const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+  const handleCreateSubmit = (values: any) => {
     createMutation.mutate({
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      status: (formData.get('status') as GroupStatus) || 'STATUS_UNSPECIFIED',
+      name: values.name,
+      description: values.description,
+      status: values.status || 'STATUS_UNSPECIFIED',
     });
   };
 
-  const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleEditSubmit = (values: any) => {
     if (!editingGroup) return;
-    const formData = new FormData(e.currentTarget);
+
     const data: UpdateGroupRequest = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
+      name: values.name,
+      description: values.description,
     };
-    const status = formData.get('status') as GroupStatus;
-    if (status) {
-      data.status = status;
+
+    if (values.status) {
+      data.status = values.status;
     }
+
     updateMutation.mutate({
       id: editingGroup.id,
       data
     });
   };
 
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        let color = 'default';
+        let text = 'Unspecified';
+
+        if (status === 'STATUS_ACTIVE') {
+          color = 'success';
+          text = 'Active';
+        } else if (status === 'STATUS_INACTIVE') {
+          color = 'error';
+          text = 'Inactive';
+        }
+
+        return <Tag color={color}>{text}</Tag>;
+      },
+    },
+    {
+      title: 'Roles',
+      key: 'roles',
+      render: (_: any, record: Group) => (
+        <span>{record.roleIds?.length || 0} role(s)</span>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: Group) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<KeyOutlined />}
+            onClick={() => setManagingRolesGroup(record)}
+          />
+          <Button
+            type="text"
+            icon={<UserOutlined />}
+            onClick={() => setManagingUsersGroup(record)}
+          />
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setEditingGroup(record);
+              editForm.setFieldsValue({
+                name: record.name,
+                description: record.description,
+                status: record.status,
+              });
+            }}
+          />
+          <Button
+            type="text"
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this group?')) {
+                deleteMutation.mutate(record.id);
+              }
+            }}
+          />
+        </Space>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Groups</h2>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger className={cn(buttonVariants())}>
-            <Plus className="mr-2 h-4 w-4" /> Add Group
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Group</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Input id="description" name="description" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  name="status"
-                  defaultValue="STATUS_UNSPECIFIED"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="STATUS_UNSPECIFIED">Unspecified</option>
-                  <option value="STATUS_ACTIVE">Active</option>
-                  <option value="STATUS_INACTIVE">Inactive</option>
-                </select>
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Creating...' : 'Create'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h2 style={{ fontSize: "24px", fontWeight: "bold", letterSpacing: "-0.025em" }}>Groups</h2>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setIsCreateOpen(true)}
+        >
+          Add Group
+        </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Roles</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">Loading...</TableCell>
-              </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-red-500">Failed to load groups</TableCell>
-              </TableRow>
-            ) : data?.groups?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">No groups found</TableCell>
-              </TableRow>
-            ) : (
-              data?.groups?.map((group) => (
-                <TableRow key={group.id}>
-                  <TableCell className="font-medium">{group.name}</TableCell>
-                  <TableCell>{group.description}</TableCell>
-                  <TableCell>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${group.status === 'STATUS_ACTIVE' ? 'bg-green-100 text-green-800' : group.status === 'STATUS_INACTIVE' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {group.status === 'STATUS_ACTIVE' ? 'Active' : group.status === 'STATUS_INACTIVE' ? 'Inactive' : 'Unspecified'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {group.roleIds?.length || 0} role(s)
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => setManagingRolesGroup(group)}>
-                        <Key className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setManagingUsersGroup(group)}>
-                        <UsersIcon className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setEditingGroup(group)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => {
-                        if (confirm('Are you sure you want to delete this group?')) {
-                          deleteMutation.mutate(group.id);
-                        }
-                      }}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <Table
+        columns={columns}
+        dataSource={data?.groups}
+        loading={isLoading}
+        rowKey="id"
+        locale={{
+          emptyText: error ? 'Failed to load groups' : 'No groups found'
+        }}
+      />
 
-      <Dialog open={!!editingGroup} onOpenChange={(open) => !open && setEditingGroup(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Group</DialogTitle>
-          </DialogHeader>
-          {editingGroup && (
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Name</Label>
-                <Input id="edit-name" name="name" defaultValue={editingGroup.name} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Input id="edit-description" name="description" defaultValue={editingGroup.description} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-status">Status</Label>
-                <select
-                  id="edit-status"
-                  name="status"
-                  defaultValue={editingGroup.status}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="STATUS_UNSPECIFIED">Unspecified</option>
-                  <option value="STATUS_ACTIVE">Active</option>
-                  <option value="STATUS_INACTIVE">Inactive</option>
-                </select>
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!managingRolesGroup} onOpenChange={(open) => !open && setManagingRolesGroup(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Manage Roles for {managingRolesGroup?.name}</DialogTitle>
-          </DialogHeader>
-          {managingRolesGroup && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium">Current Roles</h3>
-                {managingRolesGroup.roleIds.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No roles assigned</p>
-                ) : (
-                  <div className="mt-2 space-y-2">
-                    {managingRolesGroup.roleIds.map((roleId) => {
-                      const role = rolesData?.roles?.find(r => r.id === roleId);
-                      return role ? (
-                        <div key={roleId} className="flex items-center justify-between rounded-md border px-3 py-2">
-                          <span>{role.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to remove ${role.name} from this group?`)) {
-                                unassignRoleMutation.mutate({
-                                  id: managingRolesGroup.id,
-                                  roleId: role.id,
-                                  currentRoleIds: managingRolesGroup.roleIds
-                                });
-                              }
-                            }}
-                            disabled={unassignRoleMutation.isPending && unassignRoleMutation.variables?.id === managingRolesGroup.id && unassignRoleMutation.variables?.roleId === role.id}
-                          >
-                            {unassignRoleMutation.isPending && unassignRoleMutation.variables?.id === managingRolesGroup.id && unassignRoleMutation.variables?.roleId === role.id ? 'Removing...' : 'Remove'}
-                          </Button>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-lg font-medium">Available Roles</h3>
-                {rolesData?.roles?.filter(role => !managingRolesGroup.roleIds.includes(role.id)).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No available roles</p>
-                ) : (
-                  <div className="mt-2 space-y-2">
-                    {rolesData?.roles
-                      ?.filter(role => !managingRolesGroup.roleIds.includes(role.id))
-                      .map((role) => (
-                        <div key={role.id} className="flex items-center justify-between rounded-md border px-3 py-2">
-                          <span>{role.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              assignRoleMutation.mutate({
-                                id: managingRolesGroup.id,
-                                roleId: role.id
-                              });
-                            }}
-                            disabled={assignRoleMutation.isPending && assignRoleMutation.variables?.id === managingRolesGroup.id && assignRoleMutation.variables?.roleId === role.id}
-                          >
-                            {assignRoleMutation.isPending && assignRoleMutation.variables?.id === managingRolesGroup.id && assignRoleMutation.variables?.roleId === role.id ? 'Assigning...' : 'Assign'}
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
+      <Modal
+        title="Create New Group"
+        open={isCreateOpen}
+        onCancel={() => setIsCreateOpen(false)}
+        footer={null}
+      >
+        <Form
+          form={createForm}
+          layout="vertical"
+          onFinish={handleCreateSubmit}
+        >
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: 'Please input group name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            initialValue="STATUS_UNSPECIFIED"
+          >
+            <Select>
+              <Option value="STATUS_UNSPECIFIED">Unspecified</Option>
+              <Option value="STATUS_ACTIVE">Active</Option>
+              <Option value="STATUS_INACTIVE">Inactive</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item className="mb-0">
+            <div className="flex justify-end">
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={createMutation.isPending}
+              >
+                Create
+              </Button>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </Form.Item>
+        </Form>
+      </Modal>
 
-      <Dialog open={!!managingUsersGroup} onOpenChange={(open) => !open && setManagingUsersGroup(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Manage Users for {managingUsersGroup?.name}</DialogTitle>
-          </DialogHeader>
-          {managingUsersGroup && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium">Current Users</h3>
-                <p className="text-sm text-muted-foreground">User list not available in group response</p>
+      <Modal
+        title="Edit Group"
+        open={!!editingGroup}
+        onCancel={() => setEditingGroup(null)}
+        footer={null}
+      >
+        {editingGroup && (
+          <Form
+            form={editForm}
+            layout="vertical"
+            onFinish={handleEditSubmit}
+          >
+            <Form.Item
+              name="name"
+              label="Name"
+              rules={[{ required: true, message: 'Please input group name!' }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="description"
+              label="Description"
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="status"
+              label="Status"
+            >
+              <Select>
+                <Option value="STATUS_UNSPECIFIED">Unspecified</Option>
+                <Option value="STATUS_ACTIVE">Active</Option>
+                <Option value="STATUS_INACTIVE">Inactive</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item className="mb-0">
+              <div className="flex justify-end">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={updateMutation.isPending}
+                >
+                  Save Changes
+                </Button>
               </div>
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
 
-              <div>
-                <h3 className="text-lg font-medium">Add Users</h3>
+      <Modal
+        title={`Manage Roles for ${managingRolesGroup?.name}`}
+        open={!!managingRolesGroup}
+        onCancel={() => setManagingRolesGroup(null)}
+        width={800}
+        footer={null}
+      >
+        {managingRolesGroup && (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium">Current Roles</h3>
+              {managingRolesGroup.roleIds.length === 0 ? (
+                <p className="text-sm text-gray-500">No roles assigned</p>
+              ) : (
                 <div className="mt-2 space-y-2">
-                  {usersData?.users?.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between rounded-md border px-3 py-2">
-                      <span>{user.username} ({user.email})</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          addUsersToGroupMutation.mutate({
-                            id: managingUsersGroup.id,
-                            userIds: [user.id]
-                          });
-                        }}
-                        disabled={addUsersToGroupMutation.isPending && addUsersToGroupMutation.variables?.id === managingUsersGroup.id && addUsersToGroupMutation.variables?.userIds?.includes(user.id)}
-                      >
-                        {addUsersToGroupMutation.isPending && addUsersToGroupMutation.variables?.id === managingUsersGroup.id && addUsersToGroupMutation.variables?.userIds?.includes(user.id) ? 'Adding...' : 'Add'}
-                      </Button>
-                    </div>
-                  ))}
+                  {managingRolesGroup.roleIds.map((roleId) => {
+                    const role = rolesData?.roles?.find(r => r.id === roleId);
+                    return role ? (
+                      <div key={roleId} className="flex items-center justify-between rounded-md border px-3 py-2">
+                        <span>{role.name}</span>
+                        <Button
+                          type="text"
+                          danger
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to remove ${role.name} from this group?`)) {
+                              unassignRoleMutation.mutate({
+                                id: managingRolesGroup.id,
+                                roleId: role.id,
+                                currentRoleIds: managingRolesGroup.roleIds
+                              });
+                            }
+                          }}
+                          loading={unassignRoleMutation.isPending && unassignRoleMutation.variables?.id === managingRolesGroup.id && unassignRoleMutation.variables?.roleId === role.id}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ) : null;
+                  })}
                 </div>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium">Available Roles</h3>
+              {rolesData?.roles?.filter(role => !managingRolesGroup.roleIds.includes(role.id)).length === 0 ? (
+                <p className="text-sm text-gray-500">No available roles</p>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  {rolesData?.roles
+                    ?.filter(role => !managingRolesGroup.roleIds.includes(role.id))
+                    .map((role) => (
+                      <div key={role.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                        <span>{role.name}</span>
+                        <Button
+                          type="text"
+                          onClick={() => {
+                            assignRoleMutation.mutate({
+                              id: managingRolesGroup.id,
+                              roleId: role.id
+                            });
+                          }}
+                          loading={assignRoleMutation.isPending && assignRoleMutation.variables?.id === managingRolesGroup.id && assignRoleMutation.variables?.roleId === role.id}
+                        >
+                          Assign
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        title={`Manage Users for ${managingUsersGroup?.name}`}
+        open={!!managingUsersGroup}
+        onCancel={() => setManagingUsersGroup(null)}
+        width={800}
+        footer={null}
+      >
+        {managingUsersGroup && (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium">Current Users</h3>
+              <p className="text-sm text-gray-500">User list not available in group response</p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium">Add Users</h3>
+              <div className="mt-2 space-y-2">
+                {usersData?.users?.map((user) => (
+                  <div key={user.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                    <span>{user.username} ({user.email})</span>
+                    <Button
+                      type="text"
+                      onClick={() => {
+                        addUsersToGroupMutation.mutate({
+                          id: managingUsersGroup.id,
+                          userIds: [user.id]
+                        });
+                      }}
+                      loading={addUsersToGroupMutation.isPending && addUsersToGroupMutation.variables?.id === managingUsersGroup.id && addUsersToGroupMutation.variables?.userIds?.includes(user.id)}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

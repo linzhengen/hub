@@ -2,20 +2,17 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { roleService, Role, CreateRoleRequest, UpdateRoleRequest } from '@/services/role';
 import { permissionService, Permission } from '@/services/permission';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Key } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button, Modal, Input, Table, Form, Space } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 export function Roles() {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [managingPermissionsRole, setManagingPermissionsRole] = useState<Role | null>(null);
+  const [createForm] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['roles'],
@@ -89,211 +86,254 @@ export function Roles() {
     onError: (error: any) => toast.error(error.message),
   });
 
-  const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+  const handleCreateSubmit = (values: any) => {
     createMutation.mutate({
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
+      name: values.name,
+      description: values.description,
     });
   };
 
-  const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleEditSubmit = (values: any) => {
     if (!editingRole) return;
-    const formData = new FormData(e.currentTarget);
+
     updateMutation.mutate({
       id: editingRole.id,
       data: {
-        name: formData.get('name') as string,
-        description: formData.get('description') as string,
+        name: values.name,
+        description: values.description,
       }
     });
   };
+
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+    },
+    {
+      title: 'Permissions',
+      key: 'permissions',
+      render: (_: any, record: Role) => (
+        <span>{record.permissionIds?.length || 0} permission(s)</span>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: Role) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<KeyOutlined />}
+            onClick={() => setManagingPermissionsRole(record)}
+          />
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setEditingRole(record);
+              editForm.setFieldsValue({
+                name: record.name,
+                description: record.description,
+              });
+            }}
+          />
+          <Button
+            type="text"
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this role?')) {
+                deleteMutation.mutate(record.id);
+              }
+            }}
+          />
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Roles</h2>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger className={cn(buttonVariants())}>
-            <Plus className="mr-2 h-4 w-4" /> Add Role
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Role</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Input id="description" name="description" />
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Creating...' : 'Create'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => setIsCreateOpen(true)}
+        >
+          Add Role
+        </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Permissions</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center">Loading...</TableCell>
-              </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center text-red-500">Failed to load roles</TableCell>
-              </TableRow>
-            ) : data?.roles?.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center">No roles found</TableCell>
-              </TableRow>
-            ) : (
-              data?.roles?.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell className="font-medium">{role.name}</TableCell>
-                  <TableCell>{role.description}</TableCell>
-                  <TableCell>{role.permissionIds?.length || 0} permission(s)</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => setManagingPermissionsRole(role)}>
-                        <Key className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setEditingRole(role)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => {
-                        if (confirm('Are you sure you want to delete this role?')) {
-                          deleteMutation.mutate(role.id);
-                        }
-                      }}>
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <Table
+        columns={columns}
+        dataSource={data?.roles}
+        loading={isLoading}
+        rowKey="id"
+        locale={{
+          emptyText: error ? 'Failed to load roles' : 'No roles found'
+        }}
+      />
 
-      <Dialog open={!!editingRole} onOpenChange={(open) => !open && setEditingRole(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Role</DialogTitle>
-          </DialogHeader>
-          {editingRole && (
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Name</Label>
-                <Input id="edit-name" name="name" defaultValue={editingRole.name} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Input id="edit-description" name="description" defaultValue={editingRole.description} />
-              </div>
-              <div className="flex justify-end">
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!managingPermissionsRole} onOpenChange={(open) => !open && setManagingPermissionsRole(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Manage Permissions for {managingPermissionsRole?.name}</DialogTitle>
-          </DialogHeader>
-          {managingPermissionsRole && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium">Current Permissions</h3>
-                {managingPermissionsRole.permissionIds.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No permissions assigned</p>
-                ) : (
-                  <div className="mt-2 space-y-2">
-                    {managingPermissionsRole.permissionIds.map((permissionId) => {
-                      const permission = permissionsData?.permissions?.find(p => p.id === permissionId);
-                      return permission ? (
-                        <div key={permissionId} className="flex items-center justify-between rounded-md border px-3 py-2">
-                          <span>{permission.name} ({permission.verb} on {permission.resourceId})</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to remove ${permission.name} from this role?`)) {
-                                unassignPermissionMutation.mutate({
-                                  id: managingPermissionsRole.id,
-                                  permissionId: permission.id,
-                                  currentPermissionIds: managingPermissionsRole.permissionIds
-                                });
-                              }
-                            }}
-                            disabled={unassignPermissionMutation.isPending && unassignPermissionMutation.variables?.id === managingPermissionsRole.id && unassignPermissionMutation.variables?.permissionId === permission.id}
-                          >
-                            {unassignPermissionMutation.isPending && unassignPermissionMutation.variables?.id === managingPermissionsRole.id && unassignPermissionMutation.variables?.permissionId === permission.id ? 'Removing...' : 'Remove'}
-                          </Button>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-lg font-medium">Available Permissions</h3>
-                {permissionsData?.permissions?.filter(permission => !managingPermissionsRole.permissionIds.includes(permission.id)).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No available permissions</p>
-                ) : (
-                  <div className="mt-2 space-y-2">
-                    {permissionsData?.permissions
-                      ?.filter(permission => !managingPermissionsRole.permissionIds.includes(permission.id))
-                      .map((permission) => (
-                        <div key={permission.id} className="flex items-center justify-between rounded-md border px-3 py-2">
-                          <span>{permission.name} ({permission.verb} on {permission.resourceId})</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              assignPermissionMutation.mutate({
-                                id: managingPermissionsRole.id,
-                                permissionId: permission.id
-                              });
-                            }}
-                            disabled={assignPermissionMutation.isPending && assignPermissionMutation.variables?.id === managingPermissionsRole.id && assignPermissionMutation.variables?.permissionId === permission.id}
-                          >
-                            {assignPermissionMutation.isPending && assignPermissionMutation.variables?.id === managingPermissionsRole.id && assignPermissionMutation.variables?.permissionId === permission.id ? 'Assigning...' : 'Assign'}
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
+      <Modal
+        title="Create New Role"
+        open={isCreateOpen}
+        onCancel={() => setIsCreateOpen(false)}
+        footer={null}
+      >
+        <Form
+          form={createForm}
+          layout="vertical"
+          onFinish={handleCreateSubmit}
+        >
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: 'Please input role name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item className="mb-0">
+            <div className="flex justify-end">
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={createMutation.isPending}
+              >
+                Create
+              </Button>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Edit Role"
+        open={!!editingRole}
+        onCancel={() => setEditingRole(null)}
+        footer={null}
+      >
+        {editingRole && (
+          <Form
+            form={editForm}
+            layout="vertical"
+            onFinish={handleEditSubmit}
+          >
+            <Form.Item
+              name="name"
+              label="Name"
+              rules={[{ required: true, message: 'Please input role name!' }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="description"
+              label="Description"
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item className="mb-0">
+              <div className="flex justify-end">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={updateMutation.isPending}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+
+      <Modal
+        title={`Manage Permissions for ${managingPermissionsRole?.name}`}
+        open={!!managingPermissionsRole}
+        onCancel={() => setManagingPermissionsRole(null)}
+        width={800}
+        footer={null}
+      >
+        {managingPermissionsRole && (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-medium">Current Permissions</h3>
+              {managingPermissionsRole.permissionIds.length === 0 ? (
+                <p className="text-sm text-gray-500">No permissions assigned</p>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  {managingPermissionsRole.permissionIds.map((permissionId) => {
+                    const permission = permissionsData?.permissions?.find(p => p.id === permissionId);
+                    return permission ? (
+                      <div key={permissionId} className="flex items-center justify-between rounded-md border px-3 py-2">
+                        <span>{permission.name} ({permission.verb} on {permission.resourceId})</span>
+                        <Button
+                          type="text"
+                          danger
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to remove ${permission.name} from this role?`)) {
+                              unassignPermissionMutation.mutate({
+                                id: managingPermissionsRole.id,
+                                permissionId: permission.id,
+                                currentPermissionIds: managingPermissionsRole.permissionIds
+                              });
+                            }
+                          }}
+                          loading={unassignPermissionMutation.isPending && unassignPermissionMutation.variables?.id === managingPermissionsRole.id && unassignPermissionMutation.variables?.permissionId === permission.id}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium">Available Permissions</h3>
+              {permissionsData?.permissions?.filter(permission => !managingPermissionsRole.permissionIds.includes(permission.id)).length === 0 ? (
+                <p className="text-sm text-gray-500">No available permissions</p>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  {permissionsData?.permissions
+                    ?.filter(permission => !managingPermissionsRole.permissionIds.includes(permission.id))
+                    .map((permission) => (
+                      <div key={permission.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                        <span>{permission.name} ({permission.verb} on {permission.resourceId})</span>
+                        <Button
+                          type="text"
+                          onClick={() => {
+                            assignPermissionMutation.mutate({
+                              id: managingPermissionsRole.id,
+                              permissionId: permission.id
+                            });
+                          }}
+                          loading={assignPermissionMutation.isPending && assignPermissionMutation.variables?.id === managingPermissionsRole.id && assignPermissionMutation.variables?.permissionId === permission.id}
+                        >
+                          Assign
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

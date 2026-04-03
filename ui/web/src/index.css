@@ -128,3 +128,17 @@
     @apply font-sans;
     }
 }
+
+/* Refineサイドメニューのログアウトボタンを非表示 */
+.ant-menu-item[data-key="logout"],
+.ant-menu-item[data-key="log-out"],
+.ant-menu-item:has(.anticon-logout),
+.ant-menu-item:has(.anticon-poweroff) {
+  display: none !important;
+}
+
+/* ログアウトメニューを含むメニューグループを非表示 */
+.ant-menu-item-group:has(.ant-menu-item[data-key="logout"]),
+.ant-menu-item-group:has(.ant-menu-item[data-key="log-out"]) {
+  display: none !important;
+}

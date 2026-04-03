@@ -1,5 +1,5 @@
 {
   "name": "Hub",
-  "description": "Admin console for User and RBAC management",
+  "description": "Admin console for AI Hub",
   "requestFramePermissions": []
 }
