@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService, User } from '@/services/user';
 import { groupService, Group, ListGroupsResponse } from '@/services/group';
-import { Button, Modal, Input, Table, Form, Select, Tag, Space } from 'antd';
+import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
+import { FolderKanban } from 'lucide-react';
 
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ export function Users() {
   const [managingGroupsUser, setManagingGroupsUser] = useState<User | null>(null);
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
+  const [searchText, setSearchText] = useState('');
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['users'],
@@ -116,26 +118,72 @@ export function Users() {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
-        let color = 'default';
+        let color = '';
+        let bgColor = '';
         let text = 'Unspecified';
 
         if (status === 'STATUS_ACTIVE') {
-          color = 'success';
+          color = '#059669';
+          bgColor = '#d1fae5';
           text = 'Active';
         } else if (status === 'STATUS_INACTIVE') {
-          color = 'error';
+          color = '#dc2626';
+          bgColor = '#fee2e2';
           text = 'Inactive';
+        } else {
+          color = '#6b7280';
+          bgColor = '#f3f4f6';
+          text = 'Unspecified';
         }
 
-        return <Tag color={color}>{text}</Tag>;
+        return (
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '4px 10px',
+            borderRadius: '9999px',
+            fontSize: '12px',
+            fontWeight: '500',
+            color: color,
+            backgroundColor: bgColor
+          }}>
+            {text}
+          </span>
+        );
       },
     },
     {
       title: 'Groups',
       key: 'groups',
-      render: (_: any, record: User) => (
-        <span>{getGroupNames(record.groupIds).join(', ') || 'None'}</span>
-      ),
+      render: (_: any, record: User) => {
+        const groupNames = getGroupNames(record.groupIds);
+        return (
+          <div className="flex flex-wrap gap-1">
+            {groupNames.length > 0 ? (
+              groupNames.map((name, index) => (
+                <span
+                  key={index}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: '400',
+                    color: '#3b82f6',
+                    backgroundColor: '#eff6ff',
+                    border: '1px solid #dbeafe'
+                  }}
+                >
+                  {name}
+                </span>
+              ))
+            ) : (
+              <span style={{ color: '#94a3b8', fontSize: '14px' }}>None</span>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: 'Actions',
@@ -146,6 +194,12 @@ export function Users() {
             type="text"
             icon={<UserOutlined />}
             onClick={() => setManagingGroupsUser(record)}
+            style={{
+              padding: '6px',
+              borderRadius: '6px',
+              color: '#64748b'
+            }}
+            className="hover:bg-gray-100"
           />
           <Button
             type="text"
@@ -159,16 +213,27 @@ export function Users() {
                 groupIds: record.groupIds,
               });
             }}
+            style={{
+              padding: '6px',
+              borderRadius: '6px',
+              color: '#3b82f6'
+            }}
+            className="hover:bg-blue-50"
           />
           <Button
             type="text"
             icon={<DeleteOutlined />}
-            danger
             onClick={() => {
               if (confirm('Are you sure you want to delete this user?')) {
                 deleteMutation.mutate(record.id);
               }
             }}
+            style={{
+              padding: '6px',
+              borderRadius: '6px',
+              color: '#dc2626'
+            }}
+            className="hover:bg-red-50"
           />
         </Space>
       ),
@@ -202,28 +267,116 @@ export function Users() {
     });
   };
 
+  // 検索フィルター
+  const filteredUsers = data?.users?.filter(user =>
+    !searchText ||
+    user.username.toLowerCase().includes(searchText.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Users</h2>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setIsCreateOpen(true)}
-        >
-          Add User
-        </Button>
+    <div className="space-y-6">
+      {/* ヘッダーセクション */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#1e293b' }}>Users</h2>
+          <p className="text-sm" style={{ color: '#64748b' }}>Manage user accounts and permissions</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Input
+            placeholder="Search users..."
+            prefix={<UserOutlined style={{ color: '#94a3b8' }} />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250, borderRadius: '8px' }}
+            allowClear
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsCreateOpen(true)}
+            style={{ borderRadius: '8px' }}
+          >
+            Add User
+          </Button>
+        </div>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={data?.users}
-        loading={isLoading}
-        rowKey="id"
-        locale={{
-          emptyText: error ? 'Failed to load users' : 'No users found'
-        }}
-      />
+      {/* 統計カード */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Total Users</div>
+              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{data?.users?.length || 0}</div>
+            </div>
+            <div className="p-2 rounded-lg bg-blue-50">
+              <UserOutlined style={{ fontSize: '20px', color: '#3b82f6' }} />
+            </div>
+          </div>
+        </Card>
+        <Card className="shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Active Users</div>
+              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+                {data?.users?.filter(u => u.status === 'STATUS_ACTIVE').length || 0}
+              </div>
+            </div>
+            <div className="p-2 rounded-lg bg-green-50">
+              <div className="h-5 w-5 rounded-full bg-green-500"></div>
+            </div>
+          </div>
+        </Card>
+        <Card className="shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Inactive Users</div>
+              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+                {data?.users?.filter(u => u.status === 'STATUS_INACTIVE').length || 0}
+              </div>
+            </div>
+            <div className="p-2 rounded-lg bg-gray-50">
+              <div className="h-5 w-5 rounded-full bg-gray-400"></div>
+            </div>
+          </div>
+        </Card>
+        <Card className="shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Avg. Groups/User</div>
+              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+                {data?.users?.length ?
+                  (data.users.reduce((acc, user) => acc + (user.groupIds?.length || 0), 0) / data.users.length).toFixed(1)
+                  : '0.0'
+                }
+              </div>
+            </div>
+            <div className="p-2 rounded-lg bg-purple-50">
+              <FolderKanban className="h-5 w-5 text-purple-600" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* ユーザーテーブル */}
+      <Card className="shadow-sm">
+        <Table
+          columns={columns}
+          dataSource={filteredUsers}
+          loading={isLoading}
+          rowKey="id"
+          locale={{
+            emptyText: error ? 'Failed to load users' : 'No users found'
+          }}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
+          }}
+        />
+      </Card>
 
       <Modal
         title="Create New User"

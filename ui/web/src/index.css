@@ -142,3 +142,375 @@
 .ant-menu-item-group:has(.ant-menu-item[data-key="log-out"]) {
   display: none !important;
 }
+
+/* Tailadmin風のスタイル追加 */
+.ant-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+.ant-btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.ant-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ant-table-thead > tr > th {
+  background-color: #f8fafc !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background-color: #f1f5f9 !important;
+}
+
+/* レイアウト全体の設定 */
+.ant-layout {
+  min-height: 100vh !important;
+}
+
+/* サイドバーの基本スタイル */
+.ant-layout-sider {
+  box-shadow: 1px 0 0 0 #e2e8f0 !important;
+  height: 100vh !important;
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  /* トランジション中はスクロールを非表示 */
+  transition: all 0.2s ease !important;
+}
+
+/* サイドバーのコンテンツ領域 */
+.ant-layout-sider > .ant-layout-sider-children {
+  height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  /* スクロールバーを常に非表示 */
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* すべてのスクロールバーを非表示 */
+.ant-layout-sider > .ant-layout-sider-children::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* 折りたたまれたサイドバー */
+.ant-layout-sider-collapsed {
+  overflow: hidden !important;
+}
+
+/* サイドバーのトランジション中にスクロールバーを非表示にするための追加スタイル */
+.ant-layout-sider.ant-layout-sider-zero-width,
+.ant-layout-sider.ant-layout-sider-has-trigger {
+  overflow: hidden !important;
+}
+
+.ant-layout-sider.ant-layout-sider-zero-width > .ant-layout-sider-children,
+.ant-layout-sider.ant-layout-sider-has-trigger > .ant-layout-sider-children {
+  overflow: hidden !important;
+}
+
+/* サイドバーの幅を調整 */
+.ant-layout-sider {
+  flex: 0 0 240px !important;
+  max-width: 240px !important;
+  min-width: 240px !important;
+  width: 240px !important;
+}
+
+.ant-layout-sider-collapsed {
+  flex: 0 0 80px !important;
+  max-width: 80px !important;
+  min-width: 80px !important;
+  width: 80px !important;
+}
+
+/* サイドバーメニューのスタイル - スクロール問題を解決 */
+.ant-layout-sider .ant-menu {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border-right: none !important;
+  height: calc(100vh - 64px) !important; /* ヘッダー高さを考慮 */
+  max-height: calc(100vh - 64px) !important;
+  /* スクロールバーを完全に非表示 */
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* メニューのスクロールバーを完全に非表示 */
+.ant-layout-sider .ant-menu::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* 折りたたまれたサイドバーのメニュースタイル */
+.ant-layout-sider-collapsed .ant-menu {
+  overflow: hidden !important;
+  /* 折りたたまれた状態ではメニューアイテムが少ないため、高さを自動調整 */
+  height: auto !important;
+  max-height: none !important;
+}
+
+.ant-layout-sider .ant-menu-item,
+.ant-layout-sider .ant-menu-submenu-title {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+/* 折りたたまれた状態でのメニューアイテムスタイル */
+.ant-layout-sider-collapsed .ant-menu-item,
+.ant-layout-sider-collapsed .ant-menu-submenu-title {
+  padding: 0 16px !important;
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+/* 折りたたまれた状態でのアイコンスタイル */
+.ant-layout-sider-collapsed .ant-menu-item .anticon,
+.ant-layout-sider-collapsed .ant-menu-submenu-title .anticon {
+  margin: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* メニューアイコンのスタイル */
+.ant-layout-sider .ant-menu-item .anticon,
+.ant-layout-sider .ant-menu-submenu-title .anticon {
+  min-width: 18px !important;
+}
+
+/* メインコンテンツエリア */
+.ant-layout-content {
+  min-height: calc(100vh - 128px) !important; /* ヘッダーとフッターを考慮 */
+  overflow-y: auto !important;
+}
+
+.ant-layout-sider .ant-menu-inline {
+  border-right: none !important;
+}
+
+.ant-layout-sider .ant-menu-item,
+.ant-layout-sider .ant-menu-submenu-title {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+  padding-right: 16px !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+/* メニューアイコンのスタイル */
+.ant-layout-sider .ant-menu-item .anticon,
+.ant-layout-sider .ant-menu-submenu-title .anticon {
+  min-width: 18px !important;
+  margin-right: 12px !important;
+  flex-shrink: 0 !important;
+  transition: margin-right 0.2s ease !important;
+}
+
+.ant-menu-item {
+  margin: 4px 8px !important;
+  border-radius: 6px !important;
+  width: calc(100% - 16px) !important;
+}
+
+.ant-menu-item-selected {
+  font-weight: 500 !important;
+}
+
+/* 折りたたまれたサイドバーのスタイル */
+.ant-layout-sider-collapsed .ant-menu-item,
+.ant-layout-sider-collapsed .ant-menu-submenu-title {
+  padding: 0 16px !important;
+  text-align: center !important;
+  width: calc(100% - 16px) !important;
+}
+
+.ant-layout-sider-collapsed .ant-menu-item .anticon,
+.ant-layout-sider-collapsed .ant-menu-submenu-title .anticon {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* サブメニューのスタイル */
+.ant-menu-submenu > .ant-menu-submenu-title {
+  width: calc(100% - 16px) !important;
+}
+
+.ant-menu-submenu .ant-menu-item {
+  width: calc(100% - 24px) !important;
+  margin-left: 24px !important;
+}
+
+/* 折りたたまれた状態でのサブメニュー調整 */
+.ant-layout-sider-collapsed .ant-menu-submenu > .ant-menu-submenu-title {
+  padding: 0 16px !important;
+}
+
+/* メインコンテンツのスムーズなトランジション */
+.ant-layout-content {
+  transition: all 0.2s ease !important;
+}
+
+/* フォーム要素のスタイリング */
+.ant-input,
+.ant-select-selector,
+.ant-picker {
+  border-radius: 8px !important;
+}
+
+.ant-input:focus,
+.ant-select-focused .ant-select-selector,
+.ant-picker-focused {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* バッジのスタイリング */
+.ant-badge-count {
+  box-shadow: 0 0 0 1px #ffffff;
+}
+
+/* プログレスバーのスタイリング */
+.ant-progress-inner {
+  border-radius: 9999px;
+}
+
+/* モーダルのスタイリング */
+.ant-modal-content {
+  border-radius: 12px !important;
+}
+
+.ant-modal-header {
+  border-radius: 12px 12px 0 0 !important;
+}
+
+/* タブのスタイリング */
+.ant-tabs-tab {
+  border-radius: 6px !important;
+  padding: 8px 16px !important;
+}
+
+.ant-tabs-tab-active {
+  font-weight: 500 !important;
+}
+
+/* アラートのスタイリング */
+.ant-alert {
+  border-radius: 8px !important;
+}
+
+/* ドロップダウンのスタイリング */
+.ant-dropdown-menu {
+  border-radius: 8px !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+}
+
+/* ページネーションのスタイリング */
+.ant-pagination-item {
+  border-radius: 6px !important;
+}
+
+.ant-pagination-item-active {
+  font-weight: 500 !important;
+}
+
+/* Mobileモードでのサイドバースクロールバー対策 */
+@media (max-width: 768px) {
+  /* モバイルではサイドバーを非表示にする（Ant Designのデフォルト動作） */
+  .ant-layout-sider {
+    position: fixed !important;
+    z-index: 1000 !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  /* モバイルでのサイドバーコンテンツ領域 */
+  .ant-layout-sider > .ant-layout-sider-children {
+    overflow: hidden !important;
+    height: 100% !important;
+  }
+
+  /* モバイルでのメニュースタイル */
+  .ant-layout-sider .ant-menu {
+    overflow: hidden !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+  }
+
+  /* モバイルで折りたたまれた状態 */
+  .ant-layout-sider-collapsed {
+    overflow: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    flex: 0 0 0 !important;
+  }
+
+  /* モバイルでのメインコンテンツ調整 */
+  .ant-layout-content {
+    margin-left: 0 !important;
+    transition: margin-left 0.2s ease !important;
+  }
+
+  /* モバイルでのヘッダー調整 */
+  .ant-layout-header {
+    padding: 0 16px !important;
+  }
+
+  /* モバイルでの検索バー調整 */
+  .ant-layout-header input[type="text"] {
+    width: 200px !important;
+  }
+}
+
+/* タブレットサイズでの調整 */
+@media (max-width: 1024px) {
+  .ant-layout-sider {
+    position: fixed !important;
+    z-index: 1000 !important;
+  }
+
+  .ant-layout-content {
+    margin-left: 0 !important;
+  }
+
+  .ant-layout-sider-collapsed + .ant-layout-content {
+    margin-left: 0 !important;
+  }
+}
+
+/* モバイルでのスクロールバー完全非表示（追加対策） */
+@media (max-width: 768px) {
+  .ant-layout-sider,
+  .ant-layout-sider > .ant-layout-sider-children,
+  .ant-layout-sider .ant-menu {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  .ant-layout-sider::-webkit-scrollbar,
+  .ant-layout-sider > .ant-layout-sider-children::-webkit-scrollbar,
+  .ant-layout-sider .ant-menu::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+}

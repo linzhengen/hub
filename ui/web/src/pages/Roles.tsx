@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { roleService, Role, CreateRoleRequest, UpdateRoleRequest } from '@/services/role';
 import { permissionService, Permission } from '@/services/permission';
-import { Button, Modal, Input, Table, Form, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined } from '@ant-design/icons';
+import { Button, Modal, Input, Table, Form, Space, Card } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, SearchOutlined, SafetyOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+import { Shield, TrendingUp, Lock } from 'lucide-react';
 
 export function Roles() {
   const queryClient = useQueryClient();
@@ -13,6 +14,7 @@ export function Roles() {
   const [managingPermissionsRole, setManagingPermissionsRole] = useState<Role | null>(null);
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
+  const [searchText, setSearchText] = useState('');
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['roles'],
@@ -119,9 +121,32 @@ export function Roles() {
     {
       title: 'Permissions',
       key: 'permissions',
-      render: (_: any, record: Role) => (
-        <span>{record.permissionIds?.length || 0} permission(s)</span>
-      ),
+      render: (_: any, record: Role) => {
+        const permissionCount = record.permissionIds?.length || 0;
+        return (
+          <div className="flex items-center gap-2">
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: '500',
+              color: '#059669',
+              backgroundColor: '#d1fae5',
+              border: '1px solid #a7f3d0'
+            }}>
+              {permissionCount} {permissionCount === 1 ? 'permission' : 'permissions'}
+            </span>
+            {permissionCount > 0 && permissionsData?.permissions && (
+              <span className="text-sm" style={{ color: '#64748b' }}>
+                {permissionsData.permissions.filter(perm => record.permissionIds?.includes(perm.id)).slice(0, 2).map(p => p.name).join(', ')}
+                {permissionCount > 2 ? '...' : ''}
+              </span>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: 'Actions',
@@ -132,6 +157,13 @@ export function Roles() {
             type="text"
             icon={<KeyOutlined />}
             onClick={() => setManagingPermissionsRole(record)}
+            style={{
+              padding: '6px',
+              borderRadius: '6px',
+              color: '#8b5cf6'
+            }}
+            className="hover:bg-purple-50"
+            title="Manage Permissions"
           />
           <Button
             type="text"
@@ -143,44 +175,161 @@ export function Roles() {
                 description: record.description,
               });
             }}
+            style={{
+              padding: '6px',
+              borderRadius: '6px',
+              color: '#3b82f6'
+            }}
+            className="hover:bg-blue-50"
+            title="Edit Role"
           />
           <Button
             type="text"
             icon={<DeleteOutlined />}
-            danger
             onClick={() => {
               if (confirm('Are you sure you want to delete this role?')) {
                 deleteMutation.mutate(record.id);
               }
             }}
+            style={{
+              padding: '6px',
+              borderRadius: '6px',
+              color: '#dc2626'
+            }}
+            className="hover:bg-red-50"
+            title="Delete Role"
           />
         </Space>
       ),
     },
   ];
 
+  // 検索フィルター
+  const filteredRoles = data?.roles?.filter(role =>
+    !searchText ||
+    role.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    (role.description && role.description.toLowerCase().includes(searchText.toLowerCase()))
+  );
+
+  // 統計データの計算
+  const totalRoles = data?.roles?.length || 0;
+  const averagePermissionsPerRole = data?.roles?.length ?
+    (data.roles.reduce((acc, role) => acc + (role.permissionIds?.length || 0), 0) / data.roles.length).toFixed(1)
+    : '0.0';
+  const totalPermissions = permissionsData?.permissions?.length || 0;
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Roles</h2>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setIsCreateOpen(true)}
-        >
-          Add Role
-        </Button>
+    <div className="space-y-6">
+      {/* ヘッダーセクション */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#1e293b' }}>Roles</h2>
+          <p className="text-sm" style={{ color: '#64748b' }}>Define and manage role-based access permissions</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Input
+            placeholder="Search roles..."
+            prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 250, borderRadius: '8px' }}
+            allowClear
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsCreateOpen(true)}
+            style={{ borderRadius: '8px' }}
+          >
+            Add Role
+          </Button>
+        </div>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={data?.roles}
-        loading={isLoading}
-        rowKey="id"
-        locale={{
-          emptyText: error ? 'Failed to load roles' : 'No roles found'
-        }}
-      />
+      {/* 統計カード */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Total Roles</div>
+              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{totalRoles}</div>
+              <div className="flex items-center gap-1 mt-2">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-600">+5.4%</span>
+                <span className="text-sm text-gray-500">from last month</span>
+              </div>
+            </div>
+            <div className="p-2 rounded-lg bg-purple-50">
+              <Shield className="h-5 w-5 text-purple-600" />
+            </div>
+          </div>
+        </Card>
+        <Card className="shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Avg. Permissions/Role</div>
+              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{averagePermissionsPerRole}</div>
+              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+                {totalPermissions} total permissions
+              </div>
+            </div>
+            <div className="p-2 rounded-lg bg-blue-50">
+              <KeyOutlined style={{ fontSize: '20px', color: '#3b82f6' }} />
+            </div>
+          </div>
+        </Card>
+        <Card className="shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#64748b' }}>System Roles</div>
+              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+                {data?.roles?.filter(r => r.name.toLowerCase().includes('admin') || r.name.toLowerCase().includes('system')).length || 0}
+              </div>
+              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+                Administrative roles
+              </div>
+            </div>
+            <div className="p-2 rounded-lg bg-red-50">
+              <SafetyOutlined style={{ fontSize: '20px', color: '#dc2626' }} />
+            </div>
+          </div>
+        </Card>
+        <Card className="shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Custom Roles</div>
+              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+                {data?.roles?.filter(r => !r.name.toLowerCase().includes('admin') && !r.name.toLowerCase().includes('system')).length || 0}
+              </div>
+              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+                User-defined roles
+              </div>
+            </div>
+            <div className="p-2 rounded-lg bg-green-50">
+              <Lock className="h-5 w-5 text-green-600" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* ロールテーブル */}
+      <Card className="shadow-sm">
+        <Table
+          columns={columns}
+          dataSource={filteredRoles}
+          loading={isLoading}
+          rowKey="id"
+          locale={{
+            emptyText: error ? 'Failed to load roles' : 'No roles found'
+          }}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} roles`,
+          }}
+        />
+      </Card>
 
       <Modal
         title="Create New Role"
