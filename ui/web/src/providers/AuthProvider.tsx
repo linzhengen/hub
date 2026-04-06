@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import keycloak from '@/lib/keycloak';
-import { saveToken, clearTokens, isTokenValid } from '@/lib/auth-token';
+import { saveToken, clearTokens, isTokenValid, getParsedToken } from '@/lib/auth-token';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -81,23 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // ユーザー情報を設定
         if (keycloak.tokenParsed) {
-          // 表示名の構築: given_name + family_name があれば結合、なければ既存の name または preferred_username
-          let displayName = keycloak.tokenParsed.name || keycloak.tokenParsed.preferred_username;
-          if (keycloak.tokenParsed.given_name && keycloak.tokenParsed.family_name) {
-            displayName = `${keycloak.tokenParsed.given_name} ${keycloak.tokenParsed.family_name}`;
-          } else if (keycloak.tokenParsed.given_name) {
-            displayName = keycloak.tokenParsed.given_name;
-          } else if (keycloak.tokenParsed.family_name) {
-            displayName = keycloak.tokenParsed.family_name;
-          }
-
-          setUser({
-            id: keycloak.tokenParsed.sub,
-            name: displayName,
-            email: keycloak.tokenParsed.email,
-            emailVerified: keycloak.tokenParsed.email_verified || false,
-            roles: keycloak.tokenParsed?.realm_access?.roles || [],
-          });
+          setUserFromTokenPayload(keycloak.tokenParsed);
         }
 
         setIsAuthenticated(true);
@@ -115,11 +99,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // トークンペイロードからユーザー情報を設定するヘルパー関数
+  const setUserFromTokenPayload = (tokenParsed: any) => {
+    if (!tokenParsed) return;
+
+    // 表示名の構築: given_name + family_name があれば結合、なければ既存の name または preferred_username
+    let displayName = tokenParsed.name || tokenParsed.preferred_username;
+    if (tokenParsed.given_name && tokenParsed.family_name) {
+      displayName = `${tokenParsed.given_name} ${tokenParsed.family_name}`;
+    } else if (tokenParsed.given_name) {
+      displayName = tokenParsed.given_name;
+    } else if (tokenParsed.family_name) {
+      displayName = tokenParsed.family_name;
+    }
+
+    setUser({
+      id: tokenParsed.sub,
+      name: displayName,
+      email: tokenParsed.email,
+      emailVerified: tokenParsed.email_verified || false,
+      roles: tokenParsed?.realm_access?.roles || [],
+    });
+  };
+
   // 認証状態のチェック
   const checkAuth = async () => {
     // ローカルストレージに有効なトークンがある場合は認証済みとみなす
     if (isTokenValid()) {
       console.log('Valid token found in localStorage');
+      const tokenParsed = getParsedToken();
+      if (tokenParsed) {
+        setUserFromTokenPayload(tokenParsed);
+      }
       setIsAuthenticated(true);
       setIsLoading(false);
       return;

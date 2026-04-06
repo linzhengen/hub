@@ -7,6 +7,7 @@ import { Groups } from "@/pages/Groups";
 import { Roles } from "@/pages/Roles";
 import { Resources } from "@/pages/Resources";
 import { Permissions } from "@/pages/Permissions";
+import { Profile } from "@/pages/Profile";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useTheme } from "@/context/ThemeContext";
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="/roles" element={<Roles />} />
               <Route path="/resources" element={<Resources />} />
               <Route path="/permissions" element={<Permissions />} />
+              <Route path="/profile" element={<Profile />} />
             </Route>
 
             {/* Fallback Route */}
