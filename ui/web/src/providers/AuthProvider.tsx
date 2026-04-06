@@ -81,10 +81,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // ユーザー情報を設定
         if (keycloak.tokenParsed) {
+          // 表示名の構築: given_name + family_name があれば結合、なければ既存の name または preferred_username
+          let displayName = keycloak.tokenParsed.name || keycloak.tokenParsed.preferred_username;
+          if (keycloak.tokenParsed.given_name && keycloak.tokenParsed.family_name) {
+            displayName = `${keycloak.tokenParsed.given_name} ${keycloak.tokenParsed.family_name}`;
+          } else if (keycloak.tokenParsed.given_name) {
+            displayName = keycloak.tokenParsed.given_name;
+          } else if (keycloak.tokenParsed.family_name) {
+            displayName = keycloak.tokenParsed.family_name;
+          }
+
           setUser({
             id: keycloak.tokenParsed.sub,
-            name: keycloak.tokenParsed.name || keycloak.tokenParsed.preferred_username,
+            name: displayName,
             email: keycloak.tokenParsed.email,
+            emailVerified: keycloak.tokenParsed.email_verified || false,
             roles: keycloak.tokenParsed?.realm_access?.roles || [],
           });
         }
