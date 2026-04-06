@@ -1,110 +1,28 @@
 import { fetchApi } from '@/lib/api-client';
+import type { paths, components } from '@/api/schema/system-resource-v1-service';
+import type { RequestParameters } from '@/api/helper';
 
-export type ResourceType = 'TYPE_UNSPECIFIED' | 'TYPE_MENU' | 'TYPE_API';
-export type ResourceStatus = 'STATUS_UNSPECIFIED' | 'STATUS_ACTIVE' | 'STATUS_INACTIVE';
+// Re-export schema types for backward compatibility
+export type ResourceType = components['schemas']['resourceV1Type'];
+export type ResourceStatus = components['schemas']['resourceV1Status'];
+export type Identifier = components['schemas']['v1Identifier'];
+export type Resource = components['schemas']['v1Resource'];
+export type ListResourceResponse = components['schemas']['v1ListResourceResponse'];
+export type GetResourceResponse = components['schemas']['v1GetResourceResponse'];
+export type CreateResourceRequest = components['schemas']['v1CreateResourceRequest'];
+export type CreateResourceResponse = components['schemas']['v1CreateResourceResponse'];
+export type UpdateResourceRequest = components['schemas']['ResourceServiceUpdateResourceBody'];
+export type UpdateResourceResponse = components['schemas']['v1UpdateResourceResponse'];
+export type DeleteResourceResponse = components['schemas']['v1DeleteResourceResponse'];
+export type ListMenuResourceResponse = components['schemas']['v1ListMenuResourceResponse'];
+export type CreateMenuResourceRequest = components['schemas']['v1CreateMenuResourceRequest'];
+export type CreateMenuResourceResponse = components['schemas']['v1CreateMenuResourceResponse'];
+export type UpdateMenuResourceRequest = components['schemas']['ResourceServiceUpdateMenuResourceBody'];
+export type UpdateMenuResourceResponse = components['schemas']['v1UpdateMenuResourceResponse'];
 
-export interface Identifier {
-  api?: string;
-  category?: string;
-}
-
-export interface Resource {
-  id: string;
-  name: string;
-  type: ResourceType;
-  description?: string;
-  status: ResourceStatus;
-  identifier?: Identifier;
-  metadata?: Record<string, string>;
-  component?: string;
-  path?: string;
-  displayOrder?: number;
-  parentId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateResourceRequest {
-  name: string;
-  type: ResourceType;
-  description?: string;
-  status?: ResourceStatus;
-  identifier?: Identifier;
-  metadata?: Record<string, string>;
-  component?: string;
-  path?: string;
-  displayOrder?: number;
-  parentId?: string;
-}
-
-export interface UpdateResourceRequest {
-  name?: string;
-  type?: ResourceType;
-  description?: string;
-  status?: ResourceStatus;
-  identifier?: Identifier;
-  metadata?: Record<string, string>;
-  component?: string;
-  path?: string;
-  displayOrder?: number;
-  parentId?: string;
-}
-
-export interface CreateMenuResourceRequest {
-  name: string;
-  description?: string;
-  status?: ResourceStatus;
-  metadata?: Record<string, string>;
-  component?: string;
-  path?: string;
-  displayOrder?: number;
-  parentId?: string;
-}
-
-export interface UpdateMenuResourceRequest {
-  name?: string;
-  description?: string;
-  status?: ResourceStatus;
-  metadata?: Record<string, string>;
-  component?: string;
-  path?: string;
-  displayOrder?: number;
-  parentId?: string;
-}
-
-export interface ListResourceResponse {
-  resources: Resource[];
-  total: string;
-}
-
-export interface GetResourceResponse {
-  resource: Resource;
-}
-
-export interface CreateResourceResponse {
-  resource: Resource;
-}
-
-export interface UpdateResourceResponse {
-  resource: Resource;
-}
-
-export interface DeleteResourceResponse {
-  // empty
-}
-
-export interface ListMenuResourceResponse {
-  resources: Resource[];
-  total: string;
-}
-
-export interface CreateMenuResourceResponse {
-  resource: Resource;
-}
-
-export interface UpdateMenuResourceResponse {
-  resource: Resource;
-}
+// Helper types for parameters
+export type ListResourcesParams = RequestParameters<paths, '/api/v1/resources', 'get'>;
+export type ListMenuResourcesParams = RequestParameters<paths, '/api/v1/resources/menus', 'get'>;
 
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
@@ -122,7 +40,7 @@ function buildQueryString(params: Record<string, any>): string {
 }
 
 export const resourceService = {
-  listResources: (params?: { limit?: number; offset?: number; resourceIds?: string[]; resourceName?: string; status?: ResourceStatus; resourceType?: ResourceType }) => {
+  listResources: (params?: ListResourcesParams) => {
     const query = params ? buildQueryString(params) : '';
     return fetchApi<ListResourceResponse>(`/resources${query}`);
   },
@@ -131,7 +49,7 @@ export const resourceService = {
   updateResource: (id: string, data: UpdateResourceRequest) => fetchApi<UpdateResourceResponse>(`/resources/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteResource: (id: string) => fetchApi<DeleteResourceResponse>(`/resources/${id}`, { method: 'DELETE' }),
 
-  listMenuResources: (params?: { limit?: number; offset?: number; resourceIds?: string[]; resourceName?: string; status?: ResourceStatus }) => {
+  listMenuResources: (params?: ListMenuResourcesParams) => {
     const query = params ? buildQueryString(params) : '';
     return fetchApi<ListMenuResourceResponse>(`/resources/menus${query}`);
   },

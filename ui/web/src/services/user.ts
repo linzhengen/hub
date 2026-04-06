@@ -1,60 +1,30 @@
 import { fetchApi } from '@/lib/api-client';
-import { Group } from './group';
-import { ResourceType } from './resource';
+import type { Group } from './group';
+import type { ResourceType } from './resource';
+import type { paths, components } from '@/api/schema/user-v1-service';
+import type { RequestParameters } from '@/api/helper';
 
-export type UserStatus = 'STATUS_UNSPECIFIED' | 'STATUS_ACTIVE' | 'STATUS_INACTIVE';
+// Re-export schema types for backward compatibility
+export type UserStatus = components['schemas']['v1UserStatus'];
+export type User = components['schemas']['v1User'];
+export type Menu = components['schemas']['v1Menu'];
+export type MenuMeta = components['schemas']['v1MenuMeta'];
+export type ListUsersResponse = components['schemas']['v1ListUserResponse'];
+export type GetUserResponse = components['schemas']['v1GetUserResponse'];
+export type CreateUserRequest = components['schemas']['v1CreateUserRequest'];
+export type CreateUserResponse = components['schemas']['v1CreateUserResponse'];
+export type UpdateUserRequest = components['schemas']['UserServiceUpdateUserBody'];
+export type UpdateUserResponse = components['schemas']['v1UpdateUserResponse'];
+export type DeleteUserResponse = components['schemas']['v1DeleteUserResponse'];
+export type AssignGroupResponse = components['schemas']['v1AssignGroupResponse'];
+export type UnassignGroupResponse = components['schemas']['v1UnassignGroupResponse'];
+export type GetMeMenusResponse = components['schemas']['v1GetMeMenusResponse'];
+export type UpdateMeRequest = components['schemas']['v1UpdateMeRequest'];
+export type UpdateMeResponse = components['schemas']['v1UpdateMeResponse'];
+export type GetMeResponse = components['schemas']['v1GetMeResponse'];
 
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  status: UserStatus;
-  groupIds: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateUserRequest {
-  username: string;
-  email: string;
-  password: string;
-  groupIds: string[];
-}
-
-export interface UpdateUserRequest {
-  username?: string;
-  email?: string;
-  password?: string;
-  status?: UserStatus;
-  groupIds?: string[];
-}
-
-export interface UpdateMeRequest {
-  username?: string;
-  email?: string;
-  password?: string;
-}
-
-export interface MenuMeta {
-  authority?: string;
-  badge?: string;
-  hideInMenu?: boolean;
-  icon?: string;
-  keepAlive?: boolean;
-  order?: string;
-  title?: string;
-}
-
-export interface Menu {
-  authCode?: string;
-  children?: Menu[];
-  component?: string;
-  identifier?: string;
-  meta?: MenuMeta;
-  name?: string;
-  path?: string;
-  type?: ResourceType;
-}
+// Helper type for list users parameters (query)
+export type ListUsersParams = RequestParameters<paths, '/api/v1/users', 'get'>;
 
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
@@ -69,59 +39,6 @@ function buildQueryString(params: Record<string, any>): string {
   }
   const queryString = searchParams.toString();
   return queryString ? `?${queryString}` : '';
-}
-
-export interface ListUsersParams {
-  limit?: number;
-  offset?: number;
-  userIds?: string[];
-  userEmails?: string[];
-  userName?: string;
-  status?: UserStatus;
-  groupIds?: string[];
-}
-
-export interface GetUserResponse {
-  user: User;
-}
-
-export interface CreateUserResponse {
-  user: User;
-}
-
-export interface UpdateUserResponse {
-  user: User;
-}
-
-export interface DeleteUserResponse {
-  // empty
-}
-
-export interface AssignGroupResponse {
-  user: User;
-}
-
-export interface UnassignGroupResponse {
-  user: User;
-}
-
-export interface ListUsersResponse {
-  users: User[];
-  total: string;
-}
-
-export interface GetMeMenusResponse {
-  menus: Menu[];
-}
-
-export interface UpdateMeResponse {
-  user: User;
-  groups: Group[];
-}
-
-export interface GetMeResponse {
-  user: User;
-  groups: Group[];
 }
 
 export const userService = {

@@ -1,46 +1,21 @@
 import { fetchApi } from '@/lib/api-client';
+import type { paths, components } from '@/api/schema/system-permission-v1-service';
+import type {
+  RequestParameters,
+} from '@/api/helper';
 
-export interface Permission {
-  id: string;
-  name: string;
-  resourceId: string;
-  verb: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export schema types for backward compatibility
+export type Permission = components['schemas']['v1Permission'];
+export type ListPermissionResponse = components['schemas']['v1ListPermissionResponse'];
+export type GetPermissionResponse = components['schemas']['v1GetPermissionResponse'];
+export type CreatePermissionRequest = components['schemas']['v1CreatePermissionRequest'];
+export type CreatePermissionResponse = components['schemas']['v1CreatePermissionResponse'];
+export type UpdatePermissionRequest = components['schemas']['PermissionServiceUpdatePermissionBody'];
+export type UpdatePermissionResponse = components['schemas']['v1UpdatePermissionResponse'];
+export type DeletePermissionResponse = components['schemas']['v1DeletePermissionResponse'];
 
-export interface CreatePermissionRequest {
-  resourceId: string;
-  verb: string;
-  description?: string;
-}
-
-export interface UpdatePermissionRequest {
-  verb?: string;
-  description?: string;
-}
-
-export interface ListPermissionResponse {
-  permissions: Permission[];
-  total: string;
-}
-
-export interface GetPermissionResponse {
-  permission: Permission;
-}
-
-export interface CreatePermissionResponse {
-  permission: Permission;
-}
-
-export interface UpdatePermissionResponse {
-  permission: Permission;
-}
-
-export interface DeletePermissionResponse {
-  // empty
-}
+// Helper type for list permissions parameters (query)
+export type ListPermissionsParams = RequestParameters<paths, '/api/v1/permissions', 'get'>;
 
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
@@ -58,7 +33,7 @@ function buildQueryString(params: Record<string, any>): string {
 }
 
 export const permissionService = {
-  listPermissions: (params?: { limit?: number; offset?: number; permissionIds?: string[]; permissionName?: string }) => {
+  listPermissions: (params?: ListPermissionsParams) => {
     const query = params ? buildQueryString(params) : '';
     return fetchApi<ListPermissionResponse>(`/permissions${query}`);
   },

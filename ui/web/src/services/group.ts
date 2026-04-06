@@ -1,90 +1,37 @@
 import { fetchApi } from '@/lib/api-client';
+import type { paths, components } from '@/api/schema/system-group-v1-service';
+import type {
+  UrlPaths,
+  RequestParameters,
+  RequestData,
+  ResponseData,
+  HttpMethodsFilteredByPath,
+} from '@/api/helper';
 
-export type GroupStatus = 'STATUS_UNSPECIFIED' | 'STATUS_ACTIVE' | 'STATUS_INACTIVE';
+// Re-export schema types for backward compatibility
+export type GroupStatus = components['schemas']['v1GroupStatus'];
+export type Group = components['schemas']['v1Group'];
+export type ListGroupsResponse = components['schemas']['v1ListGroupResponse'];
+export type GetGroupResponse = components['schemas']['v1GetGroupResponse'];
+export type CreateGroupRequest = components['schemas']['v1CreateGroupRequest'];
+export type CreateGroupResponse = components['schemas']['v1CreateGroupResponse'];
+export type UpdateGroupRequest = components['schemas']['GroupServiceUpdateGroupBody'];
+export type UpdateGroupResponse = components['schemas']['v1UpdateGroupResponse'];
+export type AssignRoleRequest = components['schemas']['GroupServiceAssignRoleBody'];
+export type AssignRoleResponse = components['schemas']['v1AssignRoleResponse'];
+export type AssignRolesToGroupRequest = components['schemas']['GroupServiceAssignRolesToGroupBody'];
+export type AssignRolesToGroupResponse = components['schemas']['v1AssignRolesToGroupResponse'];
+export type AddUsersToGroupRequest = components['schemas']['GroupServiceAddUsersToGroupBody'];
+export type AddUsersToGroupResponse = components['schemas']['v1AddUsersToGroupResponse'];
+export type RemoveUsersFromGroupRequest = components['schemas']['GroupServiceRemoveUsersFromGroupBody'];
+export type RemoveUsersFromGroupResponse = components['schemas']['v1RemoveUsersFromGroupResponse'];
+export type DeleteGroupResponse = components['schemas']['v1DeleteGroupResponse'];
 
-export interface Group {
-  id: string;
-  name: string;
-  description?: string;
-  status: GroupStatus;
-  roleIds: string[];
-  createdAt: string;
-  updatedAt: string;
-}
+// Helper type for list groups parameters (query)
+export type ListGroupsParams = RequestParameters<paths, '/api/v1/groups', 'get'>;
 
-export interface ListGroupsResponse {
-  groups: Group[];
-  total: string;
-}
-
-export interface GetGroupResponse {
-  group: Group;
-}
-
-export interface CreateGroupRequest {
-  name: string;
-  description?: string;
-  status?: GroupStatus;
-}
-
-export interface CreateGroupResponse {
-  group: Group;
-}
-
-export interface UpdateGroupRequest {
-  name?: string;
-  description?: string;
-  status?: GroupStatus;
-}
-
-export interface UpdateGroupResponse {
-  group: Group;
-}
-
-export interface AssignRoleRequest {
-  roleId: string;
-}
-
-export interface AssignRoleResponse {
-  group: Group;
-}
-
-export interface AssignRolesToGroupRequest {
-  roleIds: string[];
-}
-
-export interface AddUsersToGroupRequest {
-  userIds: string[];
-}
-
-export interface RemoveUsersFromGroupRequest {
-  userIds: string[];
-}
-
-export interface ListGroupsParams {
-  limit?: number;
-  offset?: number;
-  groupIds?: string[];
-  groupName?: string;
-  status?: GroupStatus;
-  roleIds?: string[];
-}
-
-export interface DeleteGroupResponse {
-  // empty
-}
-
-export interface AssignRolesToGroupResponse {
-  // empty
-}
-
-export interface AddUsersToGroupResponse {
-  // empty
-}
-
-export interface RemoveUsersFromGroupResponse {
-  // empty
-}
+// Convert full path to endpoint (remove /api/v1 prefix)
+const toEndpoint = (fullPath: string) => fullPath.replace('/api/v1', '');
 
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();

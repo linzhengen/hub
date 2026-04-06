@@ -1,76 +1,25 @@
 import { fetchApi } from '@/lib/api-client';
+import type { paths, components } from '@/api/schema/system-role-v1-service';
+import type { RequestParameters } from '@/api/helper';
 
-export interface Role {
-  id: string;
-  name: string;
-  description?: string;
-  permissionIds: string[];
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export schema types for backward compatibility
+export type Role = components['schemas']['v1Role'];
+export type ListRolesResponse = components['schemas']['v1ListRoleResponse'];
+export type GetRoleResponse = components['schemas']['v1GetRoleResponse'];
+export type CreateRoleRequest = components['schemas']['v1CreateRoleRequest'];
+export type CreateRoleResponse = components['schemas']['v1CreateRoleResponse'];
+export type UpdateRoleRequest = components['schemas']['RoleServiceUpdateRoleBody'];
+export type UpdateRoleResponse = components['schemas']['v1UpdateRoleResponse'];
+export type AssignPermissionRequest = components['schemas']['RoleServiceAssignPermissionBody'];
+export type AssignPermissionResponse = components['schemas']['v1AssignPermissionResponse'];
+export type AddPermissionsToRoleRequest = components['schemas']['RoleServiceAddPermissionsToRoleBody'];
+export type AddPermissionsToRoleResponse = components['schemas']['v1AddPermissionsToRoleResponse'];
+export type RemovePermissionsFromRoleRequest = components['schemas']['RoleServiceRemovePermissionsFromRoleBody'];
+export type RemovePermissionsFromRoleResponse = components['schemas']['v1RemovePermissionsFromRoleResponse'];
+export type DeleteRoleResponse = components['schemas']['v1DeleteRoleResponse'];
 
-export interface ListRolesResponse {
-  roles: Role[];
-  total: string;
-}
-
-export interface GetRoleResponse {
-  role: Role;
-}
-
-export interface CreateRoleRequest {
-  name: string;
-  description?: string;
-}
-
-export interface CreateRoleResponse {
-  role: Role;
-}
-
-export interface UpdateRoleRequest {
-  name?: string;
-  description?: string;
-}
-
-export interface UpdateRoleResponse {
-  role: Role;
-}
-
-export interface AssignPermissionRequest {
-  permissionId: string;
-}
-
-export interface AssignPermissionResponse {
-  role: Role;
-}
-
-export interface AddPermissionsToRoleRequest {
-  permissionIds: string[];
-}
-
-export interface RemovePermissionsFromRoleRequest {
-  permissionIds: string[];
-}
-
-export interface ListRolesParams {
-  limit?: number;
-  offset?: number;
-  roleIds?: string[];
-  roleName?: string;
-  permissionIds?: string[];
-}
-
-export interface DeleteRoleResponse {
-  // empty
-}
-
-export interface AddPermissionsToRoleResponse {
-  // empty
-}
-
-export interface RemovePermissionsFromRoleResponse {
-  // empty
-}
+// Helper type for list roles parameters (query)
+export type ListRolesParams = RequestParameters<paths, '/api/v1/roles', 'get'>;
 
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();
