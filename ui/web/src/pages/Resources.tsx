@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { resourceService, Resource, CreateResourceRequest, UpdateResourceRequest, ResourceType } from '@/services/resource';
 import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card } from 'antd';
 
+import { cn } from '@/lib/utils';
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, DatabaseOutlined, FileOutlined, ApiOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
@@ -78,7 +79,7 @@ export function Resources() {
       key: 'name',
       render: (name: string) => (
         <div className="flex items-center gap-2">
-          <span style={{ color: '#1e293b', fontWeight: '500' }}>{name}</span>
+          <span className="text-gray-900 dark:text-white font-medium">{name}</span>
         </div>
       ),
     },
@@ -88,22 +89,20 @@ export function Resources() {
       key: 'type',
       render: (type: string) => {
         const style = getResourceTypeStyle(type);
+        const typeLower = type.toLowerCase();
         return (
           <div className="flex items-center gap-2">
-            <div style={{ color: style.color, fontSize: '14px' }}>
+            <div className="text-sm" style={{ color: style.color }}>
               {style.icon}
             </div>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '4px 10px',
-              borderRadius: '9999px',
-              fontSize: '12px',
-              fontWeight: '500',
-              color: style.color,
-              backgroundColor: style.bgColor,
-              border: `1px solid ${style.borderColor}`
-            }}>
+            <span
+              className={cn(
+                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+                typeLower.includes('api') ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20" :
+                typeLower.includes('menu') ? "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
+                "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20"
+              )}
+            >
               {type.replace('TYPE_', '').replace('_', ' ')}
             </span>
           </div>
@@ -134,12 +133,7 @@ export function Resources() {
                 description: record.description,
               });
             }}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#3b82f6'
-            }}
-            className="hover:bg-blue-50"
+            className="p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
             title="Edit Resource"
           />
           <Button
@@ -150,12 +144,7 @@ export function Resources() {
                 deleteMutation.mutate(record.id);
               }
             }}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#dc2626'
-            }}
-            className="hover:bg-red-50"
+            className="p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             title="Delete Resource"
           />
         </Space>
@@ -195,13 +184,13 @@ export function Resources() {
       {/* ヘッダーセクション */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#1e293b' }}>Resources</h2>
-          <p className="text-sm" style={{ color: '#64748b' }}>Manage system resources and access controls</p>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Resources</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage system resources and access controls</p>
         </div>
         <div className="flex items-center gap-3">
           <Input
             placeholder="Search resources..."
-            prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+            prefix={<SearchOutlined className="text-gray-400 dark:text-gray-500" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             style={{ width: 250, borderRadius: '8px' }}
@@ -220,68 +209,68 @@ export function Resources() {
 
       {/* 統計カード */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Total Resources</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{totalResources}</div>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Resources</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{totalResources}</div>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-600">+15.7%</span>
-                <span className="text-sm text-gray-500">from last month</span>
+                <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
+                <span className="text-sm text-green-600 dark:text-green-400">+15.7%</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-blue-50">
-              <Database className="h-5 w-5 text-blue-600" />
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>API Resources</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{apiResources}</div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">API Resources</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{apiResources}</div>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 {totalResources > 0 ? `${Math.round((apiResources / totalResources) * 100)}% of total` : 'No resources'}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-purple-50">
-              <Server className="h-5 w-5 text-purple-600" />
+            <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20">
+              <Server className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Menu Resources</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{menuResources}</div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Menu Resources</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{menuResources}</div>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 {totalResources > 0 ? `${Math.round((menuResources / totalResources) * 100)}% of total` : 'No resources'}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-green-50">
-              <FileOutlined style={{ fontSize: '20px', color: '#059669' }} />
+            <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/20">
+              <FileOutlined style={{ fontSize: '20px' }} className="text-green-600 dark:text-green-400" />
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Unspecified Resources</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{unspecifiedResources}</div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Unspecified Resources</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{unspecifiedResources}</div>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 {totalResources > 0 ? `${Math.round((unspecifiedResources / totalResources) * 100)}% of total` : 'No resources'}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-orange-50">
-              <DatabaseOutlined style={{ fontSize: '20px', color: '#f97316' }} />
+            <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20">
+              <DatabaseOutlined style={{ fontSize: '20px' }} className="text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* リソーステーブル */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <Table
           columns={columns}
           dataSource={filteredResources}

@@ -4,6 +4,7 @@ import { permissionService, Permission, CreatePermissionRequest, UpdatePermissio
 import { Button, Modal, Input, Table, Form, Space, Card, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, KeyOutlined, LockOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { Key, TrendingUp, Shield } from 'lucide-react';
 
 export function Permissions() {
@@ -80,8 +81,8 @@ export function Permissions() {
       key: 'resourceId',
       render: (resourceId: string) => (
         <div className="flex items-center gap-2">
-          <LockOutlined style={{ color: '#6b7280', fontSize: '14px' }} />
-          <span style={{ color: '#1e293b', fontWeight: '500' }}>{resourceId}</span>
+          <LockOutlined className="text-gray-500 dark:text-gray-400" style={{ fontSize: '14px' }} />
+          <span className="text-gray-900 dark:text-white font-medium">{resourceId}</span>
         </div>
       ),
     },
@@ -91,18 +92,17 @@ export function Permissions() {
       key: 'verb',
       render: (verb: string) => {
         const style = getActionStyle(verb);
+        const actionLower = verb.toLowerCase();
         return (
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '4px 10px',
-            borderRadius: '9999px',
-            fontSize: '12px',
-            fontWeight: '500',
-            color: style.color,
-            backgroundColor: style.bgColor,
-            border: `1px solid ${style.borderColor}`
-          }}>
+          <span
+            className={cn(
+              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+              actionLower.includes('read') || actionLower === 'view' ? "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
+              actionLower.includes('write') || actionLower.includes('create') || actionLower.includes('update') ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20" :
+              actionLower.includes('delete') || actionLower.includes('remove') ? "bg-red-100 text-red-800 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20" :
+              "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20"
+            )}
+          >
             {verb.toUpperCase()}
           </span>
         );
@@ -128,12 +128,7 @@ export function Permissions() {
                 description: record.description,
               });
             }}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#3b82f6'
-            }}
-            className="hover:bg-blue-50"
+            className="p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
             title="Edit Permission"
           />
           <Button
@@ -144,12 +139,7 @@ export function Permissions() {
                 deleteMutation.mutate(record.id);
               }
             }}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#dc2626'
-            }}
-            className="hover:bg-red-50"
+            className="p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             title="Delete Permission"
           />
         </Space>
@@ -190,13 +180,13 @@ export function Permissions() {
       {/* ヘッダーセクション */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#1e293b' }}>Permissions</h2>
-          <p className="text-sm" style={{ color: '#64748b' }}>Define fine-grained access control permissions</p>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Permissions</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Define fine-grained access control permissions</p>
         </div>
         <div className="flex items-center gap-3">
           <Input
             placeholder="Search permissions..."
-            prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+            prefix={<SearchOutlined className="text-gray-400 dark:text-gray-500" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             style={{ width: 250, borderRadius: '8px' }}
@@ -215,60 +205,60 @@ export function Permissions() {
 
       {/* 統計カード */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Total Permissions</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{totalPermissions}</div>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Permissions</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{totalPermissions}</div>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-600">+12.3%</span>
-                <span className="text-sm text-gray-500">from last month</span>
+                <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
+                <span className="text-sm text-green-600 dark:text-green-400">+12.3%</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-blue-50">
-              <Key className="h-5 w-5 text-blue-600" />
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <Key className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Read Permissions</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{readPermissions}</div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Read Permissions</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{readPermissions}</div>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 {totalPermissions > 0 ? `${Math.round((readPermissions / totalPermissions) * 100)}% of total` : 'No permissions'}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-green-50">
+            <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/20">
               <div className="h-5 w-5 rounded-full bg-green-500"></div>
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Write Permissions</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{writePermissions}</div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Write Permissions</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{writePermissions}</div>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 {totalPermissions > 0 ? `${Math.round((writePermissions / totalPermissions) * 100)}% of total` : 'No permissions'}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-blue-50">
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
               <div className="h-5 w-5 rounded-full bg-blue-500"></div>
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Delete Permissions</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{deletePermissions}</div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Delete Permissions</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{deletePermissions}</div>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 {totalPermissions > 0 ? `${Math.round((deletePermissions / totalPermissions) * 100)}% of total` : 'No permissions'}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-red-50">
+            <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20">
               <div className="h-5 w-5 rounded-full bg-red-500"></div>
             </div>
           </div>
@@ -276,7 +266,7 @@ export function Permissions() {
       </div>
 
       {/* 権限テーブル */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <Table
           columns={columns}
           dataSource={filteredPermissions}

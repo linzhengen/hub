@@ -123,30 +123,28 @@ export function Users() {
         let text = 'Unspecified';
 
         if (status === 'STATUS_ACTIVE') {
-          color = '#059669';
-          bgColor = '#d1fae5';
+          color = '#10b981'; // emerald-500
+          bgColor = '#ecfdf5'; // emerald-500/10 (light)
           text = 'Active';
         } else if (status === 'STATUS_INACTIVE') {
-          color = '#dc2626';
-          bgColor = '#fee2e2';
+          color = '#ef4444'; // red-500
+          bgColor = '#fef2f2'; // red-500/10 (light)
           text = 'Inactive';
         } else {
-          color = '#6b7280';
-          bgColor = '#f3f4f6';
+          color = '#6b7280'; // gray-500
+          bgColor = '#f9fafb'; // gray-500/10 (light)
           text = 'Unspecified';
         }
 
         return (
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '4px 10px',
-            borderRadius: '9999px',
-            fontSize: '12px',
-            fontWeight: '500',
-            color: color,
-            backgroundColor: bgColor
-          }}>
+          <span
+            className={cn(
+              "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+              status === 'STATUS_ACTIVE' ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400" :
+              status === 'STATUS_INACTIVE' ? "bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-400" :
+              "bg-gray-100 text-gray-800 dark:bg-gray-500/10 dark:text-gray-400"
+            )}
+          >
             {text}
           </span>
         );
@@ -163,23 +161,13 @@ export function Users() {
               groupNames.map((name, index) => (
                 <span
                   key={index}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    padding: '2px 8px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: '400',
-                    color: '#3b82f6',
-                    backgroundColor: '#eff6ff',
-                    border: '1px solid #dbeafe'
-                  }}
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20"
                 >
                   {name}
                 </span>
               ))
             ) : (
-              <span style={{ color: '#94a3b8', fontSize: '14px' }}>None</span>
+              <span className="text-sm text-gray-400 dark:text-gray-500">None</span>
             )}
           </div>
         );
@@ -194,12 +182,7 @@ export function Users() {
             type="text"
             icon={<UserOutlined />}
             onClick={() => setManagingGroupsUser(record)}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#64748b'
-            }}
-            className="hover:bg-gray-100"
+            className="p-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           />
           <Button
             type="text"
@@ -213,12 +196,7 @@ export function Users() {
                 groupIds: record.groupIds,
               });
             }}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#3b82f6'
-            }}
-            className="hover:bg-blue-50"
+            className="p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
           />
           <Button
             type="text"
@@ -228,12 +206,7 @@ export function Users() {
                 deleteMutation.mutate(record.id);
               }
             }}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#dc2626'
-            }}
-            className="hover:bg-red-50"
+            className="p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           />
         </Space>
       ),
@@ -279,13 +252,13 @@ export function Users() {
       {/* ヘッダーセクション */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#1e293b' }}>Users</h2>
-          <p className="text-sm" style={{ color: '#64748b' }}>Manage user accounts and permissions</p>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Users</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage user accounts and permissions</p>
         </div>
         <div className="flex items-center gap-3">
           <Input
             placeholder="Search users..."
-            prefix={<UserOutlined style={{ color: '#94a3b8' }} />}
+            prefix={<UserOutlined className="text-gray-400 dark:text-gray-500" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             style={{ width: 250, borderRadius: '8px' }}
@@ -304,63 +277,63 @@ export function Users() {
 
       {/* 統計カード */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Total Users</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{data?.users?.length || 0}</div>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{data?.users?.length || 0}</div>
             </div>
-            <div className="p-2 rounded-lg bg-blue-50">
-              <UserOutlined style={{ fontSize: '20px', color: '#3b82f6' }} />
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <UserOutlined style={{ fontSize: '20px' }} className="text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Active Users</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Users</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
                 {data?.users?.filter(u => u.status === 'STATUS_ACTIVE').length || 0}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-green-50">
+            <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/20">
               <div className="h-5 w-5 rounded-full bg-green-500"></div>
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Inactive Users</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Inactive Users</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
                 {data?.users?.filter(u => u.status === 'STATUS_INACTIVE').length || 0}
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-gray-50">
+            <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
               <div className="h-5 w-5 rounded-full bg-gray-400"></div>
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Avg. Groups/User</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg. Groups/User</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
                 {data?.users?.length ?
                   (data.users.reduce((acc, user) => acc + (user.groupIds?.length || 0), 0) / data.users.length).toFixed(1)
                   : '0.0'
                 }
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-purple-50">
-              <FolderKanban className="h-5 w-5 text-purple-600" />
+            <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20">
+              <FolderKanban className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* ユーザーテーブル */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <Table
           columns={columns}
           dataSource={filteredUsers}

@@ -34,11 +34,11 @@ export function Dashboard() {
       {/* ヘッダー */}
       <div className="flex justify-between items-center">
         <div>
-          <TypographyTitle level={1} style={{ marginBottom: '8px', color: '#1e293b' }}>Dashboard</TypographyTitle>
-          <Text type="secondary" style={{ color: '#64748b' }}>Welcome back! Here's what's happening with your AI Hub system.</Text>
+          <TypographyTitle level={1} className="!mb-2 !text-gray-900 dark:!text-white">Dashboard</TypographyTitle>
+          <Text className="text-gray-500 dark:text-gray-400">Welcome back! Here's what's happening with your AI Hub system.</Text>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+          <button className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
             Generate Report
           </button>
           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
@@ -50,76 +50,76 @@ export function Dashboard() {
       {/* 統計カード */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="shadow-sm hover:shadow-md transition-shadow">
+          <Card className="shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <Text type="secondary" className="text-sm font-medium">Total Users</Text>
-                <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>1,234</div>
+                <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</Text>
+                <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">1,234</div>
                 <div className="flex items-center gap-1 mt-2">
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-600">+12.5%</span>
-                  <span className="text-sm text-gray-500">from last month</span>
+                  <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
+                  <span className="text-sm text-green-600 dark:text-green-400">+12.5%</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-blue-50">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="shadow-sm hover:shadow-md transition-shadow">
+          <Card className="shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <Text type="secondary" className="text-sm font-medium">Total Groups</Text>
-                <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>45</div>
+                <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Groups</Text>
+                <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">45</div>
                 <div className="flex items-center gap-1 mt-2">
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-600">+5.2%</span>
-                  <span className="text-sm text-gray-500">from last month</span>
+                  <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
+                  <span className="text-sm text-green-600 dark:text-green-400">+5.2%</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-green-50">
-                <FolderKanban className="h-6 w-6 text-green-600" />
+              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
+                <FolderKanban className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="shadow-sm hover:shadow-md transition-shadow">
+          <Card className="shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <Text type="secondary" className="text-sm font-medium">Total Roles</Text>
-                <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>12</div>
+                <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Roles</Text>
+                <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">12</div>
                 <div className="flex items-center gap-1 mt-2">
-                  <TrendingDown className="h-4 w-4 text-red-500" />
-                  <span className="text-sm text-red-600">-2.1%</span>
-                  <span className="text-sm text-gray-500">from last month</span>
+                  <TrendingDown className="h-4 w-4 text-red-500 dark:text-red-400" />
+                  <span className="text-sm text-red-600 dark:text-red-400">-2.1%</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-purple-50">
-                <Shield className="h-6 w-6 text-purple-600" />
+              <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20">
+                <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="shadow-sm hover:shadow-md transition-shadow">
+          <Card className="shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <Text type="secondary" className="text-sm font-medium">Total Permissions</Text>
-                <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>142</div>
+                <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Permissions</Text>
+                <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">142</div>
                 <div className="flex items-center gap-1 mt-2">
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-600">+8.7%</span>
-                  <span className="text-sm text-gray-500">from last month</span>
+                  <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
+                  <span className="text-sm text-green-600 dark:text-green-400">+8.7%</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-orange-50">
-                <Key className="h-6 w-6 text-orange-600" />
+              <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20">
+                <Key className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
           </Card>
@@ -132,11 +132,11 @@ export function Dashboard() {
           <Card
             title={
               <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-blue-600" />
-                <span style={{ color: '#1e293b' }}>User Growth</span>
+                <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <span className="text-gray-900 dark:text-white">User Growth</span>
               </div>
             }
-            className="shadow-sm"
+            className="shadow-sm dark:bg-gray-800 dark:border-gray-700"
           >
             <div style={{ height: '300px', minHeight: '300px' }}>
               <ResponsiveContainer width="100%" height="100%" minHeight={300} debounce={200}>
@@ -146,9 +146,10 @@ export function Dashboard() {
                   <YAxis stroke="#64748b" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px'
+                      backgroundColor: 'var(--tooltip-bg, #ffffff)',
+                      border: '1px solid var(--tooltip-border, #e2e8f0)',
+                      borderRadius: '8px',
+                      color: 'var(--tooltip-text, #1e293b)'
                     }}
                   />
                   <Line
@@ -169,11 +170,11 @@ export function Dashboard() {
           <Card
             title={
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-purple-600" />
-                <span style={{ color: '#1e293b' }}>Permission Distribution</span>
+                <BarChart3 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <span className="text-gray-900 dark:text-white">Permission Distribution</span>
               </div>
             }
-            className="shadow-sm"
+            className="shadow-sm dark:bg-gray-800 dark:border-gray-700"
           >
             <div style={{ height: '300px', minHeight: '300px' }}>
               <ResponsiveContainer width="100%" height="100%" minHeight={300} debounce={200}>
@@ -183,9 +184,10 @@ export function Dashboard() {
                   <YAxis stroke="#64748b" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px'
+                      backgroundColor: 'var(--tooltip-bg, #ffffff)',
+                      border: '1px solid var(--tooltip-border, #e2e8f0)',
+                      borderRadius: '8px',
+                      color: 'var(--tooltip-text, #1e293b)'
                     }}
                   />
                   <Bar
@@ -206,20 +208,20 @@ export function Dashboard() {
           <Card
             title={
               <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-green-600" />
-                <span style={{ color: '#1e293b' }}>Recent Activities</span>
+                <Activity className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <span className="text-gray-900 dark:text-white">Recent Activities</span>
               </div>
             }
-            className="shadow-sm"
+            className="shadow-sm dark:bg-gray-800 dark:border-gray-700"
           >
             <div className="space-y-4">
               {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                <div key={activity.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors">
                   <div>
-                    <div className="font-medium" style={{ color: '#1e293b' }}>{activity.user}</div>
-                    <div className="text-sm" style={{ color: '#64748b' }}>{activity.action}</div>
+                    <div className="font-medium text-gray-900 dark:text-white">{activity.user}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{activity.action}</div>
                   </div>
-                  <div className="text-sm" style={{ color: '#94a3b8' }}>{activity.time}</div>
+                  <div className="text-sm text-gray-400 dark:text-gray-500">{activity.time}</div>
                 </div>
               ))}
             </div>
@@ -230,33 +232,33 @@ export function Dashboard() {
           <Card
             title={
               <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-orange-600" />
-                <span style={{ color: '#1e293b' }}>System Status</span>
+                <Shield className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                <span className="text-gray-900 dark:text-white">System Status</span>
               </div>
             }
-            className="shadow-sm"
+            className="shadow-sm dark:bg-gray-800 dark:border-gray-700"
           >
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium" style={{ color: '#1e293b' }}>API Response Time</span>
-                  <span className="text-sm font-medium" style={{ color: '#3b82f6' }}>85%</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">API Response Time</span>
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">85%</span>
                 </div>
                 <Progress percent={85} strokeColor="#3b82f6" />
               </div>
 
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium" style={{ color: '#1e293b' }}>Database Health</span>
-                  <span className="text-sm font-medium" style={{ color: '#10b981' }}>98%</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Database Health</span>
+                  <span className="text-sm font-medium text-green-600 dark:text-green-400">98%</span>
                 </div>
                 <Progress percent={98} strokeColor="#10b981" />
               </div>
 
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium" style={{ color: '#1e293b' }}>Memory Usage</span>
-                  <span className="text-sm font-medium" style={{ color: '#f59e0b' }}>72%</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Memory Usage</span>
+                  <span className="text-sm font-medium text-orange-600 dark:text-orange-400">72%</span>
                 </div>
                 <Progress percent={72} strokeColor="#f59e0b" />
               </div>

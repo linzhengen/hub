@@ -1,0 +1,7 @@
+{
+  "disabledMcpjsonServers": [
+    "playwright",
+    "slack",
+    "filesystem"
+  ]
+}

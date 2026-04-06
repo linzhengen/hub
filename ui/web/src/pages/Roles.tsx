@@ -125,21 +125,11 @@ export function Roles() {
         const permissionCount = record.permissionIds?.length || 0;
         return (
           <div className="flex items-center gap-2">
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '4px 10px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: '500',
-              color: '#059669',
-              backgroundColor: '#d1fae5',
-              border: '1px solid #a7f3d0'
-            }}>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
               {permissionCount} {permissionCount === 1 ? 'permission' : 'permissions'}
             </span>
             {permissionCount > 0 && permissionsData?.permissions && (
-              <span className="text-sm" style={{ color: '#64748b' }}>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
                 {permissionsData.permissions.filter(perm => record.permissionIds?.includes(perm.id)).slice(0, 2).map(p => p.name).join(', ')}
                 {permissionCount > 2 ? '...' : ''}
               </span>
@@ -157,12 +147,7 @@ export function Roles() {
             type="text"
             icon={<KeyOutlined />}
             onClick={() => setManagingPermissionsRole(record)}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#8b5cf6'
-            }}
-            className="hover:bg-purple-50"
+            className="p-1.5 rounded-md text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
             title="Manage Permissions"
           />
           <Button
@@ -175,12 +160,7 @@ export function Roles() {
                 description: record.description,
               });
             }}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#3b82f6'
-            }}
-            className="hover:bg-blue-50"
+            className="p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
             title="Edit Role"
           />
           <Button
@@ -191,12 +171,7 @@ export function Roles() {
                 deleteMutation.mutate(record.id);
               }
             }}
-            style={{
-              padding: '6px',
-              borderRadius: '6px',
-              color: '#dc2626'
-            }}
-            className="hover:bg-red-50"
+            className="p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             title="Delete Role"
           />
         </Space>
@@ -223,13 +198,13 @@ export function Roles() {
       {/* ヘッダーセクション */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight" style={{ color: '#1e293b' }}>Roles</h2>
-          <p className="text-sm" style={{ color: '#64748b' }}>Define and manage role-based access permissions</p>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Roles</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Define and manage role-based access permissions</p>
         </div>
         <div className="flex items-center gap-3">
           <Input
             placeholder="Search roles..."
-            prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+            prefix={<SearchOutlined className="text-gray-400 dark:text-gray-500" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             style={{ width: 250, borderRadius: '8px' }}
@@ -248,72 +223,72 @@ export function Roles() {
 
       {/* 統計カード */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Total Roles</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{totalRoles}</div>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Roles</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{totalRoles}</div>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-sm text-green-600">+5.4%</span>
-                <span className="text-sm text-gray-500">from last month</span>
+                <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
+                <span className="text-sm text-green-600 dark:text-green-400">+5.4%</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-purple-50">
-              <Shield className="h-5 w-5 text-purple-600" />
+            <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20">
+              <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Avg. Permissions/Role</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>{averagePermissionsPerRole}</div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg. Permissions/Role</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{averagePermissionsPerRole}</div>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 {totalPermissions} total permissions
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-blue-50">
-              <KeyOutlined style={{ fontSize: '20px', color: '#3b82f6' }} />
+            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+              <KeyOutlined style={{ fontSize: '20px' }} className="text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>System Roles</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">System Roles</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
                 {data?.roles?.filter(r => r.name.toLowerCase().includes('admin') || r.name.toLowerCase().includes('system')).length || 0}
               </div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 Administrative roles
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-red-50">
-              <SafetyOutlined style={{ fontSize: '20px', color: '#dc2626' }} />
+            <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20">
+              <SafetyOutlined style={{ fontSize: '20px' }} className="text-red-600 dark:text-red-400" />
             </div>
           </div>
         </Card>
-        <Card className="shadow-sm">
+        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-medium" style={{ color: '#64748b' }}>Custom Roles</div>
-              <div className="text-2xl font-bold mt-1" style={{ color: '#1e293b' }}>
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Custom Roles</div>
+              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
                 {data?.roles?.filter(r => !r.name.toLowerCase().includes('admin') && !r.name.toLowerCase().includes('system')).length || 0}
               </div>
-              <div className="text-sm mt-2" style={{ color: '#64748b' }}>
+              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
                 User-defined roles
               </div>
             </div>
-            <div className="p-2 rounded-lg bg-green-50">
-              <Lock className="h-5 w-5 text-green-600" />
+            <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/20">
+              <Lock className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* ロールテーブル */}
-      <Card className="shadow-sm">
+      <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <Table
           columns={columns}
           dataSource={filteredRoles}
