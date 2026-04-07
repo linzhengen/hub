@@ -10,6 +10,7 @@ import { Permissions } from "@/pages/Permissions";
 import { Profile } from "@/pages/Profile";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AuthErrorHandler } from "@/components/auth/AuthErrorHandler";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
       }}
     >
       <AuthProvider>
+        <AuthErrorHandler />
         <Router>
           <Routes>
             {/* Dashboard Layout */}

@@ -54,8 +54,11 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
     if (response.status === 401) {
       console.error('API returned 401 Unauthorized - Clearing tokens and throwing error');
 
-      // トークンをクリア（次回のcheck()でKeycloakログイン画面へ）
+      // トークンをクリア
       clearTokens();
+
+      // カスタムイベントを発火してUIに通知（セッション切れモーダル表示用）
+      window.dispatchEvent(new CustomEvent('api-unauthorized'));
 
       // 401エラーは特別なエラーとしてスロー
       const error = new Error(message) as any;
