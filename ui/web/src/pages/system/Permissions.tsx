@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { permissionService, Permission, CreatePermissionRequest, UpdatePermissionRequest } from '@/services/permission';
+import { permissionService, Permission, CreatePermissionRequest, UpdatePermissionRequest } from '@/services/permission.ts';
 import { Button, Modal, Input, Table, Form, Space, Card, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, KeyOutlined, LockOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.ts';
 import { Key, TrendingUp, Shield } from 'lucide-react';
 
 export function Permissions() {

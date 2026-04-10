@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { roleService, Role, CreateRoleRequest, UpdateRoleRequest } from '@/services/role';
-import { permissionService, Permission } from '@/services/permission';
+import { roleService, Role, CreateRoleRequest, UpdateRoleRequest } from '@/services/role.ts';
+import { permissionService, Permission } from '@/services/permission.ts';
 import { Button, Modal, Input, Table, Form, Space, Card } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, SearchOutlined, SafetyOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';

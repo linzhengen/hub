@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { groupService, Group, CreateGroupRequest, UpdateGroupRequest, GroupStatus } from '@/services/group';
-import { roleService, Role } from '@/services/role';
-import { userService, User } from '@/services/user';
+import { groupService, Group, CreateGroupRequest, UpdateGroupRequest, GroupStatus } from '@/services/group.ts';
+import { roleService, Role } from '@/services/role.ts';
+import { userService, User } from '@/services/user.ts';
 import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card } from 'antd';
 
 const { Option } = Select;

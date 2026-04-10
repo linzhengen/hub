@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { resourceService, Resource, CreateResourceRequest, UpdateResourceRequest, ResourceType } from '@/services/resource';
+import { resourceService, Resource, CreateResourceRequest, UpdateResourceRequest, ResourceType } from '@/services/resource.ts';
 import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card } from 'antd';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.ts';
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, DatabaseOutlined, FileOutlined, ApiOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
