@@ -259,7 +259,7 @@ const AppSidebar: React.FC = () => {
             : "w-[90px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
+        lg:translate-x-0 transition-colors duration-300`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
