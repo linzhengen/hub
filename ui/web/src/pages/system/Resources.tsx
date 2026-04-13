@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { resourceService, Resource, CreateResourceRequest, UpdateResourceRequest, ResourceType } from '@/services/resource.ts';
-import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card } from 'antd';
+import { resourceService, Resource, UpdateMenuResourceRequest } from '@/services/resource.ts';
+import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card, InputNumber } from 'antd';
 
-import { cn } from '@/lib/utils.ts';
 const { Option } = Select;
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, DatabaseOutlined, FileOutlined, ApiOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FileOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
-import { Database, Folder, TrendingUp, Server } from 'lucide-react';
 
 export function Resources() {
   const queryClient = useQueryClient();
@@ -18,26 +16,27 @@ export function Resources() {
   const [searchText, setSearchText] = useState('');
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['resources'],
-    queryFn: () => resourceService.listResources(),
+    queryKey: ['menu-resources'],
+    queryFn: () => resourceService.listMenuResources(),
   });
 
   const createMutation = useMutation({
-    mutationFn: resourceService.createResource,
+    mutationFn: resourceService.createMenuResource,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['menu-resources'] });
       setIsCreateOpen(false);
-      toast.success('Resource created successfully');
+      createForm.resetFields();
+      toast.success('Menu resource created successfully');
     },
     onError: (error: any) => toast.error(error.message),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateResourceRequest }) => resourceService.updateResource(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateMenuResourceRequest }) => resourceService.updateMenuResource(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['menu-resources'] });
       setEditingResource(null);
-      toast.success('Resource updated successfully');
+      toast.success('Menu resource updated successfully');
     },
     onError: (error: any) => toast.error(error.message),
   });
@@ -45,7 +44,7 @@ export function Resources() {
   const deleteMutation = useMutation({
     mutationFn: resourceService.deleteResource,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['menu-resources'] });
       toast.success('Resource deleted successfully');
     },
     onError: (error: any) => toast.error(error.message),
@@ -54,8 +53,11 @@ export function Resources() {
   const handleCreateSubmit = (values: any) => {
     createMutation.mutate({
       name: values.name,
-      type: values.type,
       description: values.description,
+      status: values.status || 'STATUS_ACTIVE',
+      path: values.path,
+      component: values.component,
+      displayOrder: values.displayOrder,
     });
   };
 
@@ -66,8 +68,11 @@ export function Resources() {
       id: editingResource.id,
       data: {
         name: values.name,
-        type: values.type,
         description: values.description,
+        status: values.status,
+        path: values.path,
+        component: values.component,
+        displayOrder: values.displayOrder,
       }
     });
   };
@@ -79,42 +84,42 @@ export function Resources() {
       key: 'name',
       render: (name: string) => (
         <div className="flex items-center gap-2">
+          <FileOutlined className="text-emerald-600" />
           <span className="text-gray-900 dark:text-white font-medium">{name}</span>
         </div>
       ),
     },
     {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: string) => {
-        const style = getResourceTypeStyle(type);
-        const typeLower = type.toLowerCase();
-        return (
-          <div className="flex items-center gap-2">
-            <div className="text-sm" style={{ color: style.color }}>
-              {style.icon}
-            </div>
-            <span
-              className={cn(
-                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
-                typeLower.includes('api') ? "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20" :
-                typeLower.includes('menu') ? "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
-                "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20"
-              )}
-            >
-              {type.replace('TYPE_', '').replace('_', ' ')}
-            </span>
-          </div>
-        );
-      },
+      title: 'Path',
+      dataIndex: 'path',
+      key: 'path',
+      render: (path: string) => (
+        <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-gray-600 dark:text-gray-400">
+          {path || '-'}
+        </code>
+      ),
+    },
+    {
+      title: 'Order',
+      dataIndex: 'displayOrder',
+      key: 'displayOrder',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Tag color={status === 'STATUS_ACTIVE' ? 'green' : 'red'}>
+          {status?.replace('STATUS_', '') || 'UNKNOWN'}
+        </Tag>
+      ),
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
       render: (description: string) => (
-        <span style={{ color: '#64748b' }}>{description || '-'}</span>
+        <span className="text-gray-500 text-sm">{description || '-'}</span>
       ),
     },
     {
@@ -129,12 +134,14 @@ export function Resources() {
               setEditingResource(record);
               editForm.setFieldsValue({
                 name: record.name,
-                type: record.type,
                 description: record.description,
+                status: record.status,
+                path: record.path,
+                component: record.component,
+                displayOrder: record.displayOrder,
               });
             }}
-            className="p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-            title="Edit Resource"
+            className="text-blue-600"
           />
           <Button
             type="text"
@@ -144,53 +151,30 @@ export function Resources() {
                 deleteMutation.mutate(record.id);
               }
             }}
-            className="p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-            title="Delete Resource"
+            className="text-red-600"
           />
         </Space>
       ),
     },
   ];
 
-  // 検索フィルター
   const filteredResources = data?.resources?.filter(resource =>
     !searchText ||
     resource.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    (resource.identifier?.api && resource.identifier.api.toLowerCase().includes(searchText.toLowerCase())) ||
-    (resource.identifier?.category && resource.identifier.category.toLowerCase().includes(searchText.toLowerCase())) ||
-    resource.type.toLowerCase().includes(searchText.toLowerCase())
-  );
-
-  // 統計データの計算
-  const totalResources = data?.resources?.length || 0;
-  const apiResources = data?.resources?.filter(r => r.type === 'TYPE_API' || r.type.toLowerCase().includes('api')).length || 0;
-  const menuResources = data?.resources?.filter(r => r.type === 'TYPE_MENU' || r.type.toLowerCase().includes('menu')).length || 0;
-  const unspecifiedResources = data?.resources?.filter(r => r.type === 'TYPE_UNSPECIFIED' || !r.type).length || 0;
-
-  // リソースタイプに基づくスタイル
-  const getResourceTypeStyle = (type: string) => {
-    const typeLower = type.toLowerCase();
-    if (typeLower.includes('api')) {
-      return { color: '#3b82f6', bgColor: '#dbeafe', borderColor: '#93c5fd', icon: <ApiOutlined /> };
-    } else if (typeLower.includes('menu')) {
-      return { color: '#059669', bgColor: '#d1fae5', borderColor: '#a7f3d0', icon: <FileOutlined /> };
-    } else {
-      return { color: '#6b7280', bgColor: '#f3f4f6', borderColor: '#d1d5db', icon: <DatabaseOutlined /> };
-    }
-  };
+    (resource.path && resource.path.toLowerCase().includes(searchText.toLowerCase()))
+  ) || [];
 
   return (
     <div className="space-y-6">
-      {/* ヘッダーセクション */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Resources</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Manage system resources and access controls</p>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Menu Resources</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Manage menu structure and UI components</p>
         </div>
         <div className="flex items-center gap-3">
           <Input
-            placeholder="Search resources..."
-            prefix={<SearchOutlined className="text-gray-400 dark:text-gray-500" />}
+            placeholder="Search menu resources..."
+            prefix={<SearchOutlined className="text-gray-400" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             style={{ width: 250, borderRadius: '8px' }}
@@ -202,195 +186,111 @@ export function Resources() {
             onClick={() => setIsCreateOpen(true)}
             style={{ borderRadius: '8px' }}
           >
-            Add Resource
+            Add Menu
           </Button>
         </div>
       </div>
 
-      {/* 統計カード */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Resources</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{totalResources}</div>
-              <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
-                <span className="text-sm text-green-600 dark:text-green-400">+15.7%</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-              <Database className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">API Resources</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{apiResources}</div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                {totalResources > 0 ? `${Math.round((apiResources / totalResources) * 100)}% of total` : 'No resources'}
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20">
-              <Server className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Menu Resources</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{menuResources}</div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                {totalResources > 0 ? `${Math.round((menuResources / totalResources) * 100)}% of total` : 'No resources'}
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/20">
-              <FileOutlined style={{ fontSize: '20px' }} className="text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Unspecified Resources</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{unspecifiedResources}</div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                {totalResources > 0 ? `${Math.round((unspecifiedResources / totalResources) * 100)}% of total` : 'No resources'}
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20">
-              <DatabaseOutlined style={{ fontSize: '20px' }} className="text-orange-600 dark:text-orange-400" />
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* リソーステーブル */}
-      <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
+      <Card className="shadow-sm overflow-hidden">
         <Table
           columns={columns}
           dataSource={filteredResources}
           loading={isLoading}
           rowKey="id"
           locale={{
-            emptyText: error ? 'Failed to load resources' : 'No resources found'
+            emptyText: error ? 'Failed to load resources' : 'No menu resources found'
           }}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} resources`,
+            showTotal: (total) => `Total ${total} items`,
           }}
         />
       </Card>
 
+      {/* Create Modal */}
       <Modal
-        title="Create New Resource"
+        title="Create New Menu"
         open={isCreateOpen}
         onCancel={() => setIsCreateOpen(false)}
         footer={null}
       >
-        <Form
-          form={createForm}
-          layout="vertical"
-          onFinish={handleCreateSubmit}
-        >
+        <Form form={createForm} layout="vertical" onFinish={handleCreateSubmit}>
+          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
           <div className="grid grid-cols-2 gap-4">
-            <Form.Item
-              name="name"
-              label="Name"
-              rules={[{ required: true, message: 'Please input resource name!' }]}
-            >
-              <Input />
+            <Form.Item name="path" label="Path">
+              <Input placeholder="/example" />
             </Form.Item>
-            <Form.Item
-              name="type"
-              label="Type"
-              rules={[{ required: true, message: 'Please select resource type!' }]}
-              initialValue="TYPE_UNSPECIFIED"
-            >
+            <Form.Item name="component" label="Component">
+              <Input placeholder="ExamplePage" />
+            </Form.Item>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="displayOrder" label="Display Order" initialValue={0}>
+              <InputNumber className="w-full" />
+            </Form.Item>
+            <Form.Item name="status" label="Status" initialValue="STATUS_ACTIVE">
               <Select>
-                <Option value="TYPE_UNSPECIFIED">Unspecified</Option>
-                <Option value="TYPE_MENU">Menu</Option>
-                <Option value="TYPE_API">API</Option>
+                <Option value="STATUS_ACTIVE">Active</Option>
+                <Option value="STATUS_INACTIVE">Inactive</Option>
               </Select>
             </Form.Item>
           </div>
-          <Form.Item
-            name="description"
-            label="Description"
-          >
-            <Input />
+          <Form.Item name="description" label="Description">
+            <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item className="mb-0">
-            <div className="flex justify-end">
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={createMutation.isPending}
-              >
-                Create
-              </Button>
-            </div>
-          </Form.Item>
+          <div className="flex justify-end gap-2">
+            <Button onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={createMutation.isPending}>
+              Create
+            </Button>
+          </div>
         </Form>
       </Modal>
 
+      {/* Edit Modal */}
       <Modal
-        title="Edit Resource"
+        title="Edit Menu"
         open={!!editingResource}
         onCancel={() => setEditingResource(null)}
         footer={null}
       >
-        {editingResource && (
-          <Form
-            form={editForm}
-            layout="vertical"
-            onFinish={handleEditSubmit}
-          >
-            <div className="grid grid-cols-2 gap-4">
-              <Form.Item
-                name="name"
-                label="Name"
-                rules={[{ required: true, message: 'Please input resource name!' }]}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                name="type"
-                label="Type"
-                rules={[{ required: true, message: 'Please select resource type!' }]}
-              >
-                <Select>
-                  <Option value="TYPE_UNSPECIFIED">Unspecified</Option>
-                  <Option value="TYPE_MENU">Menu</Option>
-                  <Option value="TYPE_API">API</Option>
-                </Select>
-              </Form.Item>
-            </div>
-            <Form.Item
-              name="description"
-              label="Description"
-            >
+        <Form form={editForm} layout="vertical" onFinish={handleEditSubmit}>
+          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="path" label="Path">
               <Input />
             </Form.Item>
-            <Form.Item className="mb-0">
-              <div className="flex justify-end">
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={updateMutation.isPending}
-                >
-                  Save Changes
-                </Button>
-              </div>
+            <Form.Item name="component" label="Component">
+              <Input />
             </Form.Item>
-          </Form>
-        )}
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="displayOrder" label="Display Order">
+              <InputNumber className="w-full" />
+            </Form.Item>
+            <Form.Item name="status" label="Status">
+              <Select>
+                <Option value="STATUS_ACTIVE">Active</Option>
+                <Option value="STATUS_INACTIVE">Inactive</Option>
+              </Select>
+            </Form.Item>
+          </div>
+          <Form.Item name="description" label="Description">
+            <Input.TextArea rows={2} />
+          </Form.Item>
+          <div className="flex justify-end gap-2">
+            <Button onClick={() => setEditingResource(null)}>Cancel</Button>
+            <Button type="primary" htmlType="submit" loading={updateMutation.isPending}>
+              Save Changes
+            </Button>
+          </div>
+        </Form>
       </Modal>
     </div>
   );
