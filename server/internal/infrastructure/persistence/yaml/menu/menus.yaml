@@ -3,7 +3,7 @@ menus:
     name: "マイページ"
     type: "menu"
     path: "/my"
-    component: "my/index"
+    component: "My"
     displayOrder: 1
     description: ""
     metadata:
@@ -13,18 +13,18 @@ menus:
   - id: "00000000-0000-0000-2000-000000000000"
     name: "ユーザー管理"
     type: "menu"
-    path: "/user"
-    component: "user/list"
+    path: "/users"
+    component: "Users"
     displayOrder: 2
     description: ""
     metadata:
-      icon: "mdi:account-cog"
+      icon: "UserIcon"
     status: "Active"
   - id: "00000000-0000-0000-9000-000000000000"
     name: "システム管理"
     type: "menu"
     path: "/system"
-    component: "BasicLayout"
+    component: ""
     displayOrder: 5
     description: ""
     metadata:
@@ -34,30 +34,30 @@ menus:
       - id: "00000000-0000-0000-9000-100000000000"
         name: "ロール管理"
         type: "menu"
-        path: "/system/role"
-        component: "system/role/list"
+        path: "/system/roles"
+        component: "system/Roles"
         displayOrder: 1
         description: ""
         metadata:
-          icon: "mdi:account-group"
+          icon: "Key"
         status: "Active"
       - id: "00000000-0000-0000-9000-200000000000"
         name: "グループ管理"
         type: "menu"
-        path: "/system/group"
-        component: "system/group/list"
+        path: "/system/groups"
+        component: "system/Groups"
         displayOrder: 2
         description: ""
         metadata:
-          icon: "charm:organisation"
+          icon: "GroupIcon"
         status: "Active"
       - id: "00000000-0000-0000-9000-300000000000"
         name: "メニュー管理"
         type: "menu"
-        path: "/system/menu"
-        component: "system/menu/list"
+        path: "/system/menus"
+        component: "system/Menus"
         displayOrder: 3
         description: ""
         metadata:
-          icon: "mdi:menu"
+          icon: "FolderIcon"
         status: "Active"

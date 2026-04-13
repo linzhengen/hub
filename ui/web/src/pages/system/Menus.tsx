@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { resourceService, Resource, UpdateMenuResourceRequest } from '@/services/resource.ts';
-import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card, InputNumber } from 'antd';
+import { resourceService, Resource, UpdateMenuResourceRequest, CreateMenuResourceRequest } from '@/services/resource.ts';
+import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card, InputNumber, TreeSelect } from 'antd';
 
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FileOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
 
-export function Resources() {
+export function Menus() {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
@@ -58,6 +58,7 @@ export function Resources() {
       path: values.path,
       component: values.component,
       displayOrder: values.displayOrder,
+      parentId: values.parentId,
     });
   };
 
@@ -73,6 +74,7 @@ export function Resources() {
         path: values.path,
         component: values.component,
         displayOrder: values.displayOrder,
+        parentId: values.parentId,
       }
     });
   };
@@ -82,9 +84,9 @@ export function Resources() {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string) => (
+      width: 200,
+      render: (name: string, record: Resource) => (
         <div className="flex items-center gap-2">
-          <FileOutlined className="text-emerald-600" />
           <span className="text-gray-900 dark:text-white font-medium">{name}</span>
         </div>
       ),
@@ -93,6 +95,7 @@ export function Resources() {
       title: 'Path',
       dataIndex: 'path',
       key: 'path',
+      width: 150,
       render: (path: string) => (
         <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-gray-600 dark:text-gray-400">
           {path || '-'}
@@ -103,11 +106,13 @@ export function Resources() {
       title: 'Order',
       dataIndex: 'displayOrder',
       key: 'displayOrder',
+      width: 80,
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      width: 100,
       render: (status: string) => (
         <Tag color={status === 'STATUS_ACTIVE' ? 'green' : 'red'}>
           {status?.replace('STATUS_', '') || 'UNKNOWN'}
@@ -118,6 +123,7 @@ export function Resources() {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+      width: 200,
       render: (description: string) => (
         <span className="text-gray-500 text-sm">{description || '-'}</span>
       ),
@@ -125,6 +131,8 @@ export function Resources() {
     {
       title: 'Actions',
       key: 'actions',
+      width: 100,
+      fixed: 'right' as const,
       render: (_: any, record: Resource) => (
         <Space>
           <Button
@@ -139,6 +147,7 @@ export function Resources() {
                 path: record.path,
                 component: record.component,
                 displayOrder: record.displayOrder,
+                parentId: record.parentId,
               });
             }}
             className="text-blue-600"
@@ -158,11 +167,48 @@ export function Resources() {
     },
   ];
 
+  const buildResourceTree = (resources: Resource[]): any[] => {
+    const map = new Map();
+    const roots: any[] = [];
+
+    resources.forEach(res => {
+      map.set(res.id, { ...res, children: [] });
+    });
+
+    resources.forEach(res => {
+      const node = map.get(res.id);
+      if (res.parentId && map.has(res.parentId)) {
+        map.get(res.parentId).children.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+
+    // Remove empty children arrays for Ant Design Table tree compatibility
+    const cleanTree = (nodes: any[]) => {
+      nodes.forEach(node => {
+        if (node.children.length === 0) {
+          delete node.children;
+        } else {
+          node.children.sort((a: any, b: any) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          cleanTree(node.children);
+        }
+      });
+      return nodes.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    };
+
+    return cleanTree(roots);
+  };
+
   const filteredResources = data?.resources?.filter(resource =>
     !searchText ||
     resource.name.toLowerCase().includes(searchText.toLowerCase()) ||
     (resource.path && resource.path.toLowerCase().includes(searchText.toLowerCase()))
   ) || [];
+
+  const treeData = buildResourceTree(filteredResources);
+
+  const treeSelectOptions = buildResourceTree(data?.resources || []);
 
   return (
     <div className="space-y-6">
@@ -194,18 +240,15 @@ export function Resources() {
       <Card className="shadow-sm overflow-hidden">
         <Table
           columns={columns}
-          dataSource={filteredResources}
+          dataSource={treeData}
           loading={isLoading}
           rowKey="id"
+          scroll={{ x: 800 }}
+          expandable={{ defaultExpandAllRows: true }}
           locale={{
             emptyText: error ? 'Failed to load resources' : 'No menu resources found'
           }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total) => `Total ${total} items`,
-          }}
+          pagination={false}
         />
       </Card>
 
@@ -215,11 +258,25 @@ export function Resources() {
         open={isCreateOpen}
         onCancel={() => setIsCreateOpen(false)}
         footer={null}
+        width={600}
       >
         <Form form={createForm} layout="vertical" onFinish={handleCreateSubmit}>
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item name="parentId" label="Parent Menu">
+              <TreeSelect
+                showSearch
+                style={{ width: '100%' }}
+                popupStyle={{ maxHeight: 800, overflow: 'auto' }}
+                placeholder="Select parent menu"
+                allowClear
+                treeData={treeSelectOptions}
+                fieldNames={{ label: 'name', value: 'id', children: 'children' }}
+              />
+            </Form.Item>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <Form.Item name="path" label="Path">
               <Input placeholder="/example" />
@@ -257,11 +314,25 @@ export function Resources() {
         open={!!editingResource}
         onCancel={() => setEditingResource(null)}
         footer={null}
+        width={600}
       >
         <Form form={editForm} layout="vertical" onFinish={handleEditSubmit}>
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+              <Input />
+            </Form.Item>
+            <Form.Item name="parentId" label="Parent Menu">
+              <TreeSelect
+                showSearch
+                style={{ width: '100%' }}
+                dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+                placeholder="Select parent menu"
+                allowClear
+                treeData={treeSelectOptions}
+                fieldNames={{ label: 'name', value: 'id', children: 'children' }}
+              />
+            </Form.Item>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <Form.Item name="path" label="Path">
               <Input />

@@ -46,8 +46,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Groups", icon: <GroupIcon />, path: "/system/groups", pro: false },
       { name: "Roles", icon: <Key />, path: "/system/roles", pro: false },
-      { name: "Resources", icon: <FolderIcon />, path: "/system/resources", pro: false },
-      { name: "Permissions", icon: <LockIcon />, path: "/system/permissions", pro: false },
+      { name: "Menus", icon: <FolderIcon />, path: "/system/menus", pro: false },
     ],
   },
 ];

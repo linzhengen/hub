@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { userService } from '@/services/user';
 import type { User as ApiUser, GetMeResponse } from '@/services/user';
 
-export function Profile() {
+export function My() {
   const { user: authUser, isAuthenticated } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editForm] = Form.useForm();
@@ -88,7 +88,7 @@ export function Profile() {
               onClick={handleEditStart}
               style={{ borderRadius: '8px' }}
             >
-              Edit Profile
+              Edit My
             </Button>
           )}
         </div>
@@ -221,7 +221,7 @@ export function Profile() {
 
       {/* 編集モーダル */}
       <Modal
-        title="Edit Profile"
+        title="Edit My"
         open={isEditing}
         onCancel={handleEditCancel}
         footer={null}

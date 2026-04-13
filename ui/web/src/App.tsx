@@ -5,9 +5,8 @@ import { Dashboard } from "@/pages/Dashboard";
 import { Users } from "@/pages/Users";
 import { Groups } from "@/pages/system/Groups.tsx";
 import { Roles } from "@/pages/system/Roles.tsx";
-import { Resources } from "@/pages/system/Resources.tsx";
-import { Permissions } from "@/pages/system/Permissions.tsx";
-import { Profile } from "@/pages/Profile";
+import { Menus } from "@/pages/system/Menus.tsx";
+import { My } from "@/pages/My.tsx";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AuthErrorHandler } from "@/components/auth/AuthErrorHandler";
@@ -37,9 +36,8 @@ export default function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/system/groups" element={<Groups />} />
               <Route path="/system/roles" element={<Roles />} />
-              <Route path="/system/resources" element={<Resources />} />
-              <Route path="/system/permissions" element={<Permissions />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/system/menus" element={<Menus />} />
+              <Route path="/my" element={<My />} />
             </Route>
 
             {/* Fallback Route */}

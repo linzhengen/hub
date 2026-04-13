@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { roleService, Role, CreateRoleRequest, UpdateRoleRequest } from '@/services/role.ts';
 import { permissionService, Permission } from '@/services/permission.ts';
-import { Button, Modal, Input, Table, Form, Space, Card } from 'antd';
+import { resourceService } from '@/services/resource.ts';
+import { Button, Modal, Input, Table, Form, Space, Card, TreeSelect, Tag, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, SearchOutlined, SafetyOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
-import { Shield, TrendingUp, Lock } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 export function Roles() {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [managingPermissionsRole, setManagingPermissionsRole] = useState<Role | null>(null);
   const [createForm] = Form.useForm();
   const [editForm] = Form.useForm();
   const [searchText, setSearchText] = useState('');
@@ -26,21 +26,70 @@ export function Roles() {
     queryFn: () => permissionService.listPermissions(),
   });
 
+  const { data: resourcesData } = useQuery({
+    queryKey: ['resources'],
+    queryFn: () => resourceService.listResources(),
+  });
+
+  const resourceMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    resourcesData?.resources?.forEach(r => {
+      if (r.id) {
+        // identifier が存在すれば、category + api の形式などを検討
+        // ここでは、ユーザーに分かりやすい identifier を優先的に表示
+        const iden = r.identifier;
+        const displayName = iden ? (iden.category && iden.api ? `${iden.category}:${iden.api}` : (iden.api || iden.category || r.name)) : r.name;
+        map.set(r.id, displayName || r.id);
+      }
+    });
+    return map;
+  }, [resourcesData]);
+
   const createMutation = useMutation({
-    mutationFn: roleService.createRole,
+    mutationFn: async (values: { name: string; description?: string; permissionIds: string[] }) => {
+      const { role } = await roleService.createRole({
+        name: values.name,
+        description: values.description,
+      });
+
+      if (role?.id && values.permissionIds.length > 0) {
+        await roleService.addPermissionsToRole(role.id, {
+          permissionIds: values.permissionIds,
+        });
+      }
+      return role;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       setIsCreateOpen(false);
+      createForm.resetFields();
       toast.success('Role created successfully');
     },
     onError: (error: any) => toast.error(error.message),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateRoleRequest }) => roleService.updateRole(id, data),
+    mutationFn: async ({ id, values, currentPermissionIds }: { id: string; values: { name: string; description?: string; permissionIds: string[] }; currentPermissionIds: string[] }) => {
+      await roleService.updateRole(id, {
+        name: values.name,
+        description: values.description,
+      });
+
+      const selectedIds = values.permissionIds || [];
+      const toAdd = selectedIds.filter(id => !currentPermissionIds.includes(id));
+      const toRemove = currentPermissionIds.filter(id => !selectedIds.includes(id));
+
+      if (toAdd.length > 0) {
+        await roleService.addPermissionsToRole(id, { permissionIds: toAdd });
+      }
+      if (toRemove.length > 0) {
+        await roleService.removePermissionsFromRole(id, { permissionIds: toRemove });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       setEditingRole(null);
+      editForm.resetFields();
       toast.success('Role updated successfully');
     },
     onError: (error: any) => toast.error(error.message),
@@ -55,43 +104,11 @@ export function Roles() {
     onError: (error: any) => toast.error(error.message),
   });
 
-  const assignPermissionMutation = useMutation({
-    mutationFn: ({ id, permissionId }: { id: string; permissionId: string }) => roleService.assignPermission(id, { permissionId }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
-      // Update managingPermissionsRole state immediately
-      if (managingPermissionsRole && managingPermissionsRole.id === variables.id) {
-        setManagingPermissionsRole({
-          ...managingPermissionsRole,
-          permissionIds: [...managingPermissionsRole.permissionIds, variables.permissionId]
-        });
-      }
-      toast.success('Permission assigned successfully');
-    },
-    onError: (error: any) => toast.error(error.message),
-  });
-
-  const unassignPermissionMutation = useMutation({
-    mutationFn: ({ id, permissionId, currentPermissionIds }: { id: string; permissionId: string; currentPermissionIds: string[] }) =>
-      roleService.removePermissionsFromRole(id, { permissionIds: currentPermissionIds.filter(pId => pId !== permissionId) }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
-      // Update managingPermissionsRole state immediately
-      if (managingPermissionsRole && managingPermissionsRole.id === variables.id) {
-        setManagingPermissionsRole({
-          ...managingPermissionsRole,
-          permissionIds: managingPermissionsRole.permissionIds.filter(id => id !== variables.permissionId)
-        });
-      }
-      toast.success('Permission unassigned successfully');
-    },
-    onError: (error: any) => toast.error(error.message),
-  });
-
   const handleCreateSubmit = (values: any) => {
     createMutation.mutate({
       name: values.name,
       description: values.description,
+      permissionIds: values.permissionIds || [],
     });
   };
 
@@ -100,12 +117,39 @@ export function Roles() {
 
     updateMutation.mutate({
       id: editingRole.id,
-      data: {
+      values: {
         name: values.name,
         description: values.description,
-      }
+        permissionIds: values.permissionIds || [],
+      },
+      currentPermissionIds: editingRole.permissionIds || [],
     });
   };
+
+  const permissionTreeData = React.useMemo(() => {
+    if (!permissionsData?.permissions) return [];
+
+    const grouped = permissionsData.permissions.reduce((acc, p) => {
+      const resourceId = p.resourceId || 'Other';
+      if (!acc[resourceId]) acc[resourceId] = [];
+      acc[resourceId].push(p);
+      return acc;
+    }, {} as Record<string, Permission[]>);
+
+    return Object.entries(grouped).map(([resourceId, perms]) => {
+      const resourceDisplayName = resourceMap.get(resourceId) || resourceId;
+      return {
+        title: resourceDisplayName,
+        value: `resource:${resourceId}`,
+        key: `resource:${resourceId}`,
+        children: perms.map(p => ({
+          title: `${p.verb || p.id} (${resourceDisplayName})`,
+          value: p.id,
+          key: p.id,
+        })),
+      };
+    });
+  }, [permissionsData, resourceMap]);
 
   const columns = [
     {
@@ -123,17 +167,22 @@ export function Roles() {
       key: 'permissions',
       render: (_: any, record: Role) => {
         const permissionCount = record.permissionIds?.length || 0;
+        if (permissionCount === 0) return '-';
+
+        const rolePermissions = permissionsData?.permissions?.filter(perm =>
+          record.permissionIds?.includes(perm.id)
+        ) || [];
+
         return (
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
-              {permissionCount} {permissionCount === 1 ? 'permission' : 'permissions'}
-            </span>
-            {permissionCount > 0 && permissionsData?.permissions && (
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {permissionsData.permissions.filter(perm => record.permissionIds?.includes(perm.id)).slice(0, 2).map(p => p.name).join(', ')}
-                {permissionCount > 2 ? '...' : ''}
-              </span>
-            )}
+          <div className="flex flex-wrap gap-1 max-w-md">
+            {rolePermissions.map(p => {
+              const resourceDisplayName = p.resourceId ? (resourceMap.get(p.resourceId) || p.resourceId) : '-';
+              return (
+                <Tag key={p.id} color="blue" className="mr-0">
+                  {`${p.verb} (${resourceDisplayName})`}
+                </Tag>
+              );
+            })}
           </div>
         );
       },
@@ -145,19 +194,13 @@ export function Roles() {
         <Space>
           <Button
             type="text"
-            icon={<KeyOutlined />}
-            onClick={() => setManagingPermissionsRole(record)}
-            className="p-1.5 rounded-md text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
-            title="Manage Permissions"
-          />
-          <Button
-            type="text"
             icon={<EditOutlined />}
             onClick={() => {
               setEditingRole(record);
               editForm.setFieldsValue({
                 name: record.name,
                 description: record.description,
+                permissionIds: record.permissionIds || [],
               });
             }}
             className="p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
@@ -186,13 +229,6 @@ export function Roles() {
     (role.description && role.description.toLowerCase().includes(searchText.toLowerCase()))
   );
 
-  // 統計データの計算
-  const totalRoles = data?.roles?.length || 0;
-  const averagePermissionsPerRole = data?.roles?.length ?
-    (data.roles.reduce((acc, role) => acc + (role.permissionIds?.length || 0), 0) / data.roles.length).toFixed(1)
-    : '0.0';
-  const totalPermissions = permissionsData?.permissions?.length || 0;
-
   return (
     <div className="space-y-6">
       {/* ヘッダーセクション */}
@@ -219,72 +255,6 @@ export function Roles() {
             Add Role
           </Button>
         </div>
-      </div>
-
-      {/* 統計カード */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Roles</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{totalRoles}</div>
-              <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
-                <span className="text-sm text-green-600 dark:text-green-400">+5.4%</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">from last month</span>
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20">
-              <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg. Permissions/Role</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{averagePermissionsPerRole}</div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                {totalPermissions} total permissions
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-              <KeyOutlined style={{ fontSize: '20px' }} className="text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">System Roles</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
-                {data?.roles?.filter(r => r.name.toLowerCase().includes('admin') || r.name.toLowerCase().includes('system')).length || 0}
-              </div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                Administrative roles
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20">
-              <SafetyOutlined style={{ fontSize: '20px' }} className="text-red-600 dark:text-red-400" />
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Custom Roles</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
-                {data?.roles?.filter(r => !r.name.toLowerCase().includes('admin') && !r.name.toLowerCase().includes('system')).length || 0}
-              </div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                User-defined roles
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/20">
-              <Lock className="h-5 w-5 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </Card>
       </div>
 
       {/* ロールテーブル */}
@@ -330,6 +300,24 @@ export function Roles() {
           >
             <Input />
           </Form.Item>
+          <Form.Item
+            name="permissionIds"
+            label="Permissions"
+          >
+            <TreeSelect
+              treeData={permissionTreeData}
+              placeholder="Select permissions"
+              treeCheckable={true}
+              showCheckedStrategy={TreeSelect.SHOW_CHILD}
+              style={{ width: '100%' }}
+              allowClear
+              treeDefaultExpandAll
+              showSearch
+              filterTreeNode={(input, node) =>
+                String(node?.title).toLowerCase().includes(input.toLowerCase())
+              }
+            />
+          </Form.Item>
           <Form.Item className="mb-0">
             <div className="flex justify-end">
               <Button
@@ -369,6 +357,24 @@ export function Roles() {
             >
               <Input />
             </Form.Item>
+            <Form.Item
+              name="permissionIds"
+              label="Permissions"
+            >
+              <TreeSelect
+                treeData={permissionTreeData}
+                placeholder="Select permissions"
+                treeCheckable={true}
+                showCheckedStrategy={TreeSelect.SHOW_CHILD}
+                style={{ width: '100%' }}
+                allowClear
+                treeDefaultExpandAll
+                showSearch
+                filterTreeNode={(input, node) =>
+                  String(node?.title).toLowerCase().includes(input.toLowerCase())
+                }
+              />
+            </Form.Item>
             <Form.Item className="mb-0">
               <div className="flex justify-end">
                 <Button
@@ -381,81 +387,6 @@ export function Roles() {
               </div>
             </Form.Item>
           </Form>
-        )}
-      </Modal>
-
-      <Modal
-        title={`Manage Permissions for ${managingPermissionsRole?.name}`}
-        open={!!managingPermissionsRole}
-        onCancel={() => setManagingPermissionsRole(null)}
-        width={800}
-        footer={null}
-      >
-        {managingPermissionsRole && (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium">Current Permissions</h3>
-              {managingPermissionsRole.permissionIds.length === 0 ? (
-                <p className="text-sm text-gray-500">No permissions assigned</p>
-              ) : (
-                <div className="mt-2 space-y-2">
-                  {managingPermissionsRole.permissionIds.map((permissionId) => {
-                    const permission = permissionsData?.permissions?.find(p => p.id === permissionId);
-                    return permission ? (
-                      <div key={permissionId} className="flex items-center justify-between rounded-md border px-3 py-2">
-                        <span>{permission.name} ({permission.verb} on {permission.resourceId})</span>
-                        <Button
-                          type="text"
-                          danger
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to remove ${permission.name} from this role?`)) {
-                              unassignPermissionMutation.mutate({
-                                id: managingPermissionsRole.id,
-                                permissionId: permission.id,
-                                currentPermissionIds: managingPermissionsRole.permissionIds
-                              });
-                            }
-                          }}
-                          loading={unassignPermissionMutation.isPending && unassignPermissionMutation.variables?.id === managingPermissionsRole.id && unassignPermissionMutation.variables?.permissionId === permission.id}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <h3 className="text-lg font-medium">Available Permissions</h3>
-              {permissionsData?.permissions?.filter(permission => !managingPermissionsRole.permissionIds.includes(permission.id)).length === 0 ? (
-                <p className="text-sm text-gray-500">No available permissions</p>
-              ) : (
-                <div className="mt-2 space-y-2">
-                  {permissionsData?.permissions
-                    ?.filter(permission => !managingPermissionsRole.permissionIds.includes(permission.id))
-                    .map((permission) => (
-                      <div key={permission.id} className="flex items-center justify-between rounded-md border px-3 py-2">
-                        <span>{permission.name} ({permission.verb} on {permission.resourceId})</span>
-                        <Button
-                          type="text"
-                          onClick={() => {
-                            assignPermissionMutation.mutate({
-                              id: managingPermissionsRole.id,
-                              permissionId: permission.id
-                            });
-                          }}
-                          loading={assignPermissionMutation.isPending && assignPermissionMutation.variables?.id === managingPermissionsRole.id && assignPermissionMutation.variables?.permissionId === permission.id}
-                        >
-                          Assign
-                        </Button>
-                      </div>
-                    ))}
-                </div>
-              )}
-            </div>
-          </div>
         )}
       </Modal>
     </div>
