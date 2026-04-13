@@ -155,9 +155,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      clearTokens();
-      setIsAuthenticated(false);
-      setUser(null);
+      console.log('Logging out...');
 
       const logoutOptions: any = {
         redirectUri: window.location.origin,
@@ -167,10 +165,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logoutOptions.idTokenHint = keycloak.idToken;
       }
 
+      // トークンを先にクリアする（もしリダイレクトに失敗しても再認証が必要な状態にするため）
+      clearTokens();
+
+      // keycloak.logout() はリダイレクトを伴うため、ここで処理が中断される可能性がある
       await keycloak.logout(logoutOptions);
+
+      // keycloak.logout() がリダイレクトしない場合に備えて状態を更新
+      setIsAuthenticated(false);
+      setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
-      // エラーが発生してもローカルストレージはクリアする
+      // エラーが発生してもローカルの状態はクリアする
       clearTokens();
       setIsAuthenticated(false);
       setUser(null);
