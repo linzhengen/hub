@@ -1,0 +1,54 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(git status:*)",
+      "Bash(golangci-lint run:*)",
+      "Bash(go test:*)",
+      "Bash(go vet:*)",
+      "Bash(go build:*)",
+      "Bash(gofmt:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose exec keycloak ls:*)",
+      "Bash(docker compose exec keycloak find:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(pnpm:*)"                                                                                                                                                                                            ,
+      "mcp__filesystem__read_multiple_files",
+      "mcp__filesystem__edit_file",
+      "mcp__filesystem__read_text_file",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__search_files",
+      "mcp__filesystem__list_allowed_directories",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__list_console_messages"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -fd:*)",
+      "Bash(git branch -D:*)",
+      "Bash(rm -rf /:*)",
+      "Bash(rm -rf .git:*)",
+      "Bash(terraform destroy:*)",
+      "Bash(kubectl delete namespace:*)",
+      "Bash(rm -rf *:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "modelConfiguration": {
+    "modelContextWindow": 110000
+  },
+  "model": "deepseek-chat",
+  "alwaysThinkingEnabled": false,
+  "fastMode": false
+}

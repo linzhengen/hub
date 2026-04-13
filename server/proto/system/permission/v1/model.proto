@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package system.permission.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/permission/v1";
+
+message Permission {
+  string id = 1;
+  string name = 2;
+  string verb = 3;
+  string resource_id = 4;
+  string description = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}

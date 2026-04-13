@@ -1,0 +1,40 @@
+tmp
+.git
+
+# Log files
+*.log
+*.log.*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build directories
+dist/
+build/
+bin/
+out/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Go specific
+*.test
+*.out
+vendor/
+
+# Node.js (if any frontend)
+node_modules/

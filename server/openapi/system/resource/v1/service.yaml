@@ -1,0 +1,486 @@
+components:
+    schemas:
+        ResourceServiceUpdateMenuResourceBody:
+            properties:
+                component:
+                    type: string
+                description:
+                    type: string
+                displayOrder:
+                    format: int32
+                    type: integer
+                metadata:
+                    additionalProperties:
+                        type: string
+                    type: object
+                name:
+                    type: string
+                parentId:
+                    type: string
+                path:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/resourceV1Status'
+            type: object
+        ResourceServiceUpdateResourceBody:
+            properties:
+                component:
+                    type: string
+                description:
+                    type: string
+                displayOrder:
+                    format: int32
+                    type: integer
+                identifier:
+                    $ref: '#/components/schemas/v1Identifier'
+                metadata:
+                    additionalProperties:
+                        type: string
+                    type: object
+                name:
+                    type: string
+                parentId:
+                    type: string
+                path:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/resourceV1Status'
+                type:
+                    $ref: '#/components/schemas/resourceV1Type'
+            type: object
+        googleRpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        resourceV1Status:
+            default: STATUS_UNSPECIFIED
+            enum:
+                - STATUS_UNSPECIFIED
+                - STATUS_ACTIVE
+                - STATUS_INACTIVE
+            type: string
+        resourceV1Type:
+            default: TYPE_UNSPECIFIED
+            enum:
+                - TYPE_UNSPECIFIED
+                - TYPE_MENU
+                - TYPE_API
+            type: string
+        v1CreateMenuResourceRequest:
+            properties:
+                component:
+                    type: string
+                description:
+                    type: string
+                displayOrder:
+                    format: int32
+                    type: integer
+                metadata:
+                    additionalProperties:
+                        type: string
+                    type: object
+                name:
+                    type: string
+                parentId:
+                    type: string
+                path:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/resourceV1Status'
+            type: object
+        v1CreateMenuResourceResponse:
+            properties:
+                resource:
+                    $ref: '#/components/schemas/v1Resource'
+            type: object
+        v1CreateResourceRequest:
+            properties:
+                component:
+                    type: string
+                description:
+                    type: string
+                displayOrder:
+                    format: int32
+                    type: integer
+                identifier:
+                    $ref: '#/components/schemas/v1Identifier'
+                metadata:
+                    additionalProperties:
+                        type: string
+                    type: object
+                name:
+                    type: string
+                parentId:
+                    type: string
+                path:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/resourceV1Status'
+                type:
+                    $ref: '#/components/schemas/resourceV1Type'
+            type: object
+        v1CreateResourceResponse:
+            properties:
+                resource:
+                    $ref: '#/components/schemas/v1Resource'
+            type: object
+        v1DeleteResourceResponse:
+            type: object
+        v1GetResourceResponse:
+            properties:
+                resource:
+                    $ref: '#/components/schemas/v1Resource'
+            type: object
+        v1Identifier:
+            properties:
+                api:
+                    type: string
+                category:
+                    type: string
+            type: object
+        v1ListMenuResourceResponse:
+            properties:
+                resources:
+                    items:
+                        $ref: '#/components/schemas/v1Resource'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1ListResourceResponse:
+            properties:
+                resources:
+                    items:
+                        $ref: '#/components/schemas/v1Resource'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1Resource:
+            properties:
+                component:
+                    type: string
+                createdAt:
+                    format: date-time
+                    type: string
+                description:
+                    type: string
+                displayOrder:
+                    format: int32
+                    type: integer
+                id:
+                    type: string
+                identifier:
+                    $ref: '#/components/schemas/v1Identifier'
+                metadata:
+                    additionalProperties:
+                        type: string
+                    type: object
+                name:
+                    type: string
+                parentId:
+                    type: string
+                path:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/resourceV1Status'
+                type:
+                    $ref: '#/components/schemas/resourceV1Type'
+                updatedAt:
+                    format: date-time
+                    type: string
+            type: object
+        v1UpdateMenuResourceResponse:
+            properties:
+                resource:
+                    $ref: '#/components/schemas/v1Resource'
+            type: object
+        v1UpdateResourceResponse:
+            properties:
+                resource:
+                    $ref: '#/components/schemas/v1Resource'
+            type: object
+info:
+    title: system/resource/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/resources:
+        get:
+            operationId: ResourceService_ListResource
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: resourceIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+                - in: query
+                  name: resourceName
+                  schema:
+                    type: string
+                - in: query
+                  name: status
+                  schema:
+                    default: STATUS_UNSPECIFIED
+                    enum:
+                        - STATUS_UNSPECIFIED
+                        - STATUS_ACTIVE
+                        - STATUS_INACTIVE
+                    type: string
+                - in: query
+                  name: resourceType
+                  schema:
+                    default: TYPE_UNSPECIFIED
+                    enum:
+                        - TYPE_UNSPECIFIED
+                        - TYPE_MENU
+                        - TYPE_API
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListResourceResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ResourceService
+        post:
+            operationId: ResourceService_CreateResource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateResourceRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateResourceResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ResourceService
+    /api/v1/resources/{id}:
+        delete:
+            operationId: ResourceService_DeleteResource
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeleteResourceResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ResourceService
+        get:
+            operationId: ResourceService_GetResource
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetResourceResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ResourceService
+        put:
+            operationId: ResourceService_UpdateResource
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResourceServiceUpdateResourceBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UpdateResourceResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ResourceService
+    /api/v1/resources/{id}/menus:
+        put:
+            operationId: ResourceService_UpdateMenuResource
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResourceServiceUpdateMenuResourceBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UpdateMenuResourceResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ResourceService
+    /api/v1/resources/menus:
+        get:
+            operationId: ResourceService_ListMenuResource
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: resourceIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+                - in: query
+                  name: resourceName
+                  schema:
+                    type: string
+                - in: query
+                  name: status
+                  schema:
+                    default: STATUS_UNSPECIFIED
+                    enum:
+                        - STATUS_UNSPECIFIED
+                        - STATUS_ACTIVE
+                        - STATUS_INACTIVE
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListMenuResourceResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ResourceService
+        post:
+            operationId: ResourceService_CreateMenuResource
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateMenuResourceRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateMenuResourceResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ResourceService
+tags:
+    - name: ResourceService

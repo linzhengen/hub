@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+package user.v1;
+
+import "google/api/annotations.proto";
+import "system/group/v1/model.proto";
+import "user/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/user/v1";
+
+service UserService {
+  rpc GetMe(GetMeRequest) returns (GetMeResponse) {
+    option (google.api.http) = {get: "/api/v1/me"};
+  }
+  rpc GetMeMenus(GetMeMenusRequest) returns (GetMeMenusResponse) {
+    option (google.api.http) = {get: "/api/v1/me/menus"};
+  }
+  rpc UpdateMe(UpdateMeRequest) returns (UpdateMeResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/me"
+      body: "*"
+    };
+  }
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {get: "/api/v1/users/{id}"};
+  }
+  rpc ListUser(ListUserRequest) returns (ListUserResponse) {
+    option (google.api.http) = {get: "/api/v1/users"};
+  }
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/users/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {
+    option (google.api.http) = {delete: "/api/v1/users/{id}"};
+  }
+  rpc AssignGroup(AssignGroupRequest) returns (AssignGroupResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/groups/assign"
+      body: "*"
+    };
+  }
+  rpc UnassignGroup(UnassignGroupRequest) returns (UnassignGroupResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/groups/unassign"
+      body: "*"
+    };
+  }
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users"
+      body: "*"
+    };
+  }
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+  repeated string group_ids = 5;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message GetMeRequest {}
+
+message GetMeResponse {
+  user.v1.User user = 1;
+  repeated system.group.v1.Group groups = 2;
+}
+
+message GetMeMenusRequest {}
+
+message GetMeMenusResponse {
+  repeated Menu menus = 1;
+}
+
+message UpdateMeRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message UpdateMeResponse {
+  user.v1.User user = 1;
+  repeated system.group.v1.Group groups = 2;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message ListUserRequest {
+  uint32 limit = 1;
+  uint32 offset = 2;
+  repeated string user_ids = 3;
+  repeated string user_emails = 4;
+  string user_name = 5;
+  User.Status status = 6;
+  repeated string group_ids = 7;
+}
+
+message ListUserResponse {
+  repeated User users = 1;
+  int64 total = 2;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  User.Status status = 4;
+  optional string password = 5;
+  repeated string group_ids = 6;
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message DeleteUserResponse {}
+
+message AssignGroupRequest {
+  string id = 1;
+  string group_id = 2;
+}
+
+message AssignGroupResponse {
+  User user = 1;
+}
+
+message UnassignGroupRequest {
+  string id = 1;
+  string group_id = 2;
+}
+
+message UnassignGroupResponse {
+  User user = 1;
+}

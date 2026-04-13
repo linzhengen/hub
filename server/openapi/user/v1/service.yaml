@@ -1,0 +1,521 @@
+components:
+    schemas:
+        UserServiceAssignGroupBody:
+            properties:
+                groupId:
+                    type: string
+            type: object
+        UserServiceUnassignGroupBody:
+            properties:
+                groupId:
+                    type: string
+            type: object
+        UserServiceUpdateUserBody:
+            properties:
+                email:
+                    type: string
+                groupIds:
+                    items:
+                        type: string
+                    type: array
+                password:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/v1UserStatus'
+                username:
+                    type: string
+            type: object
+        googleRpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        resourceV1Type:
+            default: TYPE_UNSPECIFIED
+            enum:
+                - TYPE_UNSPECIFIED
+                - TYPE_MENU
+                - TYPE_API
+            type: string
+        v1AssignGroupResponse:
+            properties:
+                user:
+                    $ref: '#/components/schemas/v1User'
+            type: object
+        v1CreateUserRequest:
+            properties:
+                email:
+                    type: string
+                groupIds:
+                    items:
+                        type: string
+                    type: array
+                password:
+                    type: string
+                username:
+                    type: string
+            type: object
+        v1CreateUserResponse:
+            properties:
+                user:
+                    $ref: '#/components/schemas/v1User'
+            type: object
+        v1DeleteUserResponse:
+            type: object
+        v1GetMeMenusResponse:
+            properties:
+                menus:
+                    items:
+                        $ref: '#/components/schemas/v1Menu'
+                    type: array
+            type: object
+        v1GetMeResponse:
+            properties:
+                groups:
+                    items:
+                        $ref: '#/components/schemas/v1Group'
+                    type: array
+                user:
+                    $ref: '#/components/schemas/v1User'
+            type: object
+        v1GetUserResponse:
+            properties:
+                user:
+                    $ref: '#/components/schemas/v1User'
+            type: object
+        v1Group:
+            properties:
+                createdAt:
+                    format: date-time
+                    type: string
+                description:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                roleIds:
+                    items:
+                        type: string
+                    type: array
+                status:
+                    $ref: '#/components/schemas/v1GroupStatus'
+                updatedAt:
+                    format: date-time
+                    type: string
+            type: object
+        v1GroupStatus:
+            default: STATUS_UNSPECIFIED
+            enum:
+                - STATUS_UNSPECIFIED
+                - STATUS_ACTIVE
+                - STATUS_INACTIVE
+            type: string
+        v1ListUserResponse:
+            properties:
+                total:
+                    format: int64
+                    type: string
+                users:
+                    items:
+                        $ref: '#/components/schemas/v1User'
+                    type: array
+            type: object
+        v1Menu:
+            properties:
+                authCode:
+                    type: string
+                children:
+                    items:
+                        $ref: '#/components/schemas/v1Menu'
+                    type: array
+                component:
+                    type: string
+                identifier:
+                    type: string
+                meta:
+                    $ref: '#/components/schemas/v1MenuMeta'
+                name:
+                    type: string
+                path:
+                    type: string
+                type:
+                    $ref: '#/components/schemas/resourceV1Type'
+            type: object
+        v1MenuMeta:
+            properties:
+                authority:
+                    type: string
+                badge:
+                    type: string
+                hideInMenu:
+                    type: boolean
+                icon:
+                    type: string
+                keepAlive:
+                    type: boolean
+                order:
+                    format: int64
+                    type: integer
+                title:
+                    type: string
+            type: object
+        v1UnassignGroupResponse:
+            properties:
+                user:
+                    $ref: '#/components/schemas/v1User'
+            type: object
+        v1UpdateMeRequest:
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+                username:
+                    type: string
+            type: object
+        v1UpdateMeResponse:
+            properties:
+                groups:
+                    items:
+                        $ref: '#/components/schemas/v1Group'
+                    type: array
+                user:
+                    $ref: '#/components/schemas/v1User'
+            type: object
+        v1UpdateUserResponse:
+            properties:
+                user:
+                    $ref: '#/components/schemas/v1User'
+            type: object
+        v1User:
+            properties:
+                createdAt:
+                    format: date-time
+                    type: string
+                email:
+                    type: string
+                groupIds:
+                    items:
+                        type: string
+                    type: array
+                id:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/v1UserStatus'
+                updatedAt:
+                    format: date-time
+                    type: string
+                username:
+                    type: string
+            type: object
+        v1UserStatus:
+            default: STATUS_UNSPECIFIED
+            enum:
+                - STATUS_UNSPECIFIED
+                - STATUS_ACTIVE
+                - STATUS_INACTIVE
+            type: string
+info:
+    title: user/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/me:
+        get:
+            operationId: UserService_GetMe
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetMeResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+        put:
+            operationId: UserService_UpdateMe
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1UpdateMeRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UpdateMeResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+    /api/v1/me/menus:
+        get:
+            operationId: UserService_GetMeMenus
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetMeMenusResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+    /api/v1/users:
+        get:
+            operationId: UserService_ListUser
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: userIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+                - in: query
+                  name: userEmails
+                  schema:
+                    items:
+                        type: string
+                    type: array
+                - in: query
+                  name: userName
+                  schema:
+                    type: string
+                - in: query
+                  name: status
+                  schema:
+                    default: STATUS_UNSPECIFIED
+                    enum:
+                        - STATUS_UNSPECIFIED
+                        - STATUS_ACTIVE
+                        - STATUS_INACTIVE
+                    type: string
+                - in: query
+                  name: groupIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListUserResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+        post:
+            operationId: UserService_CreateUser
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateUserRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateUserResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+    /api/v1/users/{id}:
+        delete:
+            operationId: UserService_DeleteUser
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeleteUserResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+        get:
+            operationId: UserService_GetUser
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetUserResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+        put:
+            operationId: UserService_UpdateUser
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserServiceUpdateUserBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UpdateUserResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+    /api/v1/users/{id}/groups/assign:
+        post:
+            operationId: UserService_AssignGroup
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserServiceAssignGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1AssignGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+    /api/v1/users/{id}/groups/unassign:
+        post:
+            operationId: UserService_UnassignGroup
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserServiceUnassignGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UnassignGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+tags:
+    - name: UserService

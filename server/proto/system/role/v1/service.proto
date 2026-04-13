@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package system.role.v1;
+
+import "google/api/annotations.proto";
+import "system/role/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/role/v1";
+
+service RoleService {
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse) {
+    option (google.api.http) = {get: "/api/v1/roles/{id}"};
+  }
+  rpc ListRole(ListRoleRequest) returns (ListRoleResponse) {
+    option (google.api.http) = {get: "/api/v1/roles"};
+  }
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/roles"
+      body: "*"
+    };
+  }
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/roles/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse) {
+    option (google.api.http) = {delete: "/api/v1/roles/{id}"};
+  }
+  rpc AssignPermission(AssignPermissionRequest) returns (AssignPermissionResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/roles/{id}/permissions/assign"
+      body: "*"
+    };
+  }
+  rpc AddPermissionsToRole(AddPermissionsToRoleRequest) returns (AddPermissionsToRoleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/roles/{role_id}/permissions"
+      body: "*"
+    };
+  }
+  rpc RemovePermissionsFromRole(RemovePermissionsFromRoleRequest) returns (RemovePermissionsFromRoleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/roles/{role_id}/permissions/remove"
+      body: "*"
+    };
+  }
+}
+
+message GetRoleRequest {
+  string id = 1;
+}
+
+message GetRoleResponse {
+  Role role = 1;
+}
+
+message ListRoleRequest {
+  uint32 limit = 1;
+  uint32 offset = 2;
+  repeated string role_ids = 3;
+  string role_name = 4;
+  repeated string permission_ids = 5;
+}
+
+message ListRoleResponse {
+  repeated Role roles = 1;
+  int64 total = 2;
+}
+
+message CreateRoleRequest {
+  string name = 1;
+  string description = 2;
+}
+
+message CreateRoleResponse {
+  Role role = 1;
+}
+
+message UpdateRoleRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+
+message UpdateRoleResponse {
+  Role role = 1;
+}
+
+message DeleteRoleRequest {
+  string id = 1;
+}
+
+message DeleteRoleResponse {}
+
+message AssignPermissionRequest {
+  string permission_id = 1;
+  string id = 2;
+}
+
+message AssignPermissionResponse {
+  Role role = 1;
+}
+
+message AddPermissionsToRoleRequest {
+  string role_id = 1;
+  repeated string permission_ids = 2;
+}
+
+message AddPermissionsToRoleResponse {}
+
+message RemovePermissionsFromRoleRequest {
+  string role_id = 1;
+  repeated string permission_ids = 2;
+}
+
+message RemovePermissionsFromRoleResponse {}

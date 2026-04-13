@@ -1,0 +1,48 @@
+services:
+  db:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: password#123
+      MARIADB_DATABASE: hub
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./tmp/:/tmp/query_log/
+    ports:
+      - "3307:3306"
+  hub:
+    image: cosmtrek/air:v1.64.5
+    working_dir: /hub
+    volumes:
+      - ./:/hub
+    env_file:
+      - .env.local
+    ports:
+      - "9090:9090"
+    depends_on:
+      db:
+        condition: service_healthy
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.6
+    command:
+      - start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "admin"
+      KC_HEALTH_ENABLED: "true"
+    healthcheck:
+      test: ["CMD", "/bin/bash", "-c", "exec 3<>/dev/tcp/localhost/9000; printf 'GET /health/live HTTP/1.0\\r\\n\\r\\n' >&3; grep '200 OK' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../ui/keycloak-theme/themes:/opt/keycloak/themes

@@ -1,0 +1,54 @@
+groups:
+  - id: 00000000-0000-0000-0000-000000000000
+    name: default
+    status: Active
+    description: "default assigned group"
+  - id: 00000000-0000-0000-0000-000000000001
+    name: admin
+    status: Active
+    description: "admin group"
+resources:
+  - id: 00000000-0000-0000-0000-000000000001
+    parent_id: ""
+    name: "All API"
+    identifier: "api.*"
+    type: "api"
+    path: ""
+    component: ""
+    display_order: 1
+    description: ""
+    metadata: {}
+    status: Active
+  - id: 00000000-0000-0000-0000-000000000002
+    parent_id: ""
+    name: "All Menu"
+    identifier: "menu.*"
+    type: "menu"
+    path: ""
+    component: ""
+    display_order: 1
+    description: ""
+    metadata: {}
+    status: Active
+permissions:
+  - id: 00000000-0000-0000-0000-000000000001
+    verb: "*"
+    resource_id: 00000000-0000-0000-0000-000000000001
+    description: "All API Action"
+  - id: 00000000-0000-0000-0000-000000000002
+    verb: "*"
+    resource_id: 00000000-0000-0000-0000-000000000002
+    description: "All Menu Action"
+roles:
+  - id: 00000000-0000-0000-0000-000000000001
+    name: "admin-role"
+    description: "admin role"
+    status: Active
+role_permissions:
+  - role_id: 00000000-0000-0000-0000-000000000001
+    permission_id: 00000000-0000-0000-0000-000000000001
+  - role_id: 00000000-0000-0000-0000-000000000001
+    permission_id: 00000000-0000-0000-0000-000000000002
+group_roles:
+  - group_id: 00000000-0000-0000-0000-000000000001
+    role_id: 00000000-0000-0000-0000-000000000001

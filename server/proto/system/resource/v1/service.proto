@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+package system.resource.v1;
+
+import "google/api/annotations.proto";
+import "system/resource/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/resource/v1";
+
+service ResourceService {
+  rpc GetResource(GetResourceRequest) returns (GetResourceResponse) {
+    option (google.api.http) = {get: "/api/v1/resources/{id}"};
+  }
+  rpc ListResource(ListResourceRequest) returns (ListResourceResponse) {
+    option (google.api.http) = {get: "/api/v1/resources"};
+  }
+  rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/resources"
+      body: "*"
+    };
+  }
+  rpc UpdateResource(UpdateResourceRequest) returns (UpdateResourceResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/resources/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {
+    option (google.api.http) = {delete: "/api/v1/resources/{id}"};
+  }
+  rpc ListMenuResource(ListMenuResourceRequest) returns (ListMenuResourceResponse) {
+    option (google.api.http) = {get: "/api/v1/resources/menus"};
+  }
+  rpc CreateMenuResource(CreateMenuResourceRequest) returns (CreateMenuResourceResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/resources/menus"
+      body: "*"
+    };
+  }
+  rpc UpdateMenuResource(UpdateMenuResourceRequest) returns (UpdateMenuResourceResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/resources/{id}/menus"
+      body: "*"
+    };
+  }
+}
+
+message GetResourceRequest {
+  string id = 1;
+}
+
+message GetResourceResponse {
+  Resource resource = 1;
+}
+
+message ListResourceRequest {
+  uint32 limit = 1;
+  uint32 offset = 2;
+  repeated string resource_ids = 3;
+  string resource_name = 4;
+  Status status = 5;
+  Type resource_type = 6;
+}
+
+message ListResourceResponse {
+  repeated Resource resources = 1;
+  int64 total = 2;
+}
+
+message ListMenuResourceRequest {
+  uint32 limit = 1;
+  uint32 offset = 2;
+  repeated string resource_ids = 3;
+  string resource_name = 4;
+  Status status = 5;
+}
+
+message ListMenuResourceResponse {
+  repeated Resource resources = 1;
+  int64 total = 2;
+}
+
+message CreateResourceRequest {
+  string parent_id = 1;
+  string name = 2;
+  Identifier identifier = 4;
+  Type type = 5;
+  string path = 6;
+  optional string component = 7;
+  int32 display_order = 8;
+  optional string description = 9;
+  map<string, string> metadata = 10;
+  Status status = 11;
+}
+
+message CreateResourceResponse {
+  Resource resource = 1;
+}
+
+message UpdateResourceRequest {
+  string id = 1;
+  string parent_id = 2;
+  string name = 3;
+  Identifier identifier = 4;
+  Type type = 5;
+  string path = 6;
+  optional string component = 7;
+  int32 display_order = 8;
+  optional string description = 9;
+  map<string, string> metadata = 10;
+  Status status = 11;
+}
+
+message UpdateResourceResponse {
+  Resource resource = 1;
+}
+
+message DeleteResourceRequest {
+  string id = 1;
+}
+
+message DeleteResourceResponse {}
+
+message CreateMenuResourceRequest {
+  string parent_id = 1;
+  string name = 2;
+  string path = 3;
+  optional string component = 4;
+  int32 display_order = 5;
+  optional string description = 6;
+  map<string, string> metadata = 7;
+  Status status = 8;
+}
+
+message CreateMenuResourceResponse {
+  Resource resource = 1;
+}
+
+message UpdateMenuResourceRequest {
+  string id = 1;
+  string parent_id = 2;
+  string name = 3;
+  string path = 4;
+  optional string component = 5;
+  int32 display_order = 6;
+  optional string description = 7;
+  map<string, string> metadata = 8;
+  Status status = 9;
+}
+
+message UpdateMenuResourceResponse {
+  Resource resource = 1;
+}

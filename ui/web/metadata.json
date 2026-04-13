@@ -1,0 +1,5 @@
+{
+  "name": "Hub",
+  "description": "Admin console for AI Hub",
+  "requestFramePermissions": []
+}

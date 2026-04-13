@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package system.resource.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/resource/v1";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_ACTIVE = 1;
+  STATUS_INACTIVE = 2;
+}
+enum Type {
+  TYPE_UNSPECIFIED = 0;
+  TYPE_MENU = 1;
+  TYPE_API = 2;
+}
+message Identifier {
+  string api = 1;
+  string category = 2;
+}
+message Resource {
+  string id = 1;
+  string parent_id = 2;
+  string name = 3;
+  Identifier identifier = 4;
+  Type type = 5;
+  string path = 6;
+  optional string component = 7;
+  int32 display_order = 8;
+  optional string description = 9;
+  map<string, string> metadata = 10;
+  Status status = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}

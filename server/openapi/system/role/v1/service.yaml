@@ -1,0 +1,354 @@
+components:
+    schemas:
+        RoleServiceAddPermissionsToRoleBody:
+            properties:
+                permissionIds:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        RoleServiceAssignPermissionBody:
+            properties:
+                permissionId:
+                    type: string
+            type: object
+        RoleServiceRemovePermissionsFromRoleBody:
+            properties:
+                permissionIds:
+                    items:
+                        type: string
+                    type: array
+            type: object
+        RoleServiceUpdateRoleBody:
+            properties:
+                description:
+                    type: string
+                name:
+                    type: string
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1AddPermissionsToRoleResponse:
+            type: object
+        v1AssignPermissionResponse:
+            properties:
+                role:
+                    $ref: '#/components/schemas/v1Role'
+            type: object
+        v1CreateRoleRequest:
+            properties:
+                description:
+                    type: string
+                name:
+                    type: string
+            type: object
+        v1CreateRoleResponse:
+            properties:
+                role:
+                    $ref: '#/components/schemas/v1Role'
+            type: object
+        v1DeleteRoleResponse:
+            type: object
+        v1GetRoleResponse:
+            properties:
+                role:
+                    $ref: '#/components/schemas/v1Role'
+            type: object
+        v1ListRoleResponse:
+            properties:
+                roles:
+                    items:
+                        $ref: '#/components/schemas/v1Role'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1RemovePermissionsFromRoleResponse:
+            type: object
+        v1Role:
+            properties:
+                createdAt:
+                    format: date-time
+                    type: string
+                description:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                permissionIds:
+                    items:
+                        type: string
+                    type: array
+                updatedAt:
+                    format: date-time
+                    type: string
+            type: object
+        v1UpdateRoleResponse:
+            properties:
+                role:
+                    $ref: '#/components/schemas/v1Role'
+            type: object
+info:
+    title: system/role/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/roles:
+        get:
+            operationId: RoleService_ListRole
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: roleIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+                - in: query
+                  name: roleName
+                  schema:
+                    type: string
+                - in: query
+                  name: permissionIds
+                  schema:
+                    items:
+                        type: string
+                    type: array
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListRoleResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - RoleService
+        post:
+            operationId: RoleService_CreateRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateRoleRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateRoleResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - RoleService
+    /api/v1/roles/{id}:
+        delete:
+            operationId: RoleService_DeleteRole
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeleteRoleResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - RoleService
+        get:
+            operationId: RoleService_GetRole
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetRoleResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - RoleService
+        put:
+            operationId: RoleService_UpdateRole
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RoleServiceUpdateRoleBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UpdateRoleResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - RoleService
+    /api/v1/roles/{id}/permissions/assign:
+        post:
+            operationId: RoleService_AssignPermission
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RoleServiceAssignPermissionBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1AssignPermissionResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - RoleService
+    /api/v1/roles/{roleId}/permissions:
+        post:
+            operationId: RoleService_AddPermissionsToRole
+            parameters:
+                - in: path
+                  name: roleId
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RoleServiceAddPermissionsToRoleBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1AddPermissionsToRoleResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - RoleService
+    /api/v1/roles/{roleId}/permissions/remove:
+        post:
+            operationId: RoleService_RemovePermissionsFromRole
+            parameters:
+                - in: path
+                  name: roleId
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RoleServiceRemovePermissionsFromRoleBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1RemovePermissionsFromRoleResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - RoleService
+tags:
+    - name: RoleService

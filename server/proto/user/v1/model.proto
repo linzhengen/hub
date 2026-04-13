@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package user.v1;
+
+import "google/protobuf/timestamp.proto";
+import "system/resource/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/user/v1";
+
+message User {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;
+    STATUS_ACTIVE = 1;
+    STATUS_INACTIVE = 2;
+  }
+
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  Status status = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+
+  repeated string group_ids = 7;
+}
+
+message MenuMeta {
+  string icon = 1;
+  bool keep_alive = 2;
+  uint32 order = 3;
+  string title = 4;
+  string authority = 5;
+  string badge = 6;
+  bool hide_in_menu = 7;
+}
+
+message Menu {
+  string name = 1;
+  string identifier = 2;
+  string path = 3;
+  string component = 4;
+  string auth_code = 5;
+  system.resource.v1.Type type = 6;
+  MenuMeta meta = 7;
+  repeated Menu children = 8;
+}

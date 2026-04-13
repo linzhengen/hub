@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package system.group.v1;
+
+import "google/api/annotations.proto";
+import "system/group/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/group/v1";
+
+service GroupService {
+  rpc GetGroup(GetGroupRequest) returns (GetGroupResponse) {
+    option (google.api.http) = {get: "/api/v1/groups/{id}"};
+  }
+  rpc ListGroup(ListGroupRequest) returns (ListGroupResponse) {
+    option (google.api.http) = {get: "/api/v1/groups"};
+  }
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/groups"
+      body: "*"
+    };
+  }
+  rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/groups/{id}"
+      body: "*"
+    };
+  }
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse) {
+    option (google.api.http) = {delete: "/api/v1/groups/{id}"};
+  }
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/groups/{id}/roles/assign"
+      body: "*"
+    };
+  }
+  rpc AddUsersToGroup(AddUsersToGroupRequest) returns (AddUsersToGroupResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/groups/{group_id}/users/add"
+      body: "*"
+    };
+  }
+  rpc RemoveUsersFromGroup(RemoveUsersFromGroupRequest) returns (RemoveUsersFromGroupResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/groups/{group_id}/users/remove"
+      body: "*"
+    };
+  }
+  rpc AssignRolesToGroup(AssignRolesToGroupRequest) returns (AssignRolesToGroupResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/groups/{group_id}/roles/assignRoles"
+      body: "*"
+    };
+  }
+}
+
+message GetGroupRequest {
+  string id = 1;
+}
+
+message GetGroupResponse {
+  Group group = 1;
+}
+
+message ListGroupRequest {
+  uint32 limit = 1;
+  uint32 offset = 2;
+  repeated string group_ids = 3;
+  string group_name = 4;
+  Group.Status status = 5;
+  repeated string role_ids = 6;
+}
+
+message ListGroupResponse {
+  repeated Group groups = 1;
+  int64 total = 2;
+}
+
+message CreateGroupRequest {
+  string name = 1;
+  Group.Status status = 2;
+  string description = 3;
+}
+
+message CreateGroupResponse {
+  Group group = 1;
+}
+
+message UpdateGroupRequest {
+  string id = 1;
+  string name = 2;
+  Group.Status status = 3;
+  string description = 4;
+}
+
+message UpdateGroupResponse {
+  Group group = 1;
+}
+
+message DeleteGroupRequest {
+  string id = 1;
+}
+
+message DeleteGroupResponse {}
+
+message AssignRoleRequest {
+  string role_id = 1;
+  string id = 2;
+}
+
+message AssignRoleResponse {
+  Group group = 1;
+}
+
+message AddUsersToGroupRequest {
+  string group_id = 1;
+  repeated string user_ids = 2;
+}
+
+message AddUsersToGroupResponse {}
+
+message RemoveUsersFromGroupRequest {
+  string group_id = 1;
+  repeated string user_ids = 2;
+}
+
+message RemoveUsersFromGroupResponse {}
+
+message AssignRolesToGroupRequest {
+  string group_id = 1;
+  repeated string role_ids = 2;
+}
+
+message AssignRolesToGroupResponse {}

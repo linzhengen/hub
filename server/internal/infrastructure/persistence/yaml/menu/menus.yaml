@@ -1,0 +1,63 @@
+menus:
+  - id: "00000000-0000-0000-1000-000000000000"
+    name: "マイページ"
+    type: "menu"
+    path: "/my"
+    component: "My"
+    displayOrder: 1
+    description: ""
+    metadata:
+      hideInMenu: "true"
+      icon: "mdi:account-circle"
+    status: "Active"
+  - id: "00000000-0000-0000-2000-000000000000"
+    name: "ユーザー管理"
+    type: "menu"
+    path: "/users"
+    component: "Users"
+    displayOrder: 2
+    description: ""
+    metadata:
+      icon: "UserIcon"
+    status: "Active"
+  - id: "00000000-0000-0000-9000-000000000000"
+    name: "システム管理"
+    type: "menu"
+    path: "/system"
+    component: ""
+    displayOrder: 5
+    description: ""
+    metadata:
+      icon: "carbon:settings"
+    status: "Active"
+    children:
+      - id: "00000000-0000-0000-9000-100000000000"
+        name: "ロール管理"
+        type: "menu"
+        path: "/system/roles"
+        component: "system/Roles"
+        displayOrder: 1
+        description: ""
+        metadata:
+          icon: "Key"
+        status: "Active"
+      - id: "00000000-0000-0000-9000-200000000000"
+        name: "グループ管理"
+        type: "menu"
+        path: "/system/groups"
+        component: "system/Groups"
+        displayOrder: 2
+        description: ""
+        metadata:
+          icon: "GroupIcon"
+        status: "Active"
+      - id: "00000000-0000-0000-9000-300000000000"
+        name: "メニュー管理"
+        type: "menu"
+        path: "/system/menus"
+        component: "system/Menus"
+        displayOrder: 3
+        description: ""
+        metadata:
+          icon: "FolderIcon"
+        status: "Active"
