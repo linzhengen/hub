@@ -1,5 +1,5 @@
 ---
-name: hub-commit-msg
+name: commit-msg
 description: hub プロジェクトの規約（Conventional Commits）に従った英語のコミットメッセージを、git 暫定領域（staged）の変更内容に基づいて生成します。ユーザーが「コミットメッセージを書いて」「msg」「commit msg」など、変更内容を1行で要約することを求めた場合に使用します。
 ---
 
