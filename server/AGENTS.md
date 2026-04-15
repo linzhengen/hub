@@ -1,7 +1,5 @@
 # AI Agent Development Guide
 
-This document provides a guide for AI agents to understand and develop on the `hub` project.
-
 ## 1. Project Overview
 
 - **Programming Language:** Golang

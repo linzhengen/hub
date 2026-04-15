@@ -1,5 +1,5 @@
 ---
-name: hub-create-pr
+name: create-pr
 description: hub のリポジトリ標準テンプレートを使用して、Pull Requestを作成します。ユーザーがPR作成、PRのタイトル/本文の作成、ブランチの変更内容の要約、日本語または英語でのPR準備を依頼した際に使用します。ユーザーの言語設定（日本語または英語）に基づいて `.github/pull_request_template_ja.md` または `.github/pull_request_template.md` を選択し、hubのPR形式に従って内容を作成します。
 ---
 
