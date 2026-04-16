@@ -5,14 +5,14 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/group"
-	"github.com/linzhengen/hub/server/internal/domain/system/permission"
-	"github.com/linzhengen/hub/server/internal/domain/system/resource"
-	"github.com/linzhengen/hub/server/internal/domain/system/role"
-	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
-	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
-	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
-	pbrolev1 "github.com/linzhengen/hub/server/pb/system/role/v1"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/permission"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/role"
+	pbgroupv1 "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
+	pbpermissionv1 "github.com/linzhengen/hub/v1/server/pb/system/permission/v1"
+	pbresourcev1 "github.com/linzhengen/hub/v1/server/pb/system/resource/v1"
+	pbrolev1 "github.com/linzhengen/hub/v1/server/pb/system/role/v1"
 )
 
 func toGroupPbStatus(s group.Status) pbgroupv1.Group_Status {

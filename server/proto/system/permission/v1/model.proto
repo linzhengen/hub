@@ -4,7 +4,7 @@ package system.permission.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/linzhengen/hub/server/pb/system/permission/v1";
+option go_package = "github.com/linzhengen/hub/v1/server/pb/system/permission/v1";
 
 message Permission {
   string id = 1;

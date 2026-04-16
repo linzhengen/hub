@@ -3,8 +3,8 @@ package user
 import (
 	"context"
 
-	"github.com/linzhengen/hub/server/internal/domain/oidc/user"
-	"github.com/linzhengen/hub/server/internal/infrastructure/oidc/admin"
+	"github.com/linzhengen/hub/v1/server/internal/domain/oidc/user"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/oidc/admin"
 )
 
 type repository struct {

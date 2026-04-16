@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/linzhengen/hub/server/internal/usecase/develop"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/develop"
 )
 
 func NewImportResourceHandler(apiResourceUseCase develop.ResourceUseCase) ImportResourceHandler {

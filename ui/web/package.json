@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "prebuild": "find dist -mindepth 1 ! -name '.gitkeep' -delete",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist",
+    "clean": "find dist -mindepth 1 ! -name '.gitkeep' -delete",
     "lint": "tsc --noEmit",
     "gen-api": "node gen-api-schema.mjs"
   },

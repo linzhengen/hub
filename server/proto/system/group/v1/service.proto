@@ -5,7 +5,7 @@ package system.group.v1;
 import "google/api/annotations.proto";
 import "system/group/v1/model.proto";
 
-option go_package = "github.com/linzhengen/hub/server/pb/system/group/v1";
+option go_package = "github.com/linzhengen/hub/v1/server/pb/system/group/v1";
 
 service GroupService {
   rpc GetGroup(GetGroupRequest) returns (GetGroupResponse) {

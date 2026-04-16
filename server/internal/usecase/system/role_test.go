@@ -8,7 +8,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/linzhengen/hub/server/internal/domain/system/role/rolepermission"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/role/rolepermission"
 	"github.com/stretchr/testify/require"
 )
 

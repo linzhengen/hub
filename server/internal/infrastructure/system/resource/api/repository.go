@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/resource/api"
-	yamlData "github.com/linzhengen/hub/server/internal/infrastructure/persistence/yaml/proto"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/api"
+	yamlData "github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/yaml/proto"
 )
 
 func New() api.Repository {

@@ -9,16 +9,16 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
-	"github.com/linzhengen/hub/server/internal/domain/auth"
-	"github.com/linzhengen/hub/server/internal/domain/oidc/token"
-	"github.com/linzhengen/hub/server/internal/domain/user"
-	"github.com/linzhengen/hub/server/internal/interface/grpc/interceptor"
-	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
-	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
-	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
-	pbrolev1 "github.com/linzhengen/hub/server/pb/system/role/v1"
-	pbuserv1 "github.com/linzhengen/hub/server/pb/user/v1"
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
+	"github.com/linzhengen/hub/v1/server/internal/domain/oidc/token"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user"
+	"github.com/linzhengen/hub/v1/server/internal/interface/grpc/interceptor"
+	pbgroupv1 "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
+	pbpermissionv1 "github.com/linzhengen/hub/v1/server/pb/system/permission/v1"
+	pbresourcev1 "github.com/linzhengen/hub/v1/server/pb/system/resource/v1"
+	pbrolev1 "github.com/linzhengen/hub/v1/server/pb/system/role/v1"
+	pbuserv1 "github.com/linzhengen/hub/v1/server/pb/user/v1"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 type Opts struct {

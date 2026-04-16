@@ -5,7 +5,7 @@ package system.permission.v1;
 import "google/api/annotations.proto";
 import "system/permission/v1/model.proto";
 
-option go_package = "github.com/linzhengen/hub/server/pb/system/permission/v1";
+option go_package = "github.com/linzhengen/hub/v1/server/pb/system/permission/v1";
 
 service PermissionService {
   rpc GetPermission(GetPermissionRequest) returns (GetPermissionResponse) {

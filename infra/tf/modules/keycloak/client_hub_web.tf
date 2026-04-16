@@ -10,10 +10,12 @@ resource "keycloak_openid_client" "hub_web" {
   access_type                         = "PUBLIC"
   access_token_lifespan               = "1800"
   valid_redirect_uris = [
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "http://localhost:9090/*"
   ]
   web_origins = [
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "http://localhost:9090"
   ]
 }
 

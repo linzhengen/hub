@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 func LoggingUnaryServerInterceptor() grpc.UnaryServerInterceptor {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/linzhengen/hub/server/internal/interface/cmd/handler"
+	"github.com/linzhengen/hub/v1/server/internal/interface/cmd/handler"
 )
 
 type Commands []*cobra.Command

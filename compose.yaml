@@ -17,12 +17,12 @@ services:
     ports:
       - "3307:3306"
   hub:
-    image: cosmtrek/air:v1.64.5
-    working_dir: /hub
+    image: cosmtrek/air:v1.65.1
+    working_dir: /src
     volumes:
-      - ./:/hub
+      - ./:/src
     env_file:
-      - .env.local
+      - server/.env.local
     ports:
       - "9090:9090"
     depends_on:
@@ -45,4 +45,4 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ../ui/keycloak-theme/themes:/opt/keycloak/themes
+      - ./ui/keycloak-theme/themes:/opt/keycloak/themes

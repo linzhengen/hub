@@ -7,9 +7,9 @@ import (
 
 	"github.com/Nerzal/gocloak/v13"
 
-	"github.com/linzhengen/hub/server/config"
+	"github.com/linzhengen/hub/v1/server/config"
 
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 // Client is a thread-safe client for performing Keycloak admin operations.

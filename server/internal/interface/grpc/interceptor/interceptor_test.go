@@ -16,11 +16,11 @@ import (
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 
-	"github.com/linzhengen/hub/server/internal/domain/auth"
-	"github.com/linzhengen/hub/server/internal/domain/contextx"
-	"github.com/linzhengen/hub/server/internal/domain/oidc/token"
+	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
+	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
+	"github.com/linzhengen/hub/v1/server/internal/domain/oidc/token"
 
-	"github.com/linzhengen/hub/server/internal/domain/user"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user"
 )
 
 // Mock implementations

@@ -3,14 +3,14 @@ package handler
 import (
 	"context"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/resource/menu"
-	"github.com/linzhengen/hub/server/internal/usecase"
-	"github.com/linzhengen/hub/server/internal/usecase/system"
-	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
-	resourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
-	pbv1 "github.com/linzhengen/hub/server/pb/user/v1"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/menu"
+	"github.com/linzhengen/hub/v1/server/internal/usecase"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/system"
+	pbgroupv1 "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
+	resourcev1 "github.com/linzhengen/hub/v1/server/pb/system/resource/v1"
+	pbv1 "github.com/linzhengen/hub/v1/server/pb/user/v1"
 
-	"github.com/linzhengen/hub/server/internal/domain/user"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user"
 )
 
 func NewUserHandler(

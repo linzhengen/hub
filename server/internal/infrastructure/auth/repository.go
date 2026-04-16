@@ -3,9 +3,9 @@ package auth
 import (
 	"context"
 
-	"github.com/linzhengen/hub/server/internal/domain/auth"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
 )
 
 // Repository is the implementation of the auth.Repository interface

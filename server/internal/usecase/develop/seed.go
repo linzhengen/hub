@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/linzhengen/hub/server/db/seeds"
-	"github.com/linzhengen/hub/server/internal/domain/system/group"
-	"github.com/linzhengen/hub/server/internal/domain/system/group/grouprole"
-	"github.com/linzhengen/hub/server/internal/domain/system/permission"
-	"github.com/linzhengen/hub/server/internal/domain/system/resource"
-	"github.com/linzhengen/hub/server/internal/domain/system/role"
-	"github.com/linzhengen/hub/server/internal/domain/system/role/rolepermission"
-	"github.com/linzhengen/hub/server/internal/domain/trans"
-	"github.com/linzhengen/hub/server/internal/domain/user"
-	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/db/seeds"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group/grouprole"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/permission"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/role"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/role/rolepermission"
+	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 type SeedUseCase interface {

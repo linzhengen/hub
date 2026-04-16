@@ -3,7 +3,7 @@ package develop
 import (
 	"context"
 
-	"github.com/linzhengen/hub/server/internal/domain/system"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system"
 )
 
 type ResourceUseCase interface {

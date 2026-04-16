@@ -5,11 +5,11 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/group"
-	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group"
+	pbgroupv1 "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
 
-	"github.com/linzhengen/hub/server/internal/domain/user"
-	pbuserv1 "github.com/linzhengen/hub/server/pb/user/v1"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user"
+	pbuserv1 "github.com/linzhengen/hub/v1/server/pb/user/v1"
 )
 
 func toUserPbStatus(s user.Status) pbuserv1.User_Status {

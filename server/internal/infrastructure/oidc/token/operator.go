@@ -8,8 +8,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc/metadata"
 
-	oidctoken "github.com/linzhengen/hub/server/internal/domain/oidc/token"
-	jwtutil "github.com/linzhengen/hub/server/pkg/jwt"
+	oidctoken "github.com/linzhengen/hub/v1/server/internal/domain/oidc/token"
+	jwtutil "github.com/linzhengen/hub/v1/server/pkg/jwt"
 )
 
 type operatorImpl struct {

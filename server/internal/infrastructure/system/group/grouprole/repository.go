@@ -3,9 +3,9 @@ package grouprole
 import (
 	"context"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/group/grouprole"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group/grouprole"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
 )
 
 func New(q *sqlc.Queries) grouprole.Repository {

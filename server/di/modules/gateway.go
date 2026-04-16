@@ -3,9 +3,8 @@ package modules
 import (
 	"go.uber.org/dig"
 
-	gwRegister "github.com/linzhengen/hub/server/internal/interface/grpcgw/register"
+	gwRegister "github.com/linzhengen/hub/v1/server/internal/interface/grpcgw/register"
 )
-
 
 // ProvideGateway registers gRPC Gateway dependencies.
 func ProvideGateway(c *dig.Container) {

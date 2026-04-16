@@ -3,20 +3,19 @@ package modules
 import (
 	"go.uber.org/dig"
 
-	systemDomain "github.com/linzhengen/hub/server/internal/domain/system"
-	groupInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/group"
-	grouproleInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/group/grouprole"
-	permissionInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/permission"
-	resourceInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/resource"
-	apiInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/resource/api"
-	menuInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/resource/menu"
-	roleInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/role"
-	rolepermissionInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/role/rolepermission"
-	systemHandler "github.com/linzhengen/hub/server/internal/interface/grpc/handler/system"
-	"github.com/linzhengen/hub/server/internal/usecase/develop"
-	"github.com/linzhengen/hub/server/internal/usecase/system"
+	systemDomain "github.com/linzhengen/hub/v1/server/internal/domain/system"
+	groupInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/system/group"
+	grouproleInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/system/group/grouprole"
+	permissionInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/system/permission"
+	resourceInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/system/resource"
+	apiInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/system/resource/api"
+	menuInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/system/resource/menu"
+	roleInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/system/role"
+	rolepermissionInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/system/role/rolepermission"
+	systemHandler "github.com/linzhengen/hub/v1/server/internal/interface/grpc/handler/system"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/develop"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/system"
 )
-
 
 // ProvideSystem registers system-related dependencies.
 func ProvideSystem(c *dig.Container) {
