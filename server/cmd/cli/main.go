@@ -5,12 +5,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/linzhengen/hub/server/config"
-	"github.com/linzhengen/hub/server/di"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/server/internal/interface/cmd/register"
-
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/config"
+	"github.com/linzhengen/hub/v1/server/di"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/interface/cmd/register"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 var rootCmd = &cobra.Command{

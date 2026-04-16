@@ -5,7 +5,7 @@ package system.resource.v1;
 import "google/api/annotations.proto";
 import "system/resource/v1/model.proto";
 
-option go_package = "github.com/linzhengen/hub/server/pb/system/resource/v1";
+option go_package = "github.com/linzhengen/hub/v1/server/pb/system/resource/v1";
 
 service ResourceService {
   rpc GetResource(GetResourceRequest) returns (GetResourceResponse) {

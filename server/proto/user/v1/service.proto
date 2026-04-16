@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "system/group/v1/model.proto";
 import "user/v1/model.proto";
 
-option go_package = "github.com/linzhengen/hub/server/pb/user/v1";
+option go_package = "github.com/linzhengen/hub/v1/server/pb/user/v1";
 
 service UserService {
   rpc GetMe(GetMeRequest) returns (GetMeResponse) {

@@ -7,14 +7,14 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/group"
-	"github.com/linzhengen/hub/server/internal/domain/system/group/grouprole"
-	"github.com/linzhengen/hub/server/internal/domain/trans"
-	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group/grouprole"
+	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
 
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 type GroupUseCase interface {

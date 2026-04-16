@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/resource"
-	"github.com/linzhengen/hub/server/internal/usecase/system"
-	pbv1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/system"
+	pbv1 "github.com/linzhengen/hub/v1/server/pb/system/resource/v1"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/linzhengen/hub/server/config"
+	"github.com/linzhengen/hub/v1/server/config"
 )
 
 // MockGoCloak is a mock implementation of our GoCloak interface

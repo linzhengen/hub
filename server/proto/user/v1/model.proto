@@ -5,7 +5,7 @@ package user.v1;
 import "google/protobuf/timestamp.proto";
 import "system/resource/v1/model.proto";
 
-option go_package = "github.com/linzhengen/hub/server/pb/user/v1";
+option go_package = "github.com/linzhengen/hub/v1/server/pb/user/v1";
 
 message User {
   enum Status {

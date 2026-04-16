@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/linzhengen/hub/server/internal/usecase/develop"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/develop"
 )
 
 func NewSeedHandler(db *sql.DB, seedUseCase develop.SeedUseCase) SeedHandler {

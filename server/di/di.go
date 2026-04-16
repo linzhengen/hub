@@ -5,8 +5,8 @@ import (
 
 	"go.uber.org/dig"
 
-	"github.com/linzhengen/hub/server/config"
-	"github.com/linzhengen/hub/server/di/modules"
+	"github.com/linzhengen/hub/v1/server/config"
+	"github.com/linzhengen/hub/v1/server/di/modules"
 )
 
 func NewDI(envCfg config.EnvConfig, db *sql.DB) *dig.Container {

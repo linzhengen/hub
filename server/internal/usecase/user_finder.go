@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/resource/menu"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/menu"
 )
 
 type UserFinder interface {

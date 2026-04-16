@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/resource/menu"
-	yamlMenu "github.com/linzhengen/hub/server/internal/infrastructure/persistence/yaml/menu"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/menu"
+	yamlMenu "github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/yaml/menu"
 )
 
 func New() menu.Repository {

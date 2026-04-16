@@ -3,11 +3,10 @@ package modules
 import (
 	"go.uber.org/dig"
 
-	cmdHandler "github.com/linzhengen/hub/server/internal/interface/cmd/handler"
-	cmdRegister "github.com/linzhengen/hub/server/internal/interface/cmd/register"
-	"github.com/linzhengen/hub/server/internal/usecase/develop"
+	cmdHandler "github.com/linzhengen/hub/v1/server/internal/interface/cmd/handler"
+	cmdRegister "github.com/linzhengen/hub/v1/server/internal/interface/cmd/register"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/develop"
 )
-
 
 // ProvideCLI registers CLI-related dependencies.
 func ProvideCLI(c *dig.Container) {

@@ -45,7 +45,8 @@ go.work.sum
 vendor/
 
 # Build output
-dist/
+**/dist/*
+!**/dist/.gitkeep
 build/
 bin/
 

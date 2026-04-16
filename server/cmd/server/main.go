@@ -19,12 +19,13 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	"github.com/linzhengen/hub/server/config"
-	"github.com/linzhengen/hub/server/di"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/server/internal/usecase/develop"
+	"github.com/linzhengen/hub/v1/server/config"
+	"github.com/linzhengen/hub/v1/server/di"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	httphandler "github.com/linzhengen/hub/v1/server/internal/interface/http"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/develop"
 
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 func main() {
@@ -170,6 +171,20 @@ func (s *server) runGrpcServer(ctx context.Context, lis net.Listener) {
 func (s *server) runHttpServer(ctx context.Context, lis net.Listener, envCfg config.EnvConfig) {
 	_ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	// Create SPA handler for serving the frontend
+	spaHandler := httphandler.NewSPAHandler()
+
+	// Create a multiplexer that routes API requests to gRPC-Gateway and everything else to SPA
+	mux := http.NewServeMux()
+
+	// Route API requests (starting with /api/) to gRPC-Gateway
+	mux.Handle("/api/", s.httpServeMux)
+
+	// Route all other requests to SPA handler
+	mux.Handle("/", spaHandler)
+
+	// Apply CORS middleware
 	withCors := cors.New(cors.Options{
 		AllowedOrigins:   envCfg.CORS.AllowOrigins,
 		AllowedMethods:   envCfg.CORS.AllowMethods,
@@ -177,12 +192,13 @@ func (s *server) runHttpServer(ctx context.Context, lis net.Listener, envCfg con
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: envCfg.CORS.AllowCredentials,
 		MaxAge:           envCfg.CORS.MaxAge,
-	}).Handler(s.httpServeMux)
+	}).Handler(mux)
+
 	svr := &http.Server{
 		Handler: withCors,
 	}
 	go func() {
-		logger.Info("staring http server...")
+		logger.Info("starting http server with SPA support...")
 		if err := svr.Serve(lis); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Severef("http serve error: %v", err)
 		}

@@ -10,9 +10,9 @@ import (
 	migrateMysql "github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 
-	"github.com/linzhengen/hub/server/db/migrations"
+	"github.com/linzhengen/hub/v1/server/db/migrations"
 
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 type MigrateUseCase interface {

@@ -4,13 +4,13 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/linzhengen/hub/server/internal/domain/contextx"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
 
-	"github.com/linzhengen/hub/server/config"
+	"github.com/linzhengen/hub/v1/server/config"
 )
 
 func NewConn(cfg config.MySQL) (*sql.DB, error) {

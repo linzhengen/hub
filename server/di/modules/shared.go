@@ -7,12 +7,12 @@ import (
 	"github.com/Nerzal/gocloak/v13"
 	"go.uber.org/dig"
 
-	"github.com/linzhengen/hub/server/config"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql/sqlc"
-	transInfra "github.com/linzhengen/hub/server/internal/infrastructure/trans"
-	"github.com/linzhengen/hub/server/internal/interface/grpc/register"
-	tokenInfra "github.com/linzhengen/hub/server/internal/infrastructure/oidc/token"
+	"github.com/linzhengen/hub/v1/server/config"
+	tokenInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/oidc/token"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	transInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/trans"
+	"github.com/linzhengen/hub/v1/server/internal/interface/grpc/register"
 )
 
 func must(err error) {

@@ -7,15 +7,15 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"github.com/linzhengen/hub/server/internal/domain/contextx"
-	oidcUserDomain "github.com/linzhengen/hub/server/internal/domain/oidc/user"
-	"github.com/linzhengen/hub/server/internal/domain/system/resource/menu"
-	"github.com/linzhengen/hub/server/internal/domain/trans"
-	"github.com/linzhengen/hub/server/internal/domain/user"
-	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
+	oidcUserDomain "github.com/linzhengen/hub/v1/server/internal/domain/oidc/user"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/menu"
+	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
 
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 type UserUseCase interface {

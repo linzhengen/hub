@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/linzhengen/hub/server/internal/domain/trans"
-	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
+	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
 )
 
 type Service interface {

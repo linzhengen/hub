@@ -3,12 +3,11 @@ package modules
 import (
 	"go.uber.org/dig"
 
-	"github.com/linzhengen/hub/server/internal/domain/auth"
-	authInfra "github.com/linzhengen/hub/server/internal/infrastructure/auth"
-	oidcAdminInfra "github.com/linzhengen/hub/server/internal/infrastructure/oidc/admin"
-	oidcUserInfra "github.com/linzhengen/hub/server/internal/infrastructure/oidc/user"
+	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
+	authInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/auth"
+	oidcAdminInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/oidc/admin"
+	oidcUserInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/oidc/user"
 )
-
 
 // ProvideAuth registers authentication and authorization dependencies.
 func ProvideAuth(c *dig.Container) {

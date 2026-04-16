@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/linzhengen/hub/server/internal/domain/contextx"
-	"github.com/linzhengen/hub/server/internal/domain/trans"
-	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
+	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
 
-	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 func New(db *sql.DB, q *sqlc.Queries) trans.Repository {

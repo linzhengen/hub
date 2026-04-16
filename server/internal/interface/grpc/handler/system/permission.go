@@ -3,9 +3,9 @@ package system
 import (
 	"context"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/permission"
-	"github.com/linzhengen/hub/server/internal/usecase/system"
-	pbv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/permission"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/system"
+	pbv1 "github.com/linzhengen/hub/v1/server/pb/system/permission/v1"
 )
 
 func NewPermissionHandler(

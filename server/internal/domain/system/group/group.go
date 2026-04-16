@@ -3,7 +3,7 @@ package group
 import (
 	"time"
 
-	"github.com/linzhengen/hub/server/pkg/uuid"
+	"github.com/linzhengen/hub/v1/server/pkg/uuid"
 )
 
 const (

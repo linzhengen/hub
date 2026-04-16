@@ -5,7 +5,7 @@ package system.role.v1;
 import "google/api/annotations.proto";
 import "system/role/v1/model.proto";
 
-option go_package = "github.com/linzhengen/hub/server/pb/system/role/v1";
+option go_package = "github.com/linzhengen/hub/v1/server/pb/system/role/v1";
 
 service RoleService {
   rpc GetRole(GetRoleRequest) returns (GetRoleResponse) {

@@ -6,8 +6,8 @@ import (
 	"errors"
 	"testing"
 
-	_ "github.com/linzhengen/hub/server/internal/domain/trans"
-	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
+	_ "github.com/linzhengen/hub/v1/server/internal/domain/trans"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

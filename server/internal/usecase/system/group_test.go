@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/linzhengen/hub/server/internal/domain/system/group"
-	"github.com/linzhengen/hub/server/internal/domain/system/group/grouprole"
-	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group"
+	"github.com/linzhengen/hub/v1/server/internal/domain/system/group/grouprole"
+	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
 )
 
 // MockTransRepository is a mock of trans.Repository.
