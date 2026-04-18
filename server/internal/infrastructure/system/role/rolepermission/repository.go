@@ -4,20 +4,19 @@ import (
 	"context"
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/role/rolepermission"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 )
 
-func New(q *sqlc.Queries) rolepermission.Repository {
+func New(q persistence.Querier) rolepermission.Repository {
 	return &repositoryImpl{q: q}
 }
 
 type repositoryImpl struct {
-	q *sqlc.Queries
+	q persistence.Querier
 }
 
 func (r repositoryImpl) FindByRoleId(ctx context.Context, roleId string) (rolepermission.RolePermissions, error) {
-	rows, err := mysql.GetQ(ctx, r.q).SelectRolePermissionByRoleId(ctx, roleId)
+	rows, err := persistence.GetQ(ctx, r.q).SelectRolePermissionByRoleId(ctx, roleId)
 	if err != nil {
 		return nil, err
 	}
@@ -32,29 +31,21 @@ func (r repositoryImpl) FindByRoleId(ctx context.Context, roleId string) (rolepe
 }
 
 func (r repositoryImpl) AssignPermission(ctx context.Context, roleId, permissionId string) error {
-	return mysql.GetQ(ctx, r.q).AddPermissionToRole(ctx, sqlc.AddPermissionToRoleParams{
-		RoleID:       roleId,
-		PermissionID: permissionId,
-	})
+	return persistence.GetQ(ctx, r.q).AddPermissionToRole(ctx, roleId, permissionId)
 }
 
 func (r repositoryImpl) UnassignPermission(ctx context.Context, roleId, permissionId string) error {
-	return mysql.GetQ(ctx, r.q).RemovePermissionFromRole(ctx, sqlc.RemovePermissionFromRoleParams{
-		RoleID:       roleId,
-		PermissionID: permissionId,
-	})
+	return persistence.GetQ(ctx, r.q).RemovePermissionFromRole(ctx, roleId, permissionId)
 }
 
 func (r repositoryImpl) Upsert(ctx context.Context, roleId string, permissionId []string) error {
-	err := mysql.GetQ(ctx, r.q).DeleteRoleAllPermission(ctx, roleId)
+	q := persistence.GetQ(ctx, r.q)
+	err := q.DeleteRoleAllPermission(ctx, roleId)
 	if err != nil {
 		return err
 	}
 	for _, id := range permissionId {
-		if err = mysql.GetQ(ctx, r.q).AddPermissionToRole(ctx, sqlc.AddPermissionToRoleParams{
-			RoleID:       roleId,
-			PermissionID: id,
-		}); err != nil {
+		if err = q.AddPermissionToRole(ctx, roleId, id); err != nil {
 			return err
 		}
 	}
@@ -62,8 +53,5 @@ func (r repositoryImpl) Upsert(ctx context.Context, roleId string, permissionId 
 }
 
 func (r repositoryImpl) IsPermissionInRole(ctx context.Context, roleId string, permissionId string) (bool, error) {
-	return mysql.GetQ(ctx, r.q).IsPermissionInRole(ctx, sqlc.IsPermissionInRoleParams{
-		RoleID:       roleId,
-		PermissionID: permissionId,
-	})
+	return persistence.GetQ(ctx, r.q).IsPermissionInRole(ctx, roleId, permissionId)
 }

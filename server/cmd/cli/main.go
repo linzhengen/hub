@@ -7,7 +7,7 @@ import (
 
 	"github.com/linzhengen/hub/v1/server/config"
 	"github.com/linzhengen/hub/v1/server/di"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 	"github.com/linzhengen/hub/v1/server/internal/interface/cmd/register"
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
@@ -40,7 +40,7 @@ func main() {
 }
 
 func initDB(envCfg config.EnvConfig) *sql.DB {
-	db, err := mysql.NewConn(envCfg.MySQL)
+	db, err := persistence.NewConnection(envCfg)
 	if err != nil {
 		logger.Severef("failed connect db, err: %v", err)
 	}

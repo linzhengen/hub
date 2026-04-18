@@ -19,7 +19,7 @@ func TestUserUseCase_List_WithGroupIds(t *testing.T) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	uc := &userUseCase{
 		db:             db,
@@ -104,7 +104,7 @@ func TestUserUseCase_List_WithPagination(t *testing.T) {
 		}
 	}()
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	uc := &userUseCase{
 		db:             db,
@@ -173,7 +173,7 @@ func TestUserUseCase_List_WithoutPagination(t *testing.T) {
 		}
 	}()
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	uc := &userUseCase{
 		db:             db,

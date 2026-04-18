@@ -47,7 +47,7 @@ func TestRoleUseCase_List_WithPagination(t *testing.T) {
 		}
 	}()
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	uc := &roleUseCase{
 		db:                 db,
@@ -119,7 +119,7 @@ func TestRoleUseCase_List_WithoutPagination(t *testing.T) {
 		}
 	}()
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	uc := &roleUseCase{
 		db:                 db,

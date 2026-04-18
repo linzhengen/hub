@@ -20,7 +20,7 @@ func TestUserFinder_GetMeMenus(t *testing.T) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	require.NoError(t, err)
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	finder := &userFinder{
 		db:      db,

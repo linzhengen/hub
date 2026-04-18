@@ -10,7 +10,8 @@ import (
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/role"
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/role/rolepermission"
 	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
 
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
@@ -31,7 +32,7 @@ func NewRoleUseCase(
 	transRepo trans.Repository,
 	roleRepo role.Repository,
 	rolePermissionRepo rolepermission.Repository,
-	dialectWrapper mysql.DialectWrapper,
+	dialectWrapper persistence.DialectWrapper,
 ) RoleUseCase {
 	return &roleUseCase{
 		db:                 db,
@@ -47,7 +48,7 @@ type roleUseCase struct {
 	transRepo          trans.Repository
 	roleRepo           role.Repository
 	rolePermissionRepo rolepermission.Repository
-	dialectWrapper     mysql.DialectWrapper
+	dialectWrapper     persistence.DialectWrapper
 }
 
 type ListRoleQueryParams struct {
@@ -112,7 +113,7 @@ func (uc roleUseCase) List(ctx context.Context, params *ListRoleQueryParams) ([]
 		// Use EXISTS with the subquery
 		b = b.Where(goqu.L("EXISTS ?", subquery))
 	}
-	cnt, err := mysql.SelectCount(ctx, uc.db, b)
+	cnt, err := postgres.SelectCount(ctx, uc.db, b)
 	if err != nil {
 		return nil, 0, err
 	}

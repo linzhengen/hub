@@ -4,5 +4,5 @@ import (
 	"embed"
 )
 
-//go:embed mysql/*.sql
-var MySqlMigrationsFs embed.FS
+//go:embed postgres/*.sql
+var PostgresMigrationsFs embed.FS

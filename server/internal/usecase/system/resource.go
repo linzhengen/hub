@@ -11,8 +11,9 @@ import (
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/permission"
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource"
 	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres/sqlc"
 
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
@@ -32,7 +33,7 @@ func NewResourceUseCase(
 	transRepo trans.Repository,
 	resourceRepo resource.Repository,
 	permissionRepo permission.Repository,
-	dialectWrapper mysql.DialectWrapper,
+	dialectWrapper persistence.DialectWrapper,
 ) ResourceUseCase {
 	return &resourceUseCase{
 		db:             db,
@@ -48,7 +49,7 @@ type resourceUseCase struct {
 	transRepo      trans.Repository
 	resourceRepo   resource.Repository
 	permissionRepo permission.Repository
-	dialectWrapper mysql.DialectWrapper
+	dialectWrapper persistence.DialectWrapper
 }
 
 type ListResourceQueryParams struct {
@@ -108,7 +109,7 @@ func (uc resourceUseCase) List(ctx context.Context, params *ListResourceQueryPar
 		b = b.Where(goqu.C("type").Eq(resource.ResourceTypeMenu))
 		b = b.Where(goqu.C("identifier").Neq("menu.*"))
 	}
-	cnt, err := mysql.SelectCount(ctx, uc.db, b)
+	cnt, err := postgres.SelectCount(ctx, uc.db, b)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -168,8 +169,10 @@ func (uc resourceUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*r
 			return nil, err
 		}
 		var metadata map[string]string
-		if err := json.Unmarshal(i.Metadata, &metadata); err != nil {
-			return nil, err
+		if i.Metadata.Valid {
+			if err := json.Unmarshal(i.Metadata.RawMessage, &metadata); err != nil {
+				return nil, err
+			}
 		}
 		items = append(items, &resource.Resource{
 			Id:           i.ID,

@@ -182,7 +182,7 @@ func TestGroupUseCase_List_WithPagination(t *testing.T) {
 		}
 	}()
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	// Create a mock for groupRoleRepo
 	mockGroupRoleRepo := new(MockGroupRoleRepository)
@@ -259,7 +259,7 @@ func TestGroupUseCase_List_WithoutPagination(t *testing.T) {
 		}
 	}()
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	// Create a mock for groupRoleRepo
 	mockGroupRoleRepo := new(MockGroupRoleRepository)

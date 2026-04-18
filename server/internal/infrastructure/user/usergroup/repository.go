@@ -4,20 +4,19 @@ import (
 	"context"
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 )
 
-func New(q *sqlc.Queries) usergroup.Repository {
+func New(q persistence.Querier) usergroup.Repository {
 	return &repositoryImpl{q: q}
 }
 
 type repositoryImpl struct {
-	q *sqlc.Queries
+	q persistence.Querier
 }
 
 func (r repositoryImpl) FindByUserId(ctx context.Context, userId string) (usergroup.UserGroups, error) {
-	rows, err := mysql.GetQ(ctx, r.q).SelectUserGroupByUserId(ctx, userId)
+	rows, err := persistence.GetQ(ctx, r.q).SelectUserGroupByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -32,29 +31,21 @@ func (r repositoryImpl) FindByUserId(ctx context.Context, userId string) (usergr
 }
 
 func (r repositoryImpl) AssignGroup(ctx context.Context, userId, groupId string) error {
-	return mysql.GetQ(ctx, r.q).CreateUserGroup(ctx, sqlc.CreateUserGroupParams{
-		UserID:  userId,
-		GroupID: groupId,
-	})
+	return persistence.GetQ(ctx, r.q).CreateUserGroup(ctx, userId, groupId)
 }
 
 func (r repositoryImpl) UnassignGroup(ctx context.Context, userId, groupId string) error {
-	return mysql.GetQ(ctx, r.q).DeleteUserGroup(ctx, sqlc.DeleteUserGroupParams{
-		UserID:  userId,
-		GroupID: groupId,
-	})
+	return persistence.GetQ(ctx, r.q).DeleteUserGroup(ctx, userId, groupId)
 }
 
 func (r repositoryImpl) Upsert(ctx context.Context, userId string, groupId []string) error {
-	err := mysql.GetQ(ctx, r.q).DeleteUserAllGroup(ctx, userId)
+	q := persistence.GetQ(ctx, r.q)
+	err := q.DeleteUserAllGroup(ctx, userId)
 	if err != nil {
 		return err
 	}
 	for _, id := range groupId {
-		err = mysql.GetQ(ctx, r.q).CreateUserGroup(ctx, sqlc.CreateUserGroupParams{
-			UserID:  userId,
-			GroupID: id,
-		})
+		err = q.CreateUserGroup(ctx, userId, id)
 		if err != nil {
 			return err
 		}
@@ -63,6 +54,7 @@ func (r repositoryImpl) Upsert(ctx context.Context, userId string, groupId []str
 }
 
 func (r repositoryImpl) AddUsersToGroup(ctx context.Context, groupID string, userIDs []string) error {
+	q := persistence.GetQ(ctx, r.q)
 	for _, userID := range userIDs {
 		// 既にGroupに属している場合、AddをSkip
 		isUserInGroup, err := r.IsUserInGroup(ctx, groupID, userID)
@@ -72,10 +64,7 @@ func (r repositoryImpl) AddUsersToGroup(ctx context.Context, groupID string, use
 		if isUserInGroup {
 			continue
 		}
-		err = mysql.GetQ(ctx, r.q).CreateUserGroup(ctx, sqlc.CreateUserGroupParams{
-			UserID:  userID,
-			GroupID: groupID,
-		})
+		err = q.CreateUserGroup(ctx, userID, groupID)
 		if err != nil {
 			return err
 		}
@@ -84,6 +73,7 @@ func (r repositoryImpl) AddUsersToGroup(ctx context.Context, groupID string, use
 }
 
 func (r repositoryImpl) RemoveUsersFromGroup(ctx context.Context, groupID string, userIDs []string) error {
+	q := persistence.GetQ(ctx, r.q)
 	for _, userID := range userIDs {
 		// 既にGroupに属していない場合、RemoveをSkip
 		isUserInGroup, err := r.IsUserInGroup(ctx, groupID, userID)
@@ -93,10 +83,7 @@ func (r repositoryImpl) RemoveUsersFromGroup(ctx context.Context, groupID string
 		if !isUserInGroup {
 			continue
 		}
-		err = mysql.GetQ(ctx, r.q).DeleteUserGroup(ctx, sqlc.DeleteUserGroupParams{
-			UserID:  userID,
-			GroupID: groupID,
-		})
+		err = q.DeleteUserGroup(ctx, userID, groupID)
 		if err != nil {
 			return err
 		}
@@ -105,8 +92,5 @@ func (r repositoryImpl) RemoveUsersFromGroup(ctx context.Context, groupID string
 }
 
 func (r repositoryImpl) IsUserInGroup(ctx context.Context, groupID string, userID string) (bool, error) {
-	return mysql.GetQ(ctx, r.q).IsUserInGroup(ctx, sqlc.IsUserInGroupParams{
-		UserID:  userID,
-		GroupID: groupID,
-	})
+	return persistence.GetQ(ctx, r.q).IsUserInGroup(ctx, userID, groupID)
 }

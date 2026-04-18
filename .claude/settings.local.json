@@ -19,7 +19,7 @@
       "Bash(docker compose exec keycloak ls:*)",
       "Bash(docker compose exec keycloak find:*)",
       "Bash(docker compose exec:*)",
-      "Bash(pnpm:*)"                                                                                                                                                                                            ,
+      "Bash(pnpm:*)",
       "mcp__filesystem__read_multiple_files",
       "mcp__filesystem__edit_file",
       "mcp__filesystem__read_text_file",
@@ -30,7 +30,13 @@
       "mcp__chrome-devtools__navigate_page",
       "mcp__chrome-devtools__take_snapshot",
       "mcp__chrome-devtools__list_network_requests",
-      "mcp__chrome-devtools__list_console_messages"
+      "mcp__chrome-devtools__list_console_messages",
+      "Bash(make gen:*)",
+      "Bash(goimports:*)",
+      "Bash(go fmt:*)",
+      "Bash(sqlc generate:*)",
+      "Bash(go doc:*)",
+      "Bash(go mod:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
@@ -44,11 +50,11 @@
       "Bash(rm -rf *:*)"
     ]
   },
+  "model": "deepseek-chat",
   "enableAllProjectMcpServers": true,
+  "alwaysThinkingEnabled": false,
+  "fastMode": false,
   "modelConfiguration": {
     "modelContextWindow": 110000
-  },
-  "model": "deepseek-chat",
-  "alwaysThinkingEnabled": false,
-  "fastMode": false
+  }
 }

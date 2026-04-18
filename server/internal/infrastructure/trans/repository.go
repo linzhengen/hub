@@ -8,12 +8,12 @@ import (
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
-func New(db *sql.DB, q *sqlc.Queries) trans.Repository {
+func New(db *sql.DB, q persistence.Querier) trans.Repository {
 	return &repository{
 		db: db,
 		q:  q,
@@ -22,7 +22,7 @@ func New(db *sql.DB, q *sqlc.Queries) trans.Repository {
 
 type repository struct {
 	db *sql.DB
-	q  *sqlc.Queries
+	q  persistence.Querier
 }
 
 func (a *repository) ExecTrans(ctx context.Context, fn func(context.Context) error) (txErr error) {
