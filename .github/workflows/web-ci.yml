@@ -36,7 +36,7 @@ jobs:
           cache-dependency-path: ui/web/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --unsafe-perm
 
       - name: Lint (Type Check)
         run: pnpm lint
