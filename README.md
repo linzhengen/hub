@@ -1,6 +1,6 @@
 # hub
 
-[日本語版 (Japanese)](README.ja.md)
+[日本語版 (Japanese)](README.ja.md) | [简体中文 (Chinese)](README.zh.md)
 
 hub is a project that integrates Go backend, Vite frontend, Keycloak theme, and infrastructure management using Terraform and Kubernetes.
 
@@ -24,8 +24,9 @@ The project consists of the following four main components.
 graph TD
     Client[Web Browser] -->|HTTPS| Gateway[gRPC-Gateway / REST API]
     Gateway -->|gRPC| Server[Go Backend API]
-    Server -->|SQL| DB[(MySQL)]
+    Server -->|SQL| DB[(PostgreSQL)]
     Server -->|OIDC/SAML| Auth[Keycloak]
+    Client -->|OIDC| Auth
     Infra[Terraform / K8s] -.->|Manages| Server
     Infra -.->|Manages| Auth
     Infra -.->|Manages| DB
@@ -46,10 +47,10 @@ graph TD
 | Layer | Technology / Tool |
 | :--- | :--- |
 | **Backend** | Go 1.25, gRPC, gRPC-Gateway, Protocol Buffers, sqlc, golangci-lint |
-| **Frontend** | React 19, Vite, TypeScript, Tailwind CSS 4, Shadcn UI, TanStack Query v5 |
+| **Frontend** | React 19, Vite, TypeScript, Tailwind CSS 4, Shadcn UI, TanStack Query v5, Keycloak JS |
 | **Auth** | Keycloak, FreeMarker Templates (Theme) |
 | **Infra** | Terraform, Kubernetes, Kustomize |
-| **Database** | MySQL |
+| **Database** | PostgreSQL |
 
 ---
 
@@ -62,11 +63,12 @@ graph TD
 │   ├── internal/       # Business logic (Clean Architecture)
 │   └── proto/          # API definitions (Protobuf)
 ├── ui/
-│   ├── web/            # Vite + React frontend
+│   ├── web/            # Vite + React frontend (Keycloak integration)
 │   └── keycloak-theme/ # Keycloak custom theme
 ├── infra/
 │   ├── tf/             # Terraform (IaC)
 │   └── k8s/            # Kubernetes manifests
+├── go.mod              # Go module definition
 └── Makefile            # Project-wide task execution
 ```
 
@@ -80,7 +82,7 @@ Each directory has a detailed development guide (`AGENTS.md`).
 
 ```bash
 # Backend development tools
-cd server && make init
+make init
 
 # Frontend dependent packages
 cd ui/web && pnpm install
@@ -90,13 +92,13 @@ cd ui/web && pnpm install
 
 ```bash
 # Set up environment using Docker Compose and Terraform
-cd server && make dev
+make dev
 ```
 
 ### 3. Code Generation (Protobuf / SQL)
 
 ```bash
-cd server && make gen
+make gen
 ```
 
 ---
