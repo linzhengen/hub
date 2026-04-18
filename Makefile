@@ -30,6 +30,7 @@ migrate:
 gen:
 	cd server && \
 	sqlc generate && \
+	go run cmd/gen-adapter/main.go && \
 	buf generate && \
 	go run cmd/openapi223/main.go && \
 	go run cmd/proto2yaml/proto_to_yaml.go -input=./proto -out=./internal/infrastructure/persistence/yaml/proto/services.yaml

@@ -78,11 +78,11 @@ func (r repositoryImpl) FindOneByIdentifier(ctx context.Context, identifier stri
 }
 
 func (r repositoryImpl) Create(ctx context.Context, res *resource.Resource) error {
-	return persistence.GetQ(ctx, r.q).CreateResource(ctx, res.Id, res.ParentId, res.Name, res.Identifier.String(), string(res.Type), res.Path, res.Component, string(res.Status), int32(res.DisplayOrder), res.Description, res.Metadata)
+	return persistence.GetQ(ctx, r.q).CreateResource(ctx, res.Id, res.ParentId, res.Name, res.Identifier.String(), string(res.Type), res.Path, res.Component, int32(res.DisplayOrder), res.Description, res.Metadata, string(res.Status))
 }
 
 func (r repositoryImpl) Update(ctx context.Context, res *resource.Resource) error {
-	return persistence.GetQ(ctx, r.q).UpdateResource(ctx, res.Id, res.ParentId, res.Name, res.Identifier.String(), string(res.Type), res.Path, res.Component, string(res.Status), int32(res.DisplayOrder), res.Description, res.Metadata)
+	return persistence.GetQ(ctx, r.q).UpdateResource(ctx, res.ParentId, res.Name, res.Identifier.String(), string(res.Type), res.Path, res.Component, int32(res.DisplayOrder), res.Description, res.Metadata, string(res.Status), res.Id)
 }
 
 func (r repositoryImpl) Delete(ctx context.Context, id string) error {

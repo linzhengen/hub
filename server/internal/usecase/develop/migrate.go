@@ -8,7 +8,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 
 	migratePostgres "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 
 	"github.com/linzhengen/hub/v1/server/db/migrations"

@@ -47,8 +47,7 @@ func ProvideShared(c *dig.Container, envCfg config.EnvConfig, db *sql.DB) {
 	}))
 	// provide appropriate Querier
 	must(c.Provide(func() persistence.Querier {
-		q := persistence.GetQuerier(db)
-		return persistence.NewQuerierAdapter(q)
+		return persistence.GetQuerier(db)
 	}))
 	// provide appropriate dialect
 	must(c.Provide(func() persistence.DialectWrapper {
