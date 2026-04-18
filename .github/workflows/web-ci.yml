@@ -1,0 +1,45 @@
+name: Web CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ui/web/**'
+      - '.github/workflows/web-ci.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'ui/web/**'
+      - '.github/workflows/web-ci.yml'
+
+jobs:
+  build-and-lint:
+    name: Web Build & Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui/web
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: latest
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 25
+          cache: 'pnpm'
+          cache-dependency-path: ui/web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --dangerously-allow-all-builds
+
+      - name: Lint (Type Check)
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
