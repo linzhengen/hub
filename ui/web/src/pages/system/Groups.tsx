@@ -72,7 +72,7 @@ export function Groups() {
       if (managingRolesGroup && managingRolesGroup.id === variables.id) {
         setManagingRolesGroup({
           ...managingRolesGroup,
-          roleIds: [...managingRolesGroup.roleIds, variables.roleId]
+          roleIds: [...(managingRolesGroup.roleIds || []), variables.roleId]
         });
       }
       toast.success('Role assigned successfully');
@@ -89,7 +89,7 @@ export function Groups() {
       if (managingRolesGroup && managingRolesGroup.id === variables.id) {
         setManagingRolesGroup({
           ...managingRolesGroup,
-          roleIds: managingRolesGroup.roleIds.filter(id => id !== variables.roleId)
+          roleIds: (managingRolesGroup.roleIds || []).filter(id => id !== variables.roleId)
         });
       }
       toast.success('Role unassigned successfully');
@@ -144,7 +144,7 @@ export function Groups() {
     }
 
     updateMutation.mutate({
-      id: editingGroup.id,
+      id: editingGroup.id || '',
       data
     });
   };
