@@ -11,8 +11,9 @@ import (
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/group/grouprole"
 	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
 	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres/sqlc"
 
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
@@ -35,7 +36,7 @@ func NewGroupUseCase(
 	groupRepo group.Repository,
 	groupRoleRepo grouprole.Repository,
 	userGroupRepo usergroup.Repository,
-	dialectWrapper mysql.DialectWrapper,
+	dialectWrapper persistence.DialectWrapper,
 ) GroupUseCase {
 	return &groupUseCase{
 		db:             db,
@@ -53,7 +54,7 @@ type groupUseCase struct {
 	groupRepo      group.Repository
 	groupRoleRepo  grouprole.Repository
 	userGroupRepo  usergroup.Repository
-	dialectWrapper mysql.DialectWrapper
+	dialectWrapper persistence.DialectWrapper
 }
 
 type ListGroupQueryParams struct {
@@ -122,7 +123,7 @@ func (uc groupUseCase) List(ctx context.Context, params *ListGroupQueryParams) (
 		// Use EXISTS with the subquery
 		b = b.Where(goqu.L("EXISTS ?", subquery))
 	}
-	cnt, err := mysql.SelectCount(ctx, uc.db, b)
+	cnt, err := postgres.SelectCount(ctx, uc.db, b)
 	if err != nil {
 		return nil, 0, err
 	}

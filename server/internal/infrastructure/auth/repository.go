@@ -4,24 +4,23 @@ import (
 	"context"
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 )
 
 // Repository is the implementation of the auth.Repository interface
 type Repository struct {
-	q *sqlc.Queries
+	q persistence.Querier
 }
 
 // NewRepository creates a new auth repository
-func NewRepository(q *sqlc.Queries) auth.Repository {
+func NewRepository(q persistence.Querier) auth.Repository {
 	return &Repository{
 		q: q,
 	}
 }
 
 func (r *Repository) FindUserAuthorizedPolicies(ctx context.Context, userId string) ([]auth.Policy, error) {
-	rows, err := mysql.GetQ(ctx, r.q).SelectUserAuthorizedPolices(ctx, userId)
+	rows, err := persistence.GetQ(ctx, r.q).SelectUserAuthorizedPolicies(ctx, userId)
 	if err != nil {
 		return nil, err
 	}

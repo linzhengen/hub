@@ -2,25 +2,29 @@ package resource
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 )
 
-func New(q *sqlc.Queries) resource.Repository {
+func New(q persistence.Querier) resource.Repository {
 	return &repositoryImpl{q: q}
 }
 
 type repositoryImpl struct {
-	q *sqlc.Queries
+	q persistence.Querier
 }
 
 func (r repositoryImpl) FindOne(ctx context.Context, id string) (*resource.Resource, error) {
-	res, err := contextx.FindOne[sqlc.Resource](ctx, id, mysql.GetQ(ctx, mysql.GetQ(ctx, r.q)).SelectResourceById, mysql.GetQ(ctx, mysql.GetQ(ctx, r.q)).SelectResourceForUpdate)
+	q := persistence.GetQ(ctx, r.q)
+	var res *persistence.ResourceModel
+	var err error
+	if contextx.FromTransLock(ctx) {
+		res, err = q.SelectResourceForUpdate(ctx, id)
+	} else {
+		res, err = q.SelectResourceById(ctx, id)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -28,21 +32,18 @@ func (r repositoryImpl) FindOne(ctx context.Context, id string) (*resource.Resou
 	if err := identifier.Scan(res.Identifier); err != nil {
 		return nil, err
 	}
-	var metadata map[string]string
-	if err := json.Unmarshal(res.Metadata, &metadata); err != nil {
-		return nil, err
-	}
+
 	return &resource.Resource{
 		Id:           res.ID,
 		ParentId:     res.ParentID,
 		Name:         res.Name,
 		Identifier:   identifier,
 		Type:         resource.ResourceType(res.Type),
-		Path:         res.Path.String,
-		Component:    res.Component.String,
-		DisplayOrder: res.DisplayOrder.Int32,
+		Path:         res.Path,
+		Component:    res.Component,
+		DisplayOrder: res.DisplayOrder,
 		Description:  res.Description,
-		Metadata:     metadata,
+		Metadata:     res.Metadata,
 		Status:       resource.Status(res.Status),
 		CreatedAt:    res.CreatedAt,
 		UpdatedAt:    res.UpdatedAt,
@@ -50,7 +51,7 @@ func (r repositoryImpl) FindOne(ctx context.Context, id string) (*resource.Resou
 }
 
 func (r repositoryImpl) FindOneByIdentifier(ctx context.Context, identifier string) (*resource.Resource, error) {
-	res, err := mysql.GetQ(ctx, r.q).SelectResourceByIdentifier(ctx, identifier)
+	res, err := persistence.GetQ(ctx, r.q).SelectResourceByIdentifier(ctx, identifier)
 	if err != nil {
 		return nil, err
 	}
@@ -58,21 +59,18 @@ func (r repositoryImpl) FindOneByIdentifier(ctx context.Context, identifier stri
 	if err := i.Scan(res.Identifier); err != nil {
 		return nil, err
 	}
-	var metadata map[string]string
-	if err := json.Unmarshal(res.Metadata, &metadata); err != nil {
-		return nil, err
-	}
+
 	return &resource.Resource{
 		Id:           res.ID,
 		ParentId:     res.ParentID,
 		Name:         res.Name,
 		Identifier:   i,
 		Type:         resource.ResourceType(res.Type),
-		Path:         res.Path.String,
-		Component:    res.Component.String,
-		DisplayOrder: res.DisplayOrder.Int32,
+		Path:         res.Path,
+		Component:    res.Component,
+		DisplayOrder: res.DisplayOrder,
 		Description:  res.Description,
-		Metadata:     metadata,
+		Metadata:     res.Metadata,
 		Status:       resource.Status(res.Status),
 		CreatedAt:    res.CreatedAt,
 		UpdatedAt:    res.UpdatedAt,
@@ -80,48 +78,13 @@ func (r repositoryImpl) FindOneByIdentifier(ctx context.Context, identifier stri
 }
 
 func (r repositoryImpl) Create(ctx context.Context, res *resource.Resource) error {
-	md, err := res.Metadata.JsonRawMessage()
-	if err != nil {
-		return err
-	}
-	if err := mysql.GetQ(ctx, r.q).CreateResource(ctx, sqlc.CreateResourceParams{
-		ID:           res.Id,
-		ParentID:     res.ParentId,
-		Name:         res.Name,
-		Identifier:   res.Identifier.String(),
-		Type:         string(res.Type),
-		Path:         sql.NullString{String: res.Path, Valid: res.Path != ""},
-		Component:    sql.NullString{String: res.Component, Valid: res.Component != ""},
-		DisplayOrder: sql.NullInt32{Int32: int32(res.DisplayOrder), Valid: res.DisplayOrder != 0},
-		Description:  res.Description,
-		Metadata:     md,
-		Status:       string(res.Status),
-	}); err != nil {
-		return err
-	}
-	return nil
+	return persistence.GetQ(ctx, r.q).CreateResource(ctx, res.Id, res.ParentId, res.Name, res.Identifier.String(), string(res.Type), res.Path, res.Component, string(res.Status), int32(res.DisplayOrder), res.Description, res.Metadata)
 }
 
 func (r repositoryImpl) Update(ctx context.Context, res *resource.Resource) error {
-	md, err := res.Metadata.JsonRawMessage()
-	if err != nil {
-		return err
-	}
-	return mysql.GetQ(ctx, r.q).UpdateResource(ctx, sqlc.UpdateResourceParams{
-		ParentID:     res.ParentId,
-		Name:         res.Name,
-		Identifier:   res.Identifier.String(),
-		Type:         string(res.Type),
-		Path:         sql.NullString{String: res.Path, Valid: res.Path != ""},
-		Component:    sql.NullString{String: res.Component, Valid: res.Component != ""},
-		DisplayOrder: sql.NullInt32{Int32: int32(res.DisplayOrder), Valid: res.DisplayOrder != 0},
-		Description:  res.Description,
-		Metadata:     md,
-		Status:       string(res.Status),
-		ID:           res.Id,
-	})
+	return persistence.GetQ(ctx, r.q).UpdateResource(ctx, res.Id, res.ParentId, res.Name, res.Identifier.String(), string(res.Type), res.Path, res.Component, string(res.Status), int32(res.DisplayOrder), res.Description, res.Metadata)
 }
 
 func (r repositoryImpl) Delete(ctx context.Context, id string) error {
-	return mysql.GetQ(ctx, r.q).DeleteResource(ctx, id)
+	return persistence.GetQ(ctx, r.q).DeleteResource(ctx, id)
 }

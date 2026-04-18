@@ -22,7 +22,7 @@ func TestPermissionUseCase_List_WithPagination(t *testing.T) {
 		}
 	}()
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	uc := &permissionUseCase{
 		db:             db,
@@ -77,7 +77,7 @@ func TestPermissionUseCase_List_WithoutPagination(t *testing.T) {
 		}
 	}()
 
-	dialect := goqu.Dialect("mysql")
+	dialect := goqu.Dialect("postgres")
 
 	uc := &permissionUseCase{
 		db:             db,

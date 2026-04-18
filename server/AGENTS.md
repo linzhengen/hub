@@ -23,7 +23,7 @@
    * Add the necessary definitions to `proto/`.
    * Refer to existing `.proto` files.
 4. **Define SQL**
-   * Create SQL queries for `sqlc` in `internal/infrastructure/persistence/mysql/query/`.
+   * Create SQL queries for `sqlc` in `internal/infrastructure/persistence/postgres/query/`.
 5. **Generate Code**
    * Run `make gen` to generate code for `sqlc`, `pb`, `openapi`, etc.
 6. **Implement the Repository**
@@ -78,10 +78,10 @@ Dependency Injection is managed by `go.uber.org/dig`.
 ## 5. Database Management
 
 -   **Migrations:** Database schema migrations are handled by `github.com/golang-migrate/migrate`.
-    -   Migration files (`.up.sql` and `.down.sql`) are located in `db/migrations/mysql/`.
+    -   Migration files (`.up.sql` and `.down.sql`) are located in `db/migrations/postgres/`.
     -   There is a `Makefile` in `db/migrations/` that may contain helper commands for creating new migration files.
 -   **Seeding:** Seed data for development and testing is defined in `db/seeds/seed.yaml`. The logic for seeding is in `db/seeds/seeds.go`. The `dev-seed` make command can be used to run this.
--   **Queries**: SQL queries are written in `.sql` files within `internal/infrastructure/persistence/mysql/query/` and `sqlc` is used to generate type-safe Go code from them.
+-   **Queries**: SQL queries are written in `.sql` files within `internal/infrastructure/persistence/postgres/query/` and `sqlc` is used to generate type-safe Go code from them.
 
 ## 6. Code Generation
 

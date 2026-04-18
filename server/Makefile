@@ -2,7 +2,7 @@
 
 init:
 	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-	go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 	go install github.com/golang/protobuf/protoc-gen-go@latest
@@ -20,11 +20,12 @@ dev:
 	docker compose logs -f
 
 dev-seed: gen
+	go build -o tmp/cli ./cmd/cli/main.go
 	docker compose exec hub ./tmp/cli seed
 	docker compose exec hub ./tmp/cli resource-import
 
 migrate:
-	migrate -path db/migrations/mysql -database "mysql://root:password#123@tcp(localhost:56836)/hub" up
+	migrate -path db/migrations/postgres -database "postgres://postgres:password#123@localhost:5432/hub?sslmode=disable" up
 
 gen:
 	sqlc generate

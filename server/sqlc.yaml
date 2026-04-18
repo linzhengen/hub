@@ -1,20 +1,13 @@
 version: "2"
 sql:
-  - &mysql_default
-    schema: "db/migrations/mysql"
-    queries: "internal/infrastructure/persistence/mysql/query/"
-    engine: "mysql"
+  - schema: "db/migrations/postgres"
+    queries: "internal/infrastructure/persistence/postgres/query/"
+    engine: "postgresql"
     rules:
       - sqlc/db-prepare
     gen:
-      go: &mysql_go_defaults
-        out: "internal/infrastructure/persistence/mysql/sqlc"
+      go:
+        out: "internal/infrastructure/persistence/postgres/sqlc"
         emit_result_struct_pointers: true
         emit_interface: true
         emit_empty_slices: true
-  - <<: *mysql_default
-    queries: "internal/infrastructure/persistence/mysql/query/"
-    gen:
-      go:
-        <<: *mysql_go_defaults
-        out: "internal/infrastructure/persistence/mysql/sqlc"

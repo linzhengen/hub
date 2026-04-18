@@ -5,4 +5,4 @@ migrate-create:
 		echo "Migration name is required"; \
 		exit 1; \
 	fi; \
-	migrate create -seq=true --ext=sql -dir=./mysql $$name
+	migrate create -seq=true --ext=sql -dir=./postgres $$name

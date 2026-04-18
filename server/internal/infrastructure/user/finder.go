@@ -11,18 +11,17 @@ import (
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/menu"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
 	"github.com/linzhengen/hub/v1/server/internal/usecase"
-
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
 type userFinder struct {
 	db      *sql.DB
-	dialect mysql.DialectWrapper
+	dialect postgres.DialectWrapper
 }
 
-func NewFinder(db *sql.DB, dialect mysql.DialectWrapper) usecase.UserFinder {
+func NewFinder(db *sql.DB, dialect postgres.DialectWrapper) usecase.UserFinder {
 	return &userFinder{db: db, dialect: dialect}
 }
 

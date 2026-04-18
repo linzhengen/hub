@@ -11,12 +11,13 @@ import (
 )
 
 type EnvConfig struct {
-	AppEnv string `env:"APP_ENV,required"`
-	Port   int    `env:"PORT,default=9090"`
+	AppEnv   string `env:"APP_ENV,required"`
+	Port     int    `env:"PORT,default=9090"`
+	Database string `env:"DATABASE,default=postgres"`
 	Auth
 	Grpc
 	Log
-	MySQL
+	PostgreSQL
 	CORS
 	Migration
 	Seed
@@ -39,20 +40,21 @@ type Log struct {
 	Format string `env:"LOG_FORMAT,default=json"`
 }
 
-type MySQL struct {
-	User         string        `env:"MYSQL_USER,required"`
-	Pass         string        `env:"MYSQL_PASS,required"`
-	Port         int           `env:"MYSQL_PORT,required"`
-	Host         string        `env:"MYSQL_HOST,required"`
-	DBName       string        `env:"MYSQL_DB_NAME,required"`
-	MaxLifetime  time.Duration `env:"MYSQL_MAX_LIFE_TIME,default=7200s"`
-	MaxOpenConns int           `env:"MYSQL_MAX_OPEN_CONNS,default=10"`
-	MaxIdleConns int           `env:"MYSQL_MAX_IDLE_CONNS,default=10"`
+type PostgreSQL struct {
+	User         string        `env:"POSTGRES_USER,required"`
+	Pass         string        `env:"POSTGRES_PASS,required"`
+	Port         int           `env:"POSTGRES_PORT,required"`
+	Host         string        `env:"POSTGRES_HOST,required"`
+	DBName       string        `env:"POSTGRES_DB_NAME,required"`
+	SSLMode      string        `env:"POSTGRES_SSL_MODE,default=disable"`
+	MaxLifetime  time.Duration `env:"POSTGRES_MAX_LIFE_TIME,default=7200s"`
+	MaxOpenConns int           `env:"POSTGRES_MAX_OPEN_CONNS,default=10"`
+	MaxIdleConns int           `env:"POSTGRES_MAX_IDLE_CONNS,default=10"`
 }
 
-func (m MySQL) DSN() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&multiStatements=true",
-		m.User, m.Pass, m.Host, m.Port, m.DBName)
+func (p PostgreSQL) DSN() string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		p.Host, p.Port, p.User, p.Pass, p.DBName, p.SSLMode)
 }
 
 type CORS struct {

@@ -5,51 +5,53 @@ import (
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/v1/server/internal/domain/user"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 )
 
 type repositoryImpl struct {
-	q *sqlc.Queries
+	q persistence.Querier
 }
 
-func New(q *sqlc.Queries) user.Repository {
+func New(q persistence.Querier) user.Repository {
 	return &repositoryImpl{q: q}
 }
 
 func (r repositoryImpl) FindOne(ctx context.Context, id string) (*user.User, error) {
-	u, err := contextx.FindOne[sqlc.User](ctx, id, mysql.GetQ(ctx, r.q).SelectUserById, mysql.GetQ(ctx, r.q).SelectUserForUpdate)
+	q := persistence.GetQ(ctx, r.q)
+	var userModel *persistence.UserModel
+	var err error
+
+	if contextx.FromTransLock(ctx) {
+		userModel, err = q.SelectUserForUpdate(ctx, id)
+	} else {
+		userModel, err = q.SelectUserById(ctx, id)
+	}
 	if err != nil {
 		return nil, err
 	}
-	return &user.User{
-		Id:        u.ID,
-		Username:  u.Username,
-		Email:     u.Email,
-		Status:    user.Status(u.Status),
-		CreatedAt: u.CreatedAt,
-		UpdatedAt: u.UpdatedAt,
-	}, nil
+	return convertUserModel(userModel), nil
 }
 
 func (r repositoryImpl) Create(ctx context.Context, u *user.User) error {
-	return mysql.GetQ(ctx, r.q).CreateUser(ctx, sqlc.CreateUserParams{
-		ID:       u.Id,
-		Username: u.Username,
-		Email:    u.Email,
-		Status:   string(u.Status),
-	})
+	return persistence.GetQ(ctx, r.q).CreateUser(ctx, u.Id, u.Username, u.Email, string(u.Status))
 }
 
 func (r repositoryImpl) Update(ctx context.Context, u *user.User) error {
-	return mysql.GetQ(ctx, r.q).UpdateUser(ctx, sqlc.UpdateUserParams{
-		Username: u.Username,
-		Email:    u.Email,
-		Status:   string(u.Status),
-		ID:       u.Id,
-	})
+	return persistence.GetQ(ctx, r.q).UpdateUser(ctx, u.Id, u.Username, u.Email, string(u.Status))
 }
 
 func (r repositoryImpl) Delete(ctx context.Context, id string) error {
-	return mysql.GetQ(ctx, r.q).DeleteUser(ctx, id)
+	return persistence.GetQ(ctx, r.q).DeleteUser(ctx, id)
+}
+
+// convertUserModel converts persistence.UserModel to domain user.User
+func convertUserModel(userModel *persistence.UserModel) *user.User {
+	return &user.User{
+		Id:        userModel.ID,
+		Username:  userModel.Username,
+		Email:     userModel.Email,
+		Status:    user.Status(userModel.Status),
+		CreatedAt: userModel.CreatedAt,
+		UpdatedAt: userModel.UpdatedAt,
+	}
 }

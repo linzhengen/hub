@@ -20,6 +20,7 @@ require (
 	github.com/sethvargo/go-limiter v1.1.0
 	github.com/soheilhy/cmux v0.1.5
 	github.com/spf13/cobra v1.10.2
+	github.com/sqlc-dev/pqtype v0.3.0
 	github.com/stretchr/testify v1.11.1
 	github.com/zeromicro/go-zero v1.10.1
 	github.com/zeromicro/zero-contrib/logx/zapx v0.0.0-20251020121907-c2e4c4911576
@@ -40,9 +41,9 @@ require (
 	github.com/go-openapi/jsonpointer v0.23.0 // indirect
 	github.com/go-openapi/swag/jsonname v0.26.0 // indirect
 	github.com/go-resty/resty/v2 v2.17.2 // indirect
-	github.com/go-sql-driver/mysql v1.9.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/mailru/easyjson v0.9.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.21 // indirect
@@ -68,6 +69,5 @@ require (
 	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
-	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
 )

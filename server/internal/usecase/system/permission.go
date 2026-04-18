@@ -9,8 +9,9 @@ import (
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/permission"
 	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql/sqlc"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres/sqlc"
 
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
@@ -27,7 +28,7 @@ func NewPermissionUseCase(
 	db *sql.DB,
 	transRepo trans.Repository,
 	permissionRepo permission.Repository,
-	dialectWrapper mysql.DialectWrapper,
+	dialectWrapper persistence.DialectWrapper,
 ) PermissionUseCase {
 	return &permissionUseCase{
 		db:             db,
@@ -41,7 +42,7 @@ type permissionUseCase struct {
 	db             *sql.DB
 	transRepo      trans.Repository
 	permissionRepo permission.Repository
-	dialectWrapper mysql.DialectWrapper
+	dialectWrapper persistence.DialectWrapper
 }
 
 type ListPermissionQueryParams struct {
@@ -93,7 +94,7 @@ func (uc permissionUseCase) List(ctx context.Context, params *ListPermissionQuer
 	if params.PermissionName != "" {
 		b = b.Where(goqu.C("name").Like(fmt.Sprintf("%%%s%%", params.PermissionName)))
 	}
-	cnt, err := mysql.SelectCount(ctx, uc.db, b)
+	cnt, err := postgres.SelectCount(ctx, uc.db, b)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
 	"github.com/linzhengen/hub/v1/server/internal/domain/user"
 	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/mysql"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
@@ -32,7 +32,7 @@ type UserUseCase interface {
 
 func NewUserUseCase(
 	db *sql.DB,
-	dialectWrapper mysql.DialectWrapper,
+	dialectWrapper persistence.DialectWrapper,
 	transRepo trans.Repository,
 	userRepo user.Repository,
 	userSvc user.Service,
@@ -64,7 +64,7 @@ type ListUserQueryParams struct {
 
 type userUseCase struct {
 	db             *sql.DB
-	dialectWrapper mysql.DialectWrapper
+	dialectWrapper persistence.DialectWrapper
 	transRepo      trans.Repository
 	userRepo       user.Repository
 	userSvc        user.Service
