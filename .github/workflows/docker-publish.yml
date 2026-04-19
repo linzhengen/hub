@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -77,6 +78,7 @@ jobs:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           provenance: false
+          attestation: false
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
