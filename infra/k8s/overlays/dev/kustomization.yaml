@@ -1,2 +1,13 @@
 resources:
   - ../../base
+
+secretGenerator:
+  - name: hub-secret
+    envs:
+      - hub-secret.env
+  - name: keycloak-secret
+    envs:
+      - keycloak-secret.env
+  - name: postgres-secret
+    envs:
+      - postgres-secret.env

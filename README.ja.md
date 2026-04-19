@@ -78,6 +78,21 @@ graph TD
 
 ## 開発の始め方
 
+### Kubernetes (MiniKube) へのデプロイ
+
+`infra/k8s` に MiniKube 用のマニフェストが用意されています。
+
+```bash
+# マニフェストの生成 (Helm が必要です)
+kubectl kustomize infra/k8s/overlays/minikube --enable-helm
+
+# デプロイ
+kubectl apply -k infra/k8s/overlays/minikube --enable-helm
+```
+
+Note: `hub` 本体のイメージは事前にビルドされている必要があります。
+`minikube docker-env` を使用して MiniKube 内の Docker デーモンでビルドするか、イメージをロードしてください。
+
 ### 1. 依存関係のインストール
 
 ```bash

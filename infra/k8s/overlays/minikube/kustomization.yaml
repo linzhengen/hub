@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+secretGenerator:
+  - name: hub-secret
+    envs:
+      - hub-secret.env
+  - name: keycloak-secret
+    envs:
+      - keycloak-secret.env
+  - name: postgres-secret
+    envs:
+      - postgres-secret.env
+
+patches:
+  - target:
+      kind: Service
+      name: hub
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort
+  - target:
+      kind: Service
+      name: keycloak
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort

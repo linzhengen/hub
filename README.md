@@ -78,6 +78,21 @@ Each directory has a detailed development guide (`AGENTS.md`).
 
 ## Getting Started
 
+### Deployment to Kubernetes (MiniKube)
+
+Manifests for MiniKube are available in `infra/k8s`.
+
+```bash
+# Generate manifests (Helm is required)
+kubectl kustomize infra/k8s/overlays/minikube --enable-helm
+
+# Deploy
+kubectl apply -k infra/k8s/overlays/minikube --enable-helm
+```
+
+Note: The `hub` image needs to be built beforehand.
+Build it using the Docker daemon within MiniKube using `minikube docker-env`, or load the image into MiniKube.
+
 ### 1. Install Dependencies
 
 ```bash

@@ -1,0 +1,11 @@
+auth:
+  existingSecret: "postgres-secret"
+  database: "hub"
+primary:
+  persistence:
+    enabled: false
+  initdb:
+    scripts:
+      create-keycloak-db.sql: |
+        CREATE DATABASE keycloak;
+        GRANT ALL PRIVILEGES ON DATABASE keycloak TO postgres;

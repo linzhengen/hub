@@ -1,0 +1,36 @@
+auth:
+  adminUser: admin
+  existingSecret: "keycloak-secret"
+  passwordSecretKey: "KEYCLOAK_ADMIN_PASSWORD"
+postgresql:
+  enabled: false
+externalDatabase:
+  host: postgresql
+  port: 5432
+  user: postgres
+  existingSecret: "keycloak-secret"
+  existingSecretPasswordKey: "POSTGRES_PASSWORD"
+  database: keycloak
+extraEnvVars:
+  - name: KC_BOOTSTRAP_ADMIN_USERNAME
+    value: admin
+  - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-secret
+        key: KEYCLOAK_ADMIN_PASSWORD
+  - name: KC_DB
+    value: postgres
+  - name: KC_DB_URL
+    value: jdbc:postgresql://postgresql:5432/keycloak
+  - name: KC_DB_USERNAME
+    value: postgres
+  - name: KC_DB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-secret
+        key: POSTGRES_PASSWORD
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
+  - name: KC_HTTP_ENABLED
+    value: "true"
