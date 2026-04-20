@@ -38,7 +38,9 @@
       "Bash(go fmt:*)",
       "Bash(sqlc generate:*)",
       "Bash(go doc:*)",
-      "Bash(go mod:*)"
+      "Bash(go mod:*)",
+      "Bash(helm lint:*)",
+      "Bash(helm template:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",

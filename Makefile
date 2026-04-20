@@ -62,3 +62,14 @@ docker-build:
 
 docker-push: docker-login
 	docker buildx build --platform $(PLATFORMS) -t $(IMAGE_NAME):$(IMAGE_TAG) --push .
+
+# Bitnami image push commands
+POSTGRES_SOURCE_IMAGE ?= bitnami/postgresql:latest
+POSTGRES_TARGET_IMAGE ?= ghcr.io/$(shell gh api user -q .login)/postgresql:18.3.0-debian-12-r13
+
+push-postgres: docker-login
+	docker pull $(POSTGRES_SOURCE_IMAGE)
+	docker tag $(POSTGRES_SOURCE_IMAGE) $(POSTGRES_TARGET_IMAGE)
+	docker push $(POSTGRES_TARGET_IMAGE)
+
+push-bitnami-images: push-postgres

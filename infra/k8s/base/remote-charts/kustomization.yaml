@@ -1,0 +1,15 @@
+helmCharts:
+  - name: postgresql
+    repo: https://charts.bitnami.com/bitnami
+    version: 18.5.24
+    releaseName: postgresql
+    namespace: postgresql
+    skipTests: true
+    valuesFile: postgres-values.yaml
+  - name: keycloak
+    repo: https://charts.bitnami.com/bitnami
+    version: 25.2.0
+    releaseName: keycloak
+    namespace: keycloak
+    skipTests: true
+    valuesFile: keycloak-values.yaml

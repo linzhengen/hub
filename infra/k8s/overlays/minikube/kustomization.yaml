@@ -6,12 +6,29 @@ resources:
 
 secretGenerator:
   - name: hub-secret
+    behavior: replace
+    namespace: hub
     envs:
       - hub-secret.env
   - name: keycloak-secret
+    behavior: replace
+    namespace: keycloak
+    options:
+      disableNameSuffixHash: true
     envs:
       - keycloak-secret.env
   - name: postgres-secret
+    behavior: replace
+    namespace: postgresql
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - postgres-secret.env
+  - name: postgres-secret
+    behavior: replace
+    namespace: hub
+    options:
+      disableNameSuffixHash: true
     envs:
       - postgres-secret.env
 

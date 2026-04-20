@@ -1,60 +1,28 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-helmCharts:
-  - name: postgresql
-    repo: https://charts.bitnami.com/bitnami
-    version: 16.4.1
-    releaseName: postgresql
-    namespace: default
-    valuesFile: postgres-values.yaml
-  - name: keycloak
-    repo: https://charts.bitnami.com/bitnami
-    version: 24.4.2
-    releaseName: keycloak
-    namespace: default
-    valuesFile: keycloak-values.yaml
-  - name: hub
-    releaseName: hub
-    namespace: default
-    repo: ../../helm-chart/hub
-    valuesInline:
-      image:
-        repository: hub
-        tag: latest
-        pullPolicy: Never
-      service:
-        port: 9090
-      env:
-        - name: APP_ENV
-          value: dev
-        - name: PORT
-          value: "9090"
-        - name: POSTGRES_PORT
-          value: "5432"
-        - name: POSTGRES_HOST
-          value: postgresql
-        - name: POSTGRES_DB_NAME
-          value: hub
-        - name: KEYCLOAK_URL
-          value: http://keycloak:8080
-        - name: KEYCLOAK_CLIENT_ID
-          value: hub
-        - name: MIGRATION_AUTO
-          value: "true"
-        - name: SEED_AUTO
-          value: "true"
-      envFrom:
-        - secretRef:
-            name: hub-secret
+resources:
+  - ./local-charts
+  - ./remote-charts
+  - namespace.yaml
 
 secretGenerator:
   - name: hub-secret
+    namespace: hub
     envs:
-      - hub-secret.env
+      - hub-secret.env.sample
   - name: keycloak-secret
+    namespace: keycloak
+    options:
+      disableNameSuffixHash: true
     envs:
-      - keycloak-secret.env
+      - keycloak-secret.env.sample
   - name: postgres-secret
+    namespace: postgresql
+    options:
+      disableNameSuffixHash: true
     envs:
-      - postgres-secret.env
+      - postgres-secret.env.sample
+  - name: postgres-secret
+    namespace: hub
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - postgres-secret.env.sample

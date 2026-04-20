@@ -83,11 +83,11 @@ graph TD
 `infra/k8s` に MiniKube 用のマニフェストが用意されています。
 
 ```bash
-# マニフェストの生成 (Helm が必要です)
-kubectl kustomize infra/k8s/overlays/minikube --enable-helm
+# マニフェストの生成
+kubectl kustomize infra/k8s/overlays/minikube
 
 # デプロイ
-kubectl apply -k infra/k8s/overlays/minikube --enable-helm
+kubectl apply -k infra/k8s/overlays/minikube
 ```
 
 Note: `hub` 本体のイメージは事前にビルドされている必要があります。

@@ -83,11 +83,11 @@ graph TD
 `infra/k8s` 中提供了用于 MiniKube 的清单。
 
 ```bash
-# 生成清单 (需要安装 Helm)
-kubectl kustomize infra/k8s/overlays/minikube --enable-helm
+# 生成清单
+kubectl kustomize infra/k8s/overlays/minikube
 
 # 部署
-kubectl apply -k infra/k8s/overlays/minikube --enable-helm
+kubectl apply -k infra/k8s/overlays/minikube
 ```
 
 注意：`hub` 镜像需要提前构建。

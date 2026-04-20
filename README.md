@@ -83,11 +83,11 @@ Each directory has a detailed development guide (`AGENTS.md`).
 Manifests for MiniKube are available in `infra/k8s`.
 
 ```bash
-# Generate manifests (Helm is required)
-kubectl kustomize infra/k8s/overlays/minikube --enable-helm
+# Generate manifests
+kubectl kustomize infra/k8s/overlays/minikube
 
 # Deploy
-kubectl apply -k infra/k8s/overlays/minikube --enable-helm
+kubectl apply -k infra/k8s/overlays/minikube
 ```
 
 Note: The `hub` image needs to be built beforehand.
