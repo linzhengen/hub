@@ -78,6 +78,21 @@ graph TD
 
 ## 快速入门
 
+### 部署到 Kubernetes (MiniKube)
+
+`infra/k8s` 中提供了用于 MiniKube 的清单。
+
+```bash
+# 生成清单
+kubectl kustomize infra/k8s/overlays/minikube
+
+# 部署
+kubectl apply -k infra/k8s/overlays/minikube
+```
+
+注意：`hub` 镜像需要提前构建。
+请使用 `minikube docker-env` 在 MiniKube 内的 Docker 守护进程中构建镜像，或者将镜像加载到 MiniKube 中。
+
 ### 1. 安装依赖
 
 ```bash

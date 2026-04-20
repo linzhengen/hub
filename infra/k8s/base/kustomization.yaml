@@ -1,0 +1,28 @@
+resources:
+  - ./local-charts
+  - ./remote-charts
+  - namespace.yaml
+
+secretGenerator:
+  - name: hub-secret
+    namespace: hub
+    envs:
+      - hub-secret.env.sample
+  - name: keycloak-secret
+    namespace: keycloak
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - keycloak-secret.env.sample
+  - name: postgres-secret
+    namespace: postgresql
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - postgres-secret.env.sample
+  - name: postgres-secret
+    namespace: hub
+    options:
+      disableNameSuffixHash: true
+    envs:
+      - postgres-secret.env.sample

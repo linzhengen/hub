@@ -8,9 +8,24 @@
 
 - `base/`: Common manifests shared across all environments.
   - `kustomization.yaml`: Entry point for common resources.
+  - `*-secret.env`: Template environment variables for secrets.
 - `overlays/`: Environment-specific configurations.
   - `dev/`: Development environment overlay.
     - `kustomization.yaml`: Customizes or patches base manifests for dev.
+    - `*-secret.env`: Environment-specific secrets.
+
+## Secret Management
+
+This project uses Kustomize `secretGenerator` to manage sensitive information.
+
+1.  **Base Secrets**: Define default (usually dummy) values in `base/*.secret.env`.
+2.  **Overlay Secrets**: Override values for specific environments in `overlays/<env>/*.secret.env`.
+3.  **Consumption**:
+    - Hub: Loaded via `envFrom` in the Helm chart.
+    - Keycloak: Referenced via `existingSecret` in `keycloak-values.yaml`.
+    - PostgreSQL: Referenced via `existingSecret` in `postgres-values.yaml`.
+
+**Warning**: Do not commit actual production secrets to the repository. Use these files as templates and manage real secrets via a secure CI/CD pipeline or external secret store (e.g., SealedSecrets, ExternalSecrets).
 
 ## Development Workflow
 

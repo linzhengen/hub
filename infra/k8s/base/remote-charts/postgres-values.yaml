@@ -1,0 +1,21 @@
+global:
+  security:
+    allowInsecureImages: true
+image:
+  registry: ghcr.io
+  repository: linzhengen/postgresql
+  tag: 18.3.0-debian-12-r13
+auth:
+  existingSecret: "postgres-secret"
+  database: "hub"
+  usePasswordFiles: false
+  secretKeys:
+    adminPasswordKey: "POSTGRES_PASSWORD"
+primary:
+  persistence:
+    enabled: false
+  initdb:
+    scripts:
+      create-keycloak-db.sql: |
+        CREATE DATABASE keycloak;
+        GRANT ALL PRIVILEGES ON DATABASE keycloak TO postgres;
