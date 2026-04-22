@@ -2,6 +2,7 @@ resources:
   - ./local-charts
   - ./remote-charts
   - namespace.yaml
+  - ../../../ui/keycloak-theme/themes/hub/login
 
 secretGenerator:
   - name: hub-secret

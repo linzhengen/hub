@@ -40,7 +40,8 @@
       "Bash(go doc:*)",
       "Bash(go mod:*)",
       "Bash(helm lint:*)",
-      "Bash(helm template:*)"
+      "Bash(helm template:*)",
+      "Bash(kustomize build:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
@@ -54,7 +55,6 @@
       "Bash(rm -rf *:*)"
     ]
   },
-  "model": "deepseek-chat",
   "enableAllProjectMcpServers": true,
   "alwaysThinkingEnabled": false,
   "fastMode": false,

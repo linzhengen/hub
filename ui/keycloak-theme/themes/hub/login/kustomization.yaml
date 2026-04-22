@@ -1,0 +1,18 @@
+namespace: keycloak
+
+configMapGenerator:
+  - name: keycloak-theme-hub-login
+    files:
+      - error.ftl
+      - idp-review-user-profile.ftl
+      - login-update-profile.ftl
+      - login.ftl
+      - register.ftl
+      - template.ftl
+      - theme.properties
+  - name: keycloak-theme-hub-login-resources-img
+    files:
+      - resources/img/logo.svg
+
+generatorOptions:
+  disableNameSuffixHash: true

@@ -215,3 +215,9 @@ affinity: {}
 
 # Termination grace period in seconds
 terminationGracePeriodSeconds: 30
+
+# Additional initContainers on the output Deployment definition.
+initContainers: []
+
+# Additional sidecar containers on the output Deployment definition.
+sidecars: []

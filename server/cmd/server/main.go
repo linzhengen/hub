@@ -46,10 +46,11 @@ var serverCmd = &cobra.Command{
 }
 
 type server struct {
-	grpcServer     *grpc.Server
-	httpServeMux   *runtime.ServeMux
-	migrateUseCase develop.MigrateUseCase
-	seedUseCase    develop.SeedUseCase
+	grpcServer      *grpc.Server
+	httpServeMux    *runtime.ServeMux
+	migrateUseCase  develop.MigrateUseCase
+	seedUseCase     develop.SeedUseCase
+	resourceUseCase develop.ResourceUseCase
 }
 
 func (s *server) run(ctx context.Context, envCfg config.EnvConfig) error {
@@ -95,6 +96,9 @@ func (s *server) run(ctx context.Context, envCfg config.EnvConfig) error {
 	if envCfg.Seed.Auto {
 		if err := s.seedUseCase.Seed(ctx); err != nil {
 			logger.Severef("failed to seed, err: %v", err)
+		}
+		if err := s.resourceUseCase.ImportResourcesAndPermissions(ctx); err != nil {
+			logger.Severef("failed to import resources and permissions, err: %v", err)
 		}
 	}
 	go func() {
