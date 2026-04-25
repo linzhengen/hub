@@ -1,5 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
 resources:
   - ../../base
+  - terraform-pvc.yaml
+  - terraform-job.yaml
 
 secretGenerator:
   - name: hub-secret
@@ -11,3 +16,32 @@ secretGenerator:
   - name: postgres-secret
     envs:
       - postgres-secret.env
+  - name: terraform-secret-dev
+    namespace: keycloak
+    envs:
+      - terraform-secret.env
+
+configMapGenerator:
+  - name: terraform-config-dev
+    namespace: keycloak
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../tf/dev/main.tf
+      - ../../../tf/dev/variables.tf
+      - ../../../tf/dev/provider.tf
+      - ../../../tf/dev/backend.tf
+      - ../../../tf/dev/versions.tf
+  - name: terraform-config-modules-dev
+    namespace: keycloak
+    options:
+      disableNameSuffixHash: true
+    files:
+      - ../../../tf/modules/keycloak/main.tf
+      - ../../../tf/modules/keycloak/variables.tf
+      - ../../../tf/modules/keycloak/versions.tf
+      - ../../../tf/modules/keycloak/client_hub_api.tf
+      - ../../../tf/modules/keycloak/client_hub_web.tf
+      - ../../../tf/modules/keycloak/provider_github.tf
+      - ../../../tf/modules/keycloak/rbac.tf
+      - ../../../tf/modules/keycloak/outputs.tf

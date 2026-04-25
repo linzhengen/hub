@@ -41,3 +41,17 @@ extraEnvVars:
     value: "false"
   - name: KC_HTTP_ENABLED
     value: "true"
+extraVolumes:
+  - name: theme-hub-login
+    configMap:
+      name: keycloak-theme-hub-login
+  - name: theme-hub-login-resources-img
+    configMap:
+      name: keycloak-theme-hub-login-resources-img
+extraVolumeMounts:
+  - name: theme-hub-login
+    mountPath: /opt/bitnami/keycloak/themes/hub/login
+    readOnly: true
+  - name: theme-hub-login-resources-img
+    mountPath: /opt/bitnami/keycloak/themes/hub/login/resources/img
+    readOnly: true

@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: terraform-apply
+  namespace: keycloak
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: terraform-state
+        - name: config-dev
+          configMap:
+            name: terraform-config-dev
+        - name: config-modules
+          configMap:
+            name: terraform-config-modules-dev
+      initContainers:
+        - name: wait-for-keycloak
+          image: busybox:1.36
+          command: ['sh', '-c']
+          args:
+            - |
+              until nc -z keycloak.keycloak.svc.cluster.local 80; do
+                echo "waiting for keycloak..."
+                sleep 5
+              done
+              echo "keycloak is ready"
+        - name: copy-config
+          image: busybox:1.36
+          command: ['sh', '-c']
+          args:
+            - |
+              mkdir -p /workspace/dev /workspace/modules/keycloak
+              cp /config-dev/* /workspace/dev/ 2>/dev/null || true
+              cp /config-modules/* /workspace/modules/keycloak/ 2>/dev/null || true
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            - name: config-dev
+              mountPath: /config-dev
+            - name: config-modules
+              mountPath: /config-modules
+      containers:
+        - name: terraform
+          image: hashicorp/terraform:1.14
+          workingDir: /workspace/dev
+          command: ['sh', '-c']
+          args:
+            - terraform init && terraform apply -auto-approve
+          envFrom:
+            - secretRef:
+                name: terraform-secret-dev
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace

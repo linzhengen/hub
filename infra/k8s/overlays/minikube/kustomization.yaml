@@ -3,6 +3,10 @@ kind: Kustomization
 
 resources:
   - ../../base
+  - terraform-pvc.yaml
+  - terraform-job.yaml
+  - ../../../tf/minikube
+  - ../../../tf/modules/keycloak
 
 secretGenerator:
   - name: hub-secret
@@ -31,6 +35,10 @@ secretGenerator:
       disableNameSuffixHash: true
     envs:
       - postgres-secret.env
+  - name: terraform-secret
+    namespace: keycloak
+    envs:
+      - terraform-secret.env
 
 patches:
   - target:
