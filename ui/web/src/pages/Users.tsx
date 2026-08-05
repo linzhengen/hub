@@ -31,10 +31,10 @@ export function Users() {
   });
 
   // Helper function to get group names from group IDs
-  const getGroupNames = (groupIds: string[]): string[] => {
-    if (!groupsData?.groups) return [];
+  const getGroupNames = (groupIds: string[] | undefined): string[] => {
+    if (!groupsData?.groups || !groupIds) return [];
     return groupIds
-      .map(id => groupsData.groups.find(g => g.id === id)?.name)
+      .map(id => groupsData.groups?.find(g => g.id === id)?.name)
       .filter((name): name is string => name !== undefined);
   };
 
@@ -76,7 +76,7 @@ export function Users() {
       if (managingGroupsUser && managingGroupsUser.id === variables.userId) {
         setManagingGroupsUser({
           ...managingGroupsUser,
-          groupIds: [...managingGroupsUser.groupIds, variables.groupId]
+          groupIds: [...(managingGroupsUser.groupIds ?? []), variables.groupId]
         });
       }
       toast.success('Group assigned successfully');
@@ -93,7 +93,7 @@ export function Users() {
       if (managingGroupsUser && managingGroupsUser.id === variables.userId) {
         setManagingGroupsUser({
           ...managingGroupsUser,
-          groupIds: managingGroupsUser.groupIds.filter(id => id !== variables.groupId)
+          groupIds: (managingGroupsUser.groupIds ?? []).filter(id => id !== variables.groupId)
         });
       }
       toast.success('Group unassigned successfully');
@@ -202,7 +202,7 @@ export function Users() {
             type="text"
             icon={<DeleteOutlined />}
             onClick={() => {
-              if (confirm('Are you sure you want to delete this user?')) {
+              if (record.id && confirm('Are you sure you want to delete this user?')) {
                 deleteMutation.mutate(record.id);
               }
             }}
@@ -223,7 +223,7 @@ export function Users() {
   };
 
   const handleEditSubmit = (values: any) => {
-    if (!editingUser) return;
+    if (!editingUser?.id) return;
 
     const data: any = {
       username: values.username,
@@ -243,8 +243,8 @@ export function Users() {
   // 検索フィルター
   const filteredUsers = data?.users?.filter(user =>
     !searchText ||
-    user.username.toLowerCase().includes(searchText.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchText.toLowerCase())
+    (user.username ?? '').toLowerCase().includes(searchText.toLowerCase()) ||
+    (user.email ?? '').toLowerCase().includes(searchText.toLowerCase())
   );
 
   return (
@@ -503,23 +503,23 @@ export function Users() {
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-medium">Current Groups</h3>
-              {managingGroupsUser.groupIds.length === 0 ? (
+              {(managingGroupsUser.groupIds ?? []).length === 0 ? (
                 <p className="text-sm text-gray-500">No groups assigned</p>
               ) : (
                 <div className="mt-2 space-y-2">
-                  {managingGroupsUser.groupIds.map((groupId) => {
+                  {(managingGroupsUser.groupIds ?? []).map((groupId) => {
                     const group = groupsData?.groups?.find(g => g.id === groupId);
-                    return group ? (
+                    return group?.id ? (
                       <div key={groupId} className="flex items-center justify-between rounded-md border px-3 py-2">
                         <span>{group.name}</span>
                         <Button
                           type="text"
                           danger
                           onClick={() => {
-                            if (confirm(`Are you sure you want to remove ${group.name} from this user?`)) {
+                            if (managingGroupsUser.id && confirm(`Are you sure you want to remove ${group.name} from this user?`)) {
                               unassignGroupMutation.mutate({
                                 userId: managingGroupsUser.id,
-                                groupId: group.id
+                                groupId: group.id!
                               });
                             }
                           }}
@@ -536,22 +536,24 @@ export function Users() {
 
             <div>
               <h3 className="text-lg font-medium">Available Groups</h3>
-              {groupsData?.groups?.filter(group => !managingGroupsUser.groupIds.includes(group.id)).length === 0 ? (
+              {groupsData?.groups?.filter(group => !(managingGroupsUser.groupIds ?? []).includes(group.id ?? '')).length === 0 ? (
                 <p className="text-sm text-gray-500">No available groups</p>
               ) : (
                 <div className="mt-2 space-y-2">
                   {groupsData?.groups
-                    ?.filter(group => !managingGroupsUser.groupIds.includes(group.id))
+                    ?.filter(group => !(managingGroupsUser.groupIds ?? []).includes(group.id ?? ''))
                     .map((group) => (
                       <div key={group.id} className="flex items-center justify-between rounded-md border px-3 py-2">
                         <span>{group.name}</span>
                         <Button
                           type="text"
                           onClick={() => {
-                            assignGroupMutation.mutate({
-                              userId: managingGroupsUser.id,
-                              groupId: group.id
-                            });
+                            if (managingGroupsUser.id && group.id) {
+                              assignGroupMutation.mutate({
+                                userId: managingGroupsUser.id,
+                                groupId: group.id
+                              });
+                            }
                           }}
                           loading={assignGroupMutation.isPending && assignGroupMutation.variables?.groupId === group.id}
                         >

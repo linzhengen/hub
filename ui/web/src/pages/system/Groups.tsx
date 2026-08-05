@@ -221,7 +221,7 @@ export function Groups() {
             </span>
             {roleCount > 0 && rolesData?.roles && (
               <span className="text-sm" style={{ color: '#64748b' }}>
-                {rolesData.roles.filter(role => record.roleIds?.includes(role.id)).slice(0, 2).map(r => r.name).join(', ')}
+                {rolesData.roles.filter(role => record.roleIds?.includes(role.id ?? '')).slice(0, 2).map(r => r.name).join(', ')}
                 {roleCount > 2 ? '...' : ''}
               </span>
             )}
@@ -266,7 +266,7 @@ export function Groups() {
             type="text"
             icon={<DeleteOutlined />}
             onClick={() => {
-              if (confirm('Are you sure you want to delete this group?')) {
+              if (record.id && confirm('Are you sure you want to delete this group?')) {
                 deleteMutation.mutate(record.id);
               }
             }}
@@ -281,7 +281,7 @@ export function Groups() {
   // 検索フィルター
   const filteredGroups = data?.groups?.filter(group =>
     !searchText ||
-    group.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    (group.name ?? '').toLowerCase().includes(searchText.toLowerCase()) ||
     (group.description && group.description.toLowerCase().includes(searchText.toLowerCase()))
   );
 
@@ -293,7 +293,7 @@ export function Groups() {
     : '0.0';
   const averageUsersPerGroup = data?.groups?.length ?
     (data.groups.reduce((acc, group) => {
-      const groupUsers = usersData?.users?.filter(user => user.groupIds?.includes(group.id)).length || 0;
+      const groupUsers = usersData?.users?.filter(user => user.groupIds?.includes(group.id ?? '')).length || 0;
       return acc + groupUsers;
     }, 0) / data.groups.length).toFixed(1)
     : '0.0';
@@ -517,24 +517,24 @@ export function Groups() {
           <div className="space-y-6">
             <div>
               <h3 className="text-lg font-medium">Current Roles</h3>
-              {managingRolesGroup.roleIds.length === 0 ? (
+              {(managingRolesGroup.roleIds ?? []).length === 0 ? (
                 <p className="text-sm text-gray-500">No roles assigned</p>
               ) : (
                 <div className="mt-2 space-y-2">
-                  {managingRolesGroup.roleIds.map((roleId) => {
+                  {(managingRolesGroup.roleIds ?? []).map((roleId) => {
                     const role = rolesData?.roles?.find(r => r.id === roleId);
-                    return role ? (
+                    return role?.id ? (
                       <div key={roleId} className="flex items-center justify-between rounded-md border px-3 py-2">
                         <span>{role.name}</span>
                         <Button
                           type="text"
                           danger
                           onClick={() => {
-                            if (confirm(`Are you sure you want to remove ${role.name} from this group?`)) {
+                            if (managingRolesGroup.id && confirm(`Are you sure you want to remove ${role.name} from this group?`)) {
                               unassignRoleMutation.mutate({
                                 id: managingRolesGroup.id,
-                                roleId: role.id,
-                                currentRoleIds: managingRolesGroup.roleIds
+                                roleId: role.id!,
+                                currentRoleIds: managingRolesGroup.roleIds ?? []
                               });
                             }
                           }}
@@ -551,22 +551,24 @@ export function Groups() {
 
             <div>
               <h3 className="text-lg font-medium">Available Roles</h3>
-              {rolesData?.roles?.filter(role => !managingRolesGroup.roleIds.includes(role.id)).length === 0 ? (
+              {rolesData?.roles?.filter(role => !(managingRolesGroup.roleIds ?? []).includes(role.id ?? '')).length === 0 ? (
                 <p className="text-sm text-gray-500">No available roles</p>
               ) : (
                 <div className="mt-2 space-y-2">
                   {rolesData?.roles
-                    ?.filter(role => !managingRolesGroup.roleIds.includes(role.id))
+                    ?.filter(role => !(managingRolesGroup.roleIds ?? []).includes(role.id ?? ''))
                     .map((role) => (
                       <div key={role.id} className="flex items-center justify-between rounded-md border px-3 py-2">
                         <span>{role.name}</span>
                         <Button
                           type="text"
                           onClick={() => {
-                            assignRoleMutation.mutate({
-                              id: managingRolesGroup.id,
-                              roleId: role.id
-                            });
+                            if (managingRolesGroup.id && role.id) {
+                              assignRoleMutation.mutate({
+                                id: managingRolesGroup.id,
+                                roleId: role.id
+                              });
+                            }
                           }}
                           loading={assignRoleMutation.isPending && assignRoleMutation.variables?.id === managingRolesGroup.id && assignRoleMutation.variables?.roleId === role.id}
                         >
@@ -604,12 +606,14 @@ export function Groups() {
                     <Button
                       type="text"
                       onClick={() => {
-                        addUsersToGroupMutation.mutate({
-                          id: managingUsersGroup.id,
-                          userIds: [user.id]
-                        });
+                        if (managingUsersGroup.id && user.id) {
+                          addUsersToGroupMutation.mutate({
+                            id: managingUsersGroup.id,
+                            userIds: [user.id]
+                          });
+                        }
                       }}
-                      loading={addUsersToGroupMutation.isPending && addUsersToGroupMutation.variables?.id === managingUsersGroup.id && addUsersToGroupMutation.variables?.userIds?.includes(user.id)}
+                      loading={addUsersToGroupMutation.isPending && addUsersToGroupMutation.variables?.id === managingUsersGroup.id && !!user.id && addUsersToGroupMutation.variables?.userIds?.includes(user.id)}
                     >
                       Add
                     </Button>

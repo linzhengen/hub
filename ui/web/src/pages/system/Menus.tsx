@@ -63,7 +63,7 @@ export function Menus() {
   };
 
   const handleEditSubmit = (values: any) => {
-    if (!editingResource) return;
+    if (!editingResource?.id) return;
 
     updateMutation.mutate({
       id: editingResource.id,
@@ -156,7 +156,7 @@ export function Menus() {
             type="text"
             icon={<DeleteOutlined />}
             onClick={() => {
-              if (confirm('Are you sure you want to delete this resource?')) {
+              if (record.id && confirm('Are you sure you want to delete this resource?')) {
                 deleteMutation.mutate(record.id);
               }
             }}
@@ -202,7 +202,7 @@ export function Menus() {
 
   const filteredResources = data?.resources?.filter(resource =>
     !searchText ||
-    resource.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    (resource.name ?? '').toLowerCase().includes(searchText.toLowerCase()) ||
     (resource.path && resource.path.toLowerCase().includes(searchText.toLowerCase()))
   ) || [];
 
