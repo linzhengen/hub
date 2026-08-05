@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { Card, Descriptions, Tag, Button, Form, Input, Modal, Space, Divider, Spin } from 'antd';
+import { Card, Descriptions, Tag, Button, Form, Input, Modal, Divider, Spin } from 'antd';
 import { UserOutlined, MailOutlined, SafetyOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
 import { userService } from '@/services/user';
-import type { User as ApiUser, GetMeResponse } from '@/services/user';
+import type { GetMeResponse } from '@/services/user';
 
 export function My() {
   const { user: authUser, isAuthenticated } = useAuth();

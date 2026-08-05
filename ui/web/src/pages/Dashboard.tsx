@@ -1,4 +1,4 @@
-import { Card, Typography, Row, Col, Progress, Statistic } from 'antd';
+import { Card, Typography, Row, Col, Progress } from 'antd';
 import { Users, Shield, Key, FolderKanban, TrendingUp, TrendingDown, Activity, BarChart3 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 

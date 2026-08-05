@@ -30,7 +30,7 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
     try {
       errorData = await response.json();
       message = errorData.message || message;
-    } catch (e) {
+    } catch {
       message = response.statusText;
     }
 

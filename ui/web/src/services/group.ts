@@ -1,12 +1,6 @@
 import { fetchApi } from '@/lib/api-client';
 import type { paths, components } from '@/api/schema/system-group-v1-service';
-import type {
-  UrlPaths,
-  RequestParameters,
-  RequestData,
-  ResponseData,
-  HttpMethodsFilteredByPath,
-} from '@/api/helper';
+import type { RequestParameters } from '@/api/helper';
 
 // Re-export schema types for backward compatibility
 export type GroupStatus = components['schemas']['v1GroupStatus'];
@@ -29,9 +23,6 @@ export type DeleteGroupResponse = components['schemas']['v1DeleteGroupResponse']
 
 // Helper type for list groups parameters (query)
 export type ListGroupsParams = RequestParameters<paths, '/api/v1/groups', 'get'>;
-
-// Convert full path to endpoint (remove /api/v1 prefix)
-const toEndpoint = (fullPath: string) => fullPath.replace('/api/v1', '');
 
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams();

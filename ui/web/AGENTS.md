@@ -41,5 +41,6 @@
 ## Testing & Quality
 
 - Run `pnpm lint` (which runs `tsc --noEmit`) to check for type errors.
+- Run `pnpm lint:eslint` to check for ESLint issues (`eslint.config.js`). Both are run in CI (`web-ci.yml`).
 - Follow the project-wide TDD and strong typing practices.
 - Ensure all new components are responsive and accessible.

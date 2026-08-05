@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService, User } from '@/services/user';
-import { groupService, Group, ListGroupsResponse } from '@/services/group';
-import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card } from 'antd';
+import { groupService, ListGroupsResponse } from '@/services/group';
+import { Button, Modal, Input, Table, Form, Select, Space, Card } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import { FolderKanban } from 'lucide-react';
 
@@ -118,22 +118,12 @@ export function Users() {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
-        let color = '';
-        let bgColor = '';
         let text = 'Unspecified';
 
         if (status === 'STATUS_ACTIVE') {
-          color = '#10b981'; // emerald-500
-          bgColor = '#ecfdf5'; // emerald-500/10 (light)
           text = 'Active';
         } else if (status === 'STATUS_INACTIVE') {
-          color = '#ef4444'; // red-500
-          bgColor = '#fef2f2'; // red-500/10 (light)
           text = 'Inactive';
-        } else {
-          color = '#6b7280'; // gray-500
-          bgColor = '#f9fafb'; // gray-500/10 (light)
-          text = 'Unspecified';
         }
 
         return (

@@ -29,7 +29,6 @@ async function generateSchema() {
   const yamlFiles = await findYamlFiles(inputDir);
   if (yamlFiles.length === 0) {
     console.error('No OpenAPI YAML files found.');
-    // eslint-disable-next-line unicorn/no-process-exit
     process.exit(1);
   }
 
@@ -43,7 +42,7 @@ async function generateSchema() {
       .replace(/\.yaml$/, '.ts');
     const outputPath = join(outputDir, fileName);
 
-    // eslint-disable-next-line no-console
+
     console.info(
       `Generating TypeScript models for: ${yamlFile} → ${outputPath}`,
     );
@@ -58,7 +57,7 @@ async function generateSchema() {
       console.error(`Failed to generate models for ${yamlFile}:`, error);
     }
   }
-  // eslint-disable-next-line no-console
+
   console.log('✅ TypeScript models generation completed!');
 }
 
