@@ -1,0 +1,93 @@
+# NetworkPolicies for the `hub` namespace.
+#
+# The keycloak and postgresql namespaces are NOT covered here: both Bitnami
+# charts already ship their own NetworkPolicy, and those are tightened via
+# chart values instead (see remote-charts/postgres-values.yaml and
+# remote-charts/keycloak-values.yaml). Adding overlapping policies for those
+# pods would be ineffective anyway — NetworkPolicies are additive, so a second
+# policy cannot subtract an allow granted by the chart's own policy.
+#
+# Traffic flows for hub (sources: helm-charts/hub/values.yaml):
+#   external  -> hub:9090                    (browser: API + embedded SPA)
+#   hub       -> postgresql.postgresql:5432  (application DB)
+#   hub       -> keycloak.keycloak:8080      (OIDC token validation / admin API)
+#   hub       -> kube-dns:53                 (service name resolution)
+#
+# NOTE: NetworkPolicy is only enforced by policy-capable CNIs. Minikube's
+# default CNI does not enforce it — use `minikube start --cni=calico` to
+# exercise these rules locally.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: hub
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: hub
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-hub-ingress
+  namespace: hub
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: hub
+  policyTypes:
+    - Ingress
+  ingress:
+    # Browser / ingress-controller traffic to the hub API + SPA. Left open to
+    # any source because hub is the user-facing entrypoint.
+    - ports:
+        - protocol: TCP
+          port: 9090
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-hub-egress
+  namespace: hub
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: hub
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: keycloak
+      ports:
+        - protocol: TCP
+          port: 8080

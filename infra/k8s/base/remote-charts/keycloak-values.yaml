@@ -9,6 +9,14 @@ auth:
   adminUser: admin
   existingSecret: "keycloak-secret"
   passwordSecretKey: "KEYCLOAK_ADMIN_PASSWORD"
+networkPolicy:
+  # allowExternal stays true: Keycloak must accept browser traffic for the OIDC
+  # login/redirect flow, so its ingress cannot be limited to in-cluster sources.
+  # Egress is tightened from "allow everything" to DNS + the external DB port +
+  # inter-node ports (see the chart's networkpolicy.yaml). Because
+  # postgresql.enabled is false here, the DB rule has no destination selector,
+  # which is what lets Keycloak reach postgresql.postgresql:5432 cross-namespace.
+  allowExternalEgress: false
 postgresql:
   enabled: false
 externalDatabase:
