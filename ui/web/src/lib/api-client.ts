@@ -1,17 +1,9 @@
-import { clearTokens } from '@/lib/auth-token';
+import { clearTokens, getToken } from '@/lib/auth-token';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
-/**
- * ローカルストレージからトークンを取得
- */
-function getTokenFromStorage(): string | null {
-  return localStorage.getItem('keycloak_token');
-}
-
 export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  // ローカルストレージからトークンを取得
-  const token = getTokenFromStorage();
+  const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),

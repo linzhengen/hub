@@ -1,78 +1,72 @@
 /**
- * 認証トークンのローカルストレージ管理
+ * 認証トークンのインメモリ管理
+ *
+ * XSS発生時のトークン窃取リスクを避けるため、localStorageには保存せず
+ * モジュールスコープの変数にのみ保持する。ページリロードで失われるが、
+ * AuthProvider は Keycloak の SSO セッション（Cookie）を用いて
+ * initializeKeycloak() でサイレントに再認証する。
  */
 
-const TOKEN_KEY = 'keycloak_token';
-const TOKEN_EXPIRY_KEY = 'keycloak_token_expiry';
-const REFRESH_TOKEN_KEY = 'keycloak_refresh_token';
+let token: string | null = null;
+let refreshToken: string | null = null;
+let tokenExpiry: number | null = null;
 
 /**
- * トークンをローカルストレージに保存
+ * トークンをメモリに保存
  */
-export function saveToken(token: string, refreshToken?: string, expiresIn?: number): void {
-  if (!token) {
+export function saveToken(newToken: string, newRefreshToken?: string, expiresIn?: number): void {
+  if (!newToken) {
     console.warn('Attempted to save empty token');
     return;
   }
 
-  localStorage.setItem(TOKEN_KEY, token);
+  token = newToken;
 
-  if (refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  if (newRefreshToken) {
+    refreshToken = newRefreshToken;
   }
 
   if (expiresIn) {
     // トークンの有効期限を計算（現在時刻 + expiresIn秒 - 30秒のマージン）
-    const expiryTime = Date.now() + (expiresIn * 1000) - 30000;
-    localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
+    tokenExpiry = Date.now() + (expiresIn * 1000) - 30000;
   }
 }
 
 /**
- * ローカルストレージからトークンを取得
+ * メモリからトークンを取得
  */
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return token;
 }
 
 /**
- * ローカルストレージからリフレッシュトークンを取得
+ * メモリからリフレッシュトークンを取得
  */
 export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return refreshToken;
 }
 
 /**
  * トークンが有効かチェック（期限切れでないか）
  */
 export function isTokenValid(): boolean {
-  const token = getToken();
   if (!token) {
     return false;
   }
 
-  const expiryStr = localStorage.getItem(TOKEN_EXPIRY_KEY);
-  if (!expiryStr) {
+  if (tokenExpiry === null) {
     // 有効期限情報がない場合はとりあえず有効とみなす
     return true;
   }
 
-  const expiryTime = parseInt(expiryStr, 10);
-  const now = Date.now();
-
-  return now < expiryTime;
+  return Date.now() < tokenExpiry;
 }
 
 /**
  * トークンの有効期限を取得（ミリ秒）
  */
 export function getTokenExpiry(): number | null {
-  const expiryStr = localStorage.getItem(TOKEN_EXPIRY_KEY);
-  if (!expiryStr) {
-    return null;
-  }
-
-  return parseInt(expiryStr, 10);
+  return tokenExpiry;
 }
 
 /**
@@ -90,12 +84,12 @@ export function getSecondsUntilExpiry(): number | null {
 }
 
 /**
- * すべてのトークンをローカルストレージから削除
+ * すべてのトークンをメモリから削除
  */
 export function clearTokens(): void {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(TOKEN_EXPIRY_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  token = null;
+  refreshToken = null;
+  tokenExpiry = null;
 }
 
 /**
@@ -123,12 +117,12 @@ export function parseToken(token: string): any | null {
 }
 
 /**
- * ローカルストレージからトークンを取得してパース
+ * メモリからトークンを取得してパース
  */
 export function getParsedToken(): any | null {
-  const token = getToken();
-  if (!token) return null;
-  return parseToken(token);
+  const currentToken = getToken();
+  if (!currentToken) return null;
+  return parseToken(currentToken);
 }
 
 /**
