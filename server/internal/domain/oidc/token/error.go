@@ -1,9 +1,6 @@
 package token
 
-import (
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-)
+import "errors"
 
-var ErrNoSession = status.Errorf(codes.Unauthenticated, "no session information")
-var ErrInvalidToken = status.Errorf(codes.Unauthenticated, "invalid token")
+var ErrNoSession = errors.New("no session information")
+var ErrInvalidToken = errors.New("invalid token")
