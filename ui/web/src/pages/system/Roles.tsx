@@ -113,7 +113,7 @@ export function Roles() {
   };
 
   const handleEditSubmit = (values: any) => {
-    if (!editingRole) return;
+    if (!editingRole?.id) return;
 
     updateMutation.mutate({
       id: editingRole.id,
@@ -170,7 +170,7 @@ export function Roles() {
         if (permissionCount === 0) return '-';
 
         const rolePermissions = permissionsData?.permissions?.filter(perm =>
-          record.permissionIds?.includes(perm.id)
+          record.permissionIds?.includes(perm.id ?? '')
         ) || [];
 
         return (
@@ -210,7 +210,7 @@ export function Roles() {
             type="text"
             icon={<DeleteOutlined />}
             onClick={() => {
-              if (confirm('Are you sure you want to delete this role?')) {
+              if (record.id && confirm('Are you sure you want to delete this role?')) {
                 deleteMutation.mutate(record.id);
               }
             }}
@@ -225,7 +225,7 @@ export function Roles() {
   // 検索フィルター
   const filteredRoles = data?.roles?.filter(role =>
     !searchText ||
-    role.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    (role.name ?? '').toLowerCase().includes(searchText.toLowerCase()) ||
     (role.description && role.description.toLowerCase().includes(searchText.toLowerCase()))
   );
 
