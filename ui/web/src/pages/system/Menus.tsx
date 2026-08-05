@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { resourceService, Resource, UpdateMenuResourceRequest, CreateMenuResourceRequest } from '@/services/resource.ts';
+import { resourceService, Resource, UpdateMenuResourceRequest } from '@/services/resource.ts';
 import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card, InputNumber, TreeSelect } from 'antd';
 
 const { Option } = Select;
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, FileOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
 
 export function Menus() {
@@ -85,7 +85,7 @@ export function Menus() {
       dataIndex: 'name',
       key: 'name',
       width: 200,
-      render: (name: string, record: Resource) => (
+      render: (name: string, _record: Resource) => (
         <div className="flex items-center gap-2">
           <span className="text-gray-900 dark:text-white font-medium">{name}</span>
         </div>

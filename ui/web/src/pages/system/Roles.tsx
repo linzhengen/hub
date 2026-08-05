@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { roleService, Role, CreateRoleRequest, UpdateRoleRequest } from '@/services/role.ts';
+import { roleService, Role } from '@/services/role.ts';
 import { permissionService, Permission } from '@/services/permission.ts';
 import { resourceService } from '@/services/resource.ts';
-import { Button, Modal, Input, Table, Form, Space, Card, TreeSelect, Tag, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, SearchOutlined, SafetyOutlined } from '@ant-design/icons';
+import { Button, Modal, Input, Table, Form, Space, Card, TreeSelect, Tag } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
-import { Shield } from 'lucide-react';
 
 export function Roles() {
   const queryClient = useQueryClient();

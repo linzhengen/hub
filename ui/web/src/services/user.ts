@@ -1,6 +1,4 @@
 import { fetchApi } from '@/lib/api-client';
-import type { Group } from './group';
-import type { ResourceType } from './resource';
 import type { paths, components } from '@/api/schema/user-v1-service';
 import type { RequestParameters } from '@/api/helper';
 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { groupService, Group, CreateGroupRequest, UpdateGroupRequest, GroupStatus } from '@/services/group.ts';
-import { roleService, Role } from '@/services/role.ts';
-import { userService, User } from '@/services/user.ts';
-import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card } from 'antd';
+import { groupService, Group, UpdateGroupRequest } from '@/services/group.ts';
+import { roleService } from '@/services/role.ts';
+import { userService } from '@/services/user.ts';
+import { Button, Modal, Input, Table, Form, Select, Space, Card } from 'antd';
 
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UserOutlined, SearchOutlined, FolderOutlined } from '@ant-design/icons';
@@ -110,19 +110,6 @@ export function Groups() {
     onError: (error: any) => toast.error(error.message),
   });
 
-  const removeUsersFromGroupMutation = useMutation({
-    mutationFn: ({ id, userIds }: { id: string; userIds: string[] }) => groupService.removeUsersFromGroup(id, { userIds }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
-      // Update managingUsersGroup state immediately
-      if (managingUsersGroup && managingUsersGroup.id === variables.id) {
-        // Note: group doesn't have userIds field in response, we'll just invalidate
-      }
-      toast.success('Users removed successfully');
-    },
-    onError: (error: any) => toast.error(error.message),
-  });
-
   const handleCreateSubmit = (values: any) => {
     createMutation.mutate({
       name: values.name,
@@ -165,9 +152,9 @@ export function Groups() {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
-        let color = '';
-        let bgColor = '';
-        let text = 'Unspecified';
+        let color: string;
+        let bgColor: string;
+        let text: string;
 
         if (status === 'STATUS_ACTIVE') {
           color = '#059669';
