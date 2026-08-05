@@ -33,7 +33,11 @@ serviceAccount:
   # Specifies whether a service account should be created.
   create: true
   # Automatically mount a ServiceAccount's API credentials?
-  automount: true
+  # Disabled: the hub app has no Kubernetes client (no k8s.io deps in go.mod)
+  # and never calls the API server, so mounting a token would only widen the
+  # blast radius if a pod were compromised. KUBERNETES_NAMESPACE is injected via
+  # the downward API (fieldRef), which does not need this token.
+  automount: false
   # Annotations to add to the service account.
   annotations: {}
   # The name of the service account to use.
