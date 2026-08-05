@@ -19,3 +19,9 @@ variable "provider_github_client_secret" {
   description = "Github app client secret"
   sensitive   = true
 }
+
+variable "keycloak_admin_user_password" {
+  description = "Initial password for the Keycloak realm admin user"
+  type        = string
+  sensitive   = true
+}

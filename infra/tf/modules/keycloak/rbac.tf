@@ -14,7 +14,7 @@ resource "keycloak_user" "admin_user" {
     for_each = var.admin_user_password != "" ? [1] : []
     content {
       value     = var.admin_user_password
-      temporary = false
+      temporary = true
     }
   }
 }
