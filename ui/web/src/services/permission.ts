@@ -17,7 +17,7 @@ export type DeletePermissionResponse = components['schemas']['v1DeletePermission
 // Helper type for list permissions parameters (query)
 export type ListPermissionsParams = RequestParameters<paths, '/api/v1/permissions', 'get'>;
 
-function buildQueryString(params: Record<string, any>): string {
+function buildQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null) continue;

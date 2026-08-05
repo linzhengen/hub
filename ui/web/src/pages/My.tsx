@@ -6,6 +6,11 @@ import { toast } from 'sonner';
 import { userService } from '@/services/user';
 import type { GetMeResponse } from '@/services/user';
 
+interface ProfileFormValues {
+  name: string;
+  email: string;
+}
+
 export function My() {
   const { user: authUser, isAuthenticated } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -59,7 +64,7 @@ export function My() {
   };
 
   // 編集保存（現在はモック）
-  const handleEditSubmit = (values: any) => {
+  const handleEditSubmit = (values: ProfileFormValues) => {
     console.log('Profile update values:', values);
     // TODO: 実際のAPI呼び出しを実装
     toast.success('Profile updated successfully');

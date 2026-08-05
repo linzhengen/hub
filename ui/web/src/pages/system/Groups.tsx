@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { groupService, Group, UpdateGroupRequest } from '@/services/group.ts';
+import { groupService, Group, CreateGroupRequest, UpdateGroupRequest } from '@/services/group.ts';
 import { roleService } from '@/services/role.ts';
 import { userService } from '@/services/user.ts';
 import { Button, Modal, Input, Table, Form, Select, Space, Card } from 'antd';
@@ -9,6 +9,8 @@ const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UserOutlined, SearchOutlined, FolderOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
 import { Users, Shield, TrendingUp } from 'lucide-react';
+
+type GroupFormValues = CreateGroupRequest;
 
 export function Groups() {
   const queryClient = useQueryClient();
@@ -42,7 +44,7 @@ export function Groups() {
       setIsCreateOpen(false);
       toast.success('Group created successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const updateMutation = useMutation({
@@ -52,7 +54,7 @@ export function Groups() {
       setEditingGroup(null);
       toast.success('Group updated successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const deleteMutation = useMutation({
@@ -61,7 +63,7 @@ export function Groups() {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       toast.success('Group deleted successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const assignRoleMutation = useMutation({
@@ -77,7 +79,7 @@ export function Groups() {
       }
       toast.success('Role assigned successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const unassignRoleMutation = useMutation({
@@ -94,7 +96,7 @@ export function Groups() {
       }
       toast.success('Role unassigned successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const addUsersToGroupMutation = useMutation({
@@ -107,10 +109,10 @@ export function Groups() {
       }
       toast.success('Users added successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
-  const handleCreateSubmit = (values: any) => {
+  const handleCreateSubmit = (values: GroupFormValues) => {
     createMutation.mutate({
       name: values.name,
       description: values.description,
@@ -118,7 +120,7 @@ export function Groups() {
     });
   };
 
-  const handleEditSubmit = (values: any) => {
+  const handleEditSubmit = (values: GroupFormValues) => {
     if (!editingGroup) return;
 
     const data: UpdateGroupRequest = {
@@ -189,7 +191,7 @@ export function Groups() {
     {
       title: 'Roles',
       key: 'roles',
-      render: (_: any, record: Group) => {
+      render: (_: unknown, record: Group) => {
         const roleCount = record.roleIds?.length || 0;
         return (
           <div className="flex items-center gap-2">
@@ -219,7 +221,7 @@ export function Groups() {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: Group) => (
+      render: (_: unknown, record: Group) => (
         <Space>
           <Button
             type="text"

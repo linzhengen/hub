@@ -24,7 +24,7 @@ export type UpdateMenuResourceResponse = components['schemas']['v1UpdateMenuReso
 export type ListResourcesParams = RequestParameters<paths, '/api/v1/resources', 'get'>;
 export type ListMenuResourcesParams = RequestParameters<paths, '/api/v1/resources/menus', 'get'>;
 
-function buildQueryString(params: Record<string, any>): string {
+function buildQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null) continue;

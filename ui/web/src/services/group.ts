@@ -24,7 +24,7 @@ export type DeleteGroupResponse = components['schemas']['v1DeleteGroupResponse']
 // Helper type for list groups parameters (query)
 export type ListGroupsParams = RequestParameters<paths, '/api/v1/groups', 'get'>;
 
-function buildQueryString(params: Record<string, any>): string {
+function buildQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null) continue;

@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { resourceService, Resource, UpdateMenuResourceRequest } from '@/services/resource.ts';
+import { resourceService, Resource, UpdateMenuResourceRequest, CreateMenuResourceRequest } from '@/services/resource.ts';
 import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card, InputNumber, TreeSelect } from 'antd';
 
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+
+interface ResourceTreeNode extends Resource {
+  children?: ResourceTreeNode[];
+}
 
 export function Menus() {
   const queryClient = useQueryClient();
@@ -28,7 +32,7 @@ export function Menus() {
       createForm.resetFields();
       toast.success('Menu resource created successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const updateMutation = useMutation({
@@ -38,7 +42,7 @@ export function Menus() {
       setEditingResource(null);
       toast.success('Menu resource updated successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const deleteMutation = useMutation({
@@ -47,10 +51,10 @@ export function Menus() {
       queryClient.invalidateQueries({ queryKey: ['menu-resources'] });
       toast.success('Resource deleted successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
-  const handleCreateSubmit = (values: any) => {
+  const handleCreateSubmit = (values: CreateMenuResourceRequest) => {
     createMutation.mutate({
       name: values.name,
       description: values.description,
@@ -62,7 +66,7 @@ export function Menus() {
     });
   };
 
-  const handleEditSubmit = (values: any) => {
+  const handleEditSubmit = (values: UpdateMenuResourceRequest) => {
     if (!editingResource?.id) return;
 
     updateMutation.mutate({
@@ -133,7 +137,7 @@ export function Menus() {
       key: 'actions',
       width: 100,
       fixed: 'right' as const,
-      render: (_: any, record: Resource) => (
+      render: (_: unknown, record: Resource) => (
         <Space>
           <Button
             type="text"
@@ -167,30 +171,33 @@ export function Menus() {
     },
   ];
 
-  const buildResourceTree = (resources: Resource[]): any[] => {
-    const map = new Map();
-    const roots: any[] = [];
+  const buildResourceTree = (resources: Resource[]): ResourceTreeNode[] => {
+    const map = new Map<string, ResourceTreeNode>();
+    const roots: ResourceTreeNode[] = [];
 
     resources.forEach(res => {
-      map.set(res.id, { ...res, children: [] });
+      if (res.id) map.set(res.id, { ...res, children: [] });
     });
 
     resources.forEach(res => {
-      const node = map.get(res.id);
-      if (res.parentId && map.has(res.parentId)) {
-        map.get(res.parentId).children.push(node);
+      const node = res.id ? map.get(res.id) : undefined;
+      if (!node) return;
+      const parent = res.parentId ? map.get(res.parentId) : undefined;
+      if (parent) {
+        parent.children = parent.children ?? [];
+        parent.children.push(node);
       } else {
         roots.push(node);
       }
     });
 
     // Remove empty children arrays for Ant Design Table tree compatibility
-    const cleanTree = (nodes: any[]) => {
+    const cleanTree = (nodes: ResourceTreeNode[]): ResourceTreeNode[] => {
       nodes.forEach(node => {
-        if (node.children.length === 0) {
+        if (!node.children || node.children.length === 0) {
           delete node.children;
         } else {
-          node.children.sort((a: any, b: any) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          node.children.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
           cleanTree(node.children);
         }
       });
