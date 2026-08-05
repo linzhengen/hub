@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import keycloak from '@/lib/keycloak';
-import { saveToken, clearTokens, isTokenValid, getParsedToken } from '@/lib/auth-token';
+import { saveToken, clearTokens } from '@/lib/auth-token';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -122,27 +122,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
-  // 認証状態のチェック
-  const checkAuth = async () => {
-    // ローカルストレージに有効なトークンがある場合は認証済みとみなす
-    if (isTokenValid()) {
-      console.log('Valid token found in localStorage');
-      const tokenParsed = getParsedToken();
-      if (tokenParsed) {
-        setUserFromTokenPayload(tokenParsed);
-      }
-      setIsAuthenticated(true);
-      setIsLoading(false);
-      return;
-    }
-
-    // トークンがない場合はKeycloakを初期化
-    console.log('No valid token, initializing Keycloak');
-    await initializeKeycloak();
-  };
-
   useEffect(() => {
-    checkAuth();
+    // トークンはメモリにのみ保持されページリロードで失われるため、
+    // 毎回 Keycloak を初期化する。有効な SSO セッション（Cookie）が
+    // あれば login-required はリダイレクトなしでサイレントに再認証される。
+    initializeKeycloak();
   }, []);
 
   const login = async () => {
