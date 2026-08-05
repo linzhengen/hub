@@ -922,3 +922,39 @@ func TestShouldSkipAuthz(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthServerStream_SendMsg(t *testing.T) {
+	mockStream := new(MockServerStream)
+	msg := "response"
+	mockStream.On("SendMsg", msg).Return(nil)
+
+	stream := &authServerStream{
+		ctx:          context.Background(),
+		userId:       "user-1",
+		ServerStream: mockStream,
+	}
+
+	err := stream.SendMsg(msg)
+
+	assert.NoError(t, err)
+	mockStream.AssertCalled(t, "SendMsg", msg)
+	mockStream.AssertNotCalled(t, "RecvMsg", mock.Anything)
+}
+
+func TestAuthServerStream_RecvMsg(t *testing.T) {
+	mockStream := new(MockServerStream)
+	msg := "request"
+	mockStream.On("RecvMsg", msg).Return(nil)
+
+	stream := &authServerStream{
+		ctx:          context.Background(),
+		userId:       "user-1",
+		ServerStream: mockStream,
+	}
+
+	err := stream.RecvMsg(msg)
+
+	assert.NoError(t, err)
+	mockStream.AssertCalled(t, "RecvMsg", msg)
+	mockStream.AssertNotCalled(t, "SendMsg", mock.Anything)
+}

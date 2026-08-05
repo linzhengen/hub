@@ -213,7 +213,7 @@ func (a *authServerStream) RecvMsg(m interface{}) error {
 }
 
 func (a *authServerStream) SendMsg(m interface{}) error {
-	err := a.ServerStream.RecvMsg(m)
+	err := a.ServerStream.SendMsg(m)
 	if err != nil {
 		return err
 	}
