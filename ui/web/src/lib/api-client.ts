@@ -28,12 +28,16 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
-    console.log('API Request with token (length):', token.length);
-  } else {
+    if (import.meta.env.DEV) {
+      console.log('API Request with token (length):', token.length);
+    }
+  } else if (import.meta.env.DEV) {
     console.warn('API Request without token');
   }
 
-  console.log('API Request:', `${API_BASE_URL}${endpoint}`);
+  if (import.meta.env.DEV) {
+    console.log('API Request:', `${API_BASE_URL}${endpoint}`);
+  }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,

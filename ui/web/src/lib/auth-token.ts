@@ -140,9 +140,11 @@ export function getParsedToken(): JwtPayload | null {
 }
 
 /**
- * トークン情報をデバッグ用に表示
+ * トークン情報をデバッグ用に表示（開発ビルドでのみ出力。本番ではPII漏洩を避けるため何もしない）
  */
 export function debugTokenInfo(): void {
+  if (!import.meta.env.DEV) return;
+
   const token = getToken();
   const refreshToken = getRefreshToken();
   const expiry = getTokenExpiry();
