@@ -2,6 +2,7 @@ package interceptor
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"testing"
@@ -688,12 +689,12 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 		mockAuthSvc.AssertNotCalled(t, "Enforce")
 	})
 
-	t.Run("should fail when user is not found", func(t *testing.T) {
+	t.Run("should fail with PermissionDenied when user is not found", func(t *testing.T) {
 		userID := "user1"
 		ctx := contextx.WithUserID(context.Background(), userID)
 
 		mockUserRepo := new(MockUserRepository)
-		mockUserRepo.On("FindOne", mock.Anything, userID).Return(nil, errors.New("user not found"))
+		mockUserRepo.On("FindOne", mock.Anything, userID).Return(nil, sql.ErrNoRows)
 
 		mockAuthSvc := new(MockAuthService)
 
@@ -709,6 +710,31 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 		assert.Nil(t, resp)
 		assert.Error(t, err)
 		assert.Equal(t, codes.PermissionDenied, status.Code(err))
+		mockUserRepo.AssertExpectations(t)
+		mockAuthSvc.AssertNotCalled(t, "Enforce")
+	})
+
+	t.Run("should fail with Internal when user lookup fails for a non-not-found reason", func(t *testing.T) {
+		userID := "user1"
+		ctx := contextx.WithUserID(context.Background(), userID)
+
+		mockUserRepo := new(MockUserRepository)
+		mockUserRepo.On("FindOne", mock.Anything, userID).Return(nil, errors.New("connection timeout"))
+
+		mockAuthSvc := new(MockAuthService)
+
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
+
+		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+			return "should not reach here", nil
+		}
+
+		resp, err := interceptor(ctx, nil, info, handler)
+
+		assert.Nil(t, resp)
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
 		mockUserRepo.AssertExpectations(t)
 		mockAuthSvc.AssertNotCalled(t, "Enforce")
 	})
@@ -852,6 +878,56 @@ func TestStreamAuthzInterceptor(t *testing.T) {
 		assert.True(t, handlerCalled)
 		mockUserRepo.AssertExpectations(t)
 		mockAuthSvc.AssertExpectations(t)
+	})
+
+	t.Run("should fail with PermissionDenied when user is not found", func(t *testing.T) {
+		userID := "user1"
+		ctx := contextx.WithUserID(context.Background(), userID)
+
+		mockUserRepo := new(MockUserRepository)
+		mockUserRepo.On("FindOne", mock.Anything, userID).Return(nil, sql.ErrNoRows)
+
+		mockAuthSvc := new(MockAuthService)
+
+		interceptor := StreamAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		info := &grpc.StreamServerInfo{FullMethod: "/test.Service/Method"}
+		stream := &MockServerStream{ctx: ctx}
+
+		handler := func(srv interface{}, stream grpc.ServerStream) error {
+			return nil
+		}
+
+		err := interceptor(nil, stream, info, handler)
+
+		assert.Error(t, err)
+		assert.Equal(t, codes.PermissionDenied, status.Code(err))
+		mockUserRepo.AssertExpectations(t)
+		mockAuthSvc.AssertNotCalled(t, "Enforce")
+	})
+
+	t.Run("should fail with Internal when user lookup fails for a non-not-found reason", func(t *testing.T) {
+		userID := "user1"
+		ctx := contextx.WithUserID(context.Background(), userID)
+
+		mockUserRepo := new(MockUserRepository)
+		mockUserRepo.On("FindOne", mock.Anything, userID).Return(nil, errors.New("connection timeout"))
+
+		mockAuthSvc := new(MockAuthService)
+
+		interceptor := StreamAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		info := &grpc.StreamServerInfo{FullMethod: "/test.Service/Method"}
+		stream := &MockServerStream{ctx: ctx}
+
+		handler := func(srv interface{}, stream grpc.ServerStream) error {
+			return nil
+		}
+
+		err := interceptor(nil, stream, info, handler)
+
+		assert.Error(t, err)
+		assert.Equal(t, codes.Internal, status.Code(err))
+		mockUserRepo.AssertExpectations(t)
+		mockAuthSvc.AssertNotCalled(t, "Enforce")
 	})
 
 	// Additional tests similar to UnaryAuthzInterceptor tests...

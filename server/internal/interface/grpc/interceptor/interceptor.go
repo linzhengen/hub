@@ -2,6 +2,8 @@ package interceptor
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"runtime/debug"
 	"strings"
@@ -221,6 +223,17 @@ func (a *authServerStream) SendMsg(m interface{}) error {
 	return nil
 }
 
+// authzUserLookupError maps a userRepo.FindOne error to a gRPC status: a
+// missing user (sql.ErrNoRows) is a genuine authorization failure, while any
+// other error (e.g. a DB timeout) is an infrastructure failure and must not
+// be reported to the client as PermissionDenied.
+func authzUserLookupError(err error) error {
+	if errors.Is(err, sql.ErrNoRows) {
+		return status.Errorf(codes.PermissionDenied, "permission denied: invalid user")
+	}
+	return status.Errorf(codes.Internal, "failed to look up user: %v", err)
+}
+
 // UnaryAuthzInterceptor creates a new unary server interceptor for authorization
 func UnaryAuthzInterceptor(authSvc auth.Service, userRepo user.Repository) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -233,8 +246,7 @@ func UnaryAuthzInterceptor(authSvc auth.Service, userRepo user.Repository) grpc.
 		// Check user status
 		u, err := userRepo.FindOne(ctx, userID)
 		if err != nil {
-			// This could be sql.ErrNoRows or other DB errors
-			return nil, status.Errorf(codes.PermissionDenied, "permission denied: invalid user")
+			return nil, authzUserLookupError(err)
 		}
 		if u.Status == user.InActive {
 			return nil, status.Errorf(codes.PermissionDenied, "permission denied: user is inactive")
@@ -273,7 +285,7 @@ func StreamAuthzInterceptor(authSvc auth.Service, userRepo user.Repository) grpc
 		// Check user status
 		u, err := userRepo.FindOne(ctx, userID)
 		if err != nil {
-			return status.Errorf(codes.PermissionDenied, "permission denied: invalid user")
+			return authzUserLookupError(err)
 		}
 		if u.Status == user.InActive {
 			return status.Errorf(codes.PermissionDenied, "permission denied: user is inactive")
