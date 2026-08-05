@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userService, User } from '@/services/user';
+import { userService, User, UpdateUserRequest } from '@/services/user';
 import { groupService, ListGroupsResponse } from '@/services/group';
 import { Button, Modal, Input, Table, Form, Select, Space, Card } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
@@ -10,6 +10,14 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const { Option } = Select;
+
+interface UserFormValues {
+  username: string;
+  email: string;
+  password?: string;
+  status?: User['status'];
+  groupIds?: string[];
+}
 
 export function Users() {
   const queryClient = useQueryClient();
@@ -45,17 +53,17 @@ export function Users() {
       setIsCreateOpen(false);
       toast.success('User created successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) => userService.updateUser(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateUserRequest }) => userService.updateUser(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setEditingUser(null);
       toast.success('User updated successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const deleteMutation = useMutation({
@@ -64,7 +72,7 @@ export function Users() {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('User deleted successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const assignGroupMutation = useMutation({
@@ -81,7 +89,7 @@ export function Users() {
       }
       toast.success('Group assigned successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const unassignGroupMutation = useMutation({
@@ -98,7 +106,7 @@ export function Users() {
       }
       toast.success('Group unassigned successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
 
@@ -143,7 +151,7 @@ export function Users() {
     {
       title: 'Groups',
       key: 'groups',
-      render: (_: any, record: User) => {
+      render: (_: unknown, record: User) => {
         const groupNames = getGroupNames(record.groupIds);
         return (
           <div className="flex flex-wrap gap-1">
@@ -166,7 +174,7 @@ export function Users() {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: User) => (
+      render: (_: unknown, record: User) => (
         <Space>
           <Button
             type="text"
@@ -203,7 +211,7 @@ export function Users() {
     },
   ];
 
-  const handleCreateSubmit = (values: any) => {
+  const handleCreateSubmit = (values: UserFormValues) => {
     createMutation.mutate({
       username: values.username,
       email: values.email,
@@ -212,10 +220,10 @@ export function Users() {
     });
   };
 
-  const handleEditSubmit = (values: any) => {
+  const handleEditSubmit = (values: UserFormValues) => {
     if (!editingUser?.id) return;
 
-    const data: any = {
+    const data: UpdateUserRequest = {
       username: values.username,
       email: values.email,
     };

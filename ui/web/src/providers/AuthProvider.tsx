@@ -1,11 +1,20 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import type { KeycloakTokenParsed, KeycloakLogoutOptions } from 'keycloak-js';
 import keycloak from '@/lib/keycloak';
 import { saveToken, clearTokens } from '@/lib/auth-token';
+
+interface AppUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  emailVerified: boolean;
+  roles: string[];
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  user: any | null;
+  user: AppUser | null;
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -19,7 +28,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
 
   // Keycloak初期化関数
   const initializeKeycloak = async () => {
@@ -100,7 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // トークンペイロードからユーザー情報を設定するヘルパー関数
-  const setUserFromTokenPayload = (tokenParsed: any) => {
+  const setUserFromTokenPayload = (tokenParsed: KeycloakTokenParsed) => {
     if (!tokenParsed) return;
 
     // 表示名の構築: given_name + family_name があれば結合、なければ既存の name または preferred_username
@@ -141,13 +150,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('Logging out...');
 
-      const logoutOptions: any = {
+      // keycloak-js は id_token_hint を this.idToken から自動的に付与するため、
+      // options 経由で渡す必要はない。
+      const logoutOptions: KeycloakLogoutOptions = {
         redirectUri: window.location.origin,
       };
-
-      if (keycloak.idToken) {
-        logoutOptions.idTokenHint = keycloak.idToken;
-      }
 
       // トークンを先にクリアする（もしリダイレクトに失敗しても再認証が必要な状態にするため）
       clearTokens();

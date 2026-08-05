@@ -2,6 +2,23 @@ import { clearTokens, getToken } from '@/lib/auth-token';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
+interface ApiErrorBody {
+  message?: string;
+  [key: string]: unknown;
+}
+
+export class ApiError extends Error {
+  status: number;
+  data: ApiErrorBody | null;
+
+  constructor(message: string, status: number, data: ApiErrorBody | null) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
 export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -25,11 +42,11 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
 
   if (!response.ok) {
     let message = 'An error occurred';
-    let errorData: any = null;
+    let errorData: ApiErrorBody | null = null;
 
     try {
       errorData = await response.json();
-      message = errorData.message || message;
+      message = errorData?.message || message;
     } catch {
       message = response.statusText;
     }
@@ -53,10 +70,7 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
       window.dispatchEvent(new CustomEvent('api-unauthorized'));
 
       // 401エラーは特別なエラーとしてスロー
-      const error = new Error(message) as any;
-      error.status = 401;
-      error.data = errorData;
-      throw error;
+      throw new ApiError(message, 401, errorData);
     }
 
     // その他のエラー

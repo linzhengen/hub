@@ -7,6 +7,20 @@
  * initializeKeycloak() でサイレントに再認証する。
  */
 
+export interface JwtPayload {
+  sub?: string;
+  exp?: number;
+  iat?: number;
+  email?: string;
+  email_verified?: boolean;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  preferred_username?: string;
+  realm_access?: { roles?: string[] };
+  [claim: string]: unknown;
+}
+
 let token: string | null = null;
 let refreshToken: string | null = null;
 let tokenExpiry: number | null = null;
@@ -95,7 +109,7 @@ export function clearTokens(): void {
 /**
  * JWTトークンをパースしてペイロードを取得
  */
-export function parseToken(token: string): any | null {
+export function parseToken(token: string): JwtPayload | null {
   try {
     if (!token) return null;
 
@@ -119,7 +133,7 @@ export function parseToken(token: string): any | null {
 /**
  * メモリからトークンを取得してパース
  */
-export function getParsedToken(): any | null {
+export function getParsedToken(): JwtPayload | null {
   const currentToken = getToken();
   if (!currentToken) return null;
   return parseToken(currentToken);

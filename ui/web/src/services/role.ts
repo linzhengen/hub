@@ -21,7 +21,7 @@ export type DeleteRoleResponse = components['schemas']['v1DeleteRoleResponse'];
 // Helper type for list roles parameters (query)
 export type ListRolesParams = RequestParameters<paths, '/api/v1/roles', 'get'>;
 
-function buildQueryString(params: Record<string, any>): string {
+function buildQueryString(params: Record<string, unknown>): string {
   const searchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null) continue;

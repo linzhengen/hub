@@ -7,6 +7,12 @@ import { Button, Modal, Input, Table, Form, Space, Card, TreeSelect, Tag } from 
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
 
+interface RoleFormValues {
+  name: string;
+  description?: string;
+  permissionIds?: string[];
+}
+
 export function Roles() {
   const queryClient = useQueryClient();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -64,7 +70,7 @@ export function Roles() {
       createForm.resetFields();
       toast.success('Role created successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const updateMutation = useMutation({
@@ -91,7 +97,7 @@ export function Roles() {
       editForm.resetFields();
       toast.success('Role updated successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
   const deleteMutation = useMutation({
@@ -100,10 +106,10 @@ export function Roles() {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       toast.success('Role deleted successfully');
     },
-    onError: (error: any) => toast.error(error.message),
+    onError: (error: Error) => toast.error(error.message),
   });
 
-  const handleCreateSubmit = (values: any) => {
+  const handleCreateSubmit = (values: RoleFormValues) => {
     createMutation.mutate({
       name: values.name,
       description: values.description,
@@ -111,7 +117,7 @@ export function Roles() {
     });
   };
 
-  const handleEditSubmit = (values: any) => {
+  const handleEditSubmit = (values: RoleFormValues) => {
     if (!editingRole?.id) return;
 
     updateMutation.mutate({
@@ -164,7 +170,7 @@ export function Roles() {
     {
       title: 'Permissions',
       key: 'permissions',
-      render: (_: any, record: Role) => {
+      render: (_: unknown, record: Role) => {
         const permissionCount = record.permissionIds?.length || 0;
         if (permissionCount === 0) return '-';
 
@@ -189,7 +195,7 @@ export function Roles() {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: Role) => (
+      render: (_: unknown, record: Role) => (
         <Space>
           <Button
             type="text"
