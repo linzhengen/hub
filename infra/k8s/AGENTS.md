@@ -44,3 +44,14 @@ This project uses Kustomize `secretGenerator` to manage sensitive information.
 - Validate YAML syntax and Kustomize integrity before committing.
 - Ensure proper resource limits and health checks are defined in `base/`.
 - Follow the project-wide consistent naming conventions for resources.
+
+## In-Cluster Terraform Jobs (`overlays/dev`, `overlays/minikube`)
+
+`terraform-job.yaml` in these overlays runs `terraform apply -auto-approve`
+inside the cluster with no plan review, using credentials from a Secret
+(`terraform-secret-dev` / `terraform-secret`). This is intentional for these
+disposable, single-operator dev/minikube environments — see
+`infra/tf/AGENTS.md`'s "State Management Constraints" section for why a
+plan-review gate isn't used here and what the concurrent-apply risk is.
+Do not copy this pattern to a shared or production-like environment without
+adding a plan/approval step first.
