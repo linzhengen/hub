@@ -14,6 +14,24 @@ auth:
 primary:
   persistence:
     enabled: false
+  networkPolicy:
+    # The chart enables a NetworkPolicy by default, but with allowExternal:true
+    # it accepts connections to 5432 from any source. Restrict it to the two
+    # namespaces that actually need the DB (hub and keycloak); extraIngress is
+    # used because ingressNSMatchLabels is a single label map and cannot express
+    # "either of these two namespaces".
+    allowExternal: false
+    allowExternalEgress: false
+    extraIngress:
+      - ports:
+          - port: 5432
+        from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: hub
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: keycloak
   initdb:
     scripts:
       create-keycloak-db.sql: |
