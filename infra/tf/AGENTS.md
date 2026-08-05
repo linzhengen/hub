@@ -1,8 +1,32 @@
 # Terraform Tech Stack
 
 - **Tooling**: Terraform (IaC)
-- **Providers**: AWS/Google Cloud (assumed based on TF), Kubernetes, Keycloak
-- **State Management**: Local or Remote Backend (S3/GCS as configured in `backend.tf`)
+- **Providers**: Keycloak (there is no AWS/GCP/cloud provider in this repo)
+- **State Management**: Local backend (`backend "local" {}` in each environment's `backend.tf`)
+
+### State Management Constraints
+
+`dev` and `minikube` both use the Terraform `local` backend, which only
+locks against concurrent processes on the same machine/filesystem — it
+does **not** protect against two different machines (e.g. a developer's
+laptop and the in-cluster `terraform-apply` Job defined in
+`infra/k8s/overlays/<env>/terraform-job.yaml`) applying against the same
+environment at the same time. Each has its own separate local state
+(the Job's copy lives on the `terraform-state` PVC).
+
+This project has no cloud provider, so a remote backend (S3/GCS/Terraform
+Cloud) would mean provisioning cloud infrastructure solely to host
+Terraform state — not justified for these single-operator, disposable
+dev/minikube environments. Given that constraint:
+
+- Treat `dev`/`minikube` as **single-operator environments**: do not run
+  `terraform apply` from your machine while the in-cluster
+  `terraform-apply` Job may also be running (or vice versa).
+- If concurrent/multi-operator use becomes a real need, prefer the
+  Terraform `kubernetes` backend (state stored as a Secret in the
+  cluster, locked via a Lease) over a cloud backend — every environment
+  here already requires `kubectl` cluster access, so it adds no new
+  dependency.
 
 ## Directory Structure
 
