@@ -2,7 +2,9 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	envconfig "github.com/sethvargo/go-envconfig"
@@ -61,8 +63,18 @@ type CORS struct {
 	AllowOrigins     []string `env:"CORS_ALLOW_ORIGINS,default=*"`
 	AllowMethods     []string `env:"CORS_ALLOW_METHODS,default=GET,POST,PUT,DELETE,PATCH"`
 	AllowHeaders     []string `env:"CORS_ALLOW_HEADERS,default=ACCEPT,Authorization,Content-Type,X-CSRF-Token"`
-	AllowCredentials bool     `env:"CORS_ALLOW_CREDENTIALS,default=true"`
+	AllowCredentials bool     `env:"CORS_ALLOW_CREDENTIALS,default=false"`
 	MaxAge           int      `env:"CORS_MAX_AGE,default=7200"`
+}
+
+// Validate rejects a CORS configuration that allows any origin ("*") while
+// also allowing credentials, since that combination has no safe effect for
+// browsers and signals a misconfiguration rather than an intentional policy.
+func (c CORS) Validate() error {
+	if c.AllowCredentials && slices.Contains(c.AllowOrigins, "*") {
+		return errors.New("CORS_ALLOW_CREDENTIALS=true requires an explicit CORS_ALLOW_ORIGINS allowlist, not \"*\"")
+	}
+	return nil
 }
 
 type Migration struct {
@@ -96,5 +108,6 @@ func New(ctx context.Context) EnvConfig {
 	if err := envconfig.Process(ctx, &c); err != nil {
 		logger.Severe(err)
 	}
+	logger.Must(c.Validate())
 	return c
 }

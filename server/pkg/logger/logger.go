@@ -20,6 +20,7 @@ var (
 	Errorf            = logx.Errorf
 	Info              = logx.Info
 	Infof             = logx.Infof
+	Must              = logx.Must
 	Severe            = logx.Severe
 	Severef           = logx.Severef
 	WithContext       = logx.WithContext
