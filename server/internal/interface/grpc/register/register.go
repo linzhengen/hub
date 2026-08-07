@@ -18,6 +18,7 @@ import (
 	pbresourcev1 "github.com/linzhengen/hub/v1/server/pb/system/resource/v1"
 	pbrolev1 "github.com/linzhengen/hub/v1/server/pb/system/role/v1"
 	pbuserv1 "github.com/linzhengen/hub/v1/server/pb/user/v1"
+	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
@@ -34,6 +35,7 @@ func New(
 	userSvc user.Service,
 	userRepo user.Repository,
 	authSvc auth.Service,
+	catalog *apicatalog.Catalog,
 	roleServiceServer pbrolev1.RoleServiceServer,
 	userServiceServer pbuserv1.UserServiceServer,
 	permissionServiceServer pbpermissionv1.PermissionServiceServer,
@@ -61,7 +63,7 @@ func New(
 			interceptor.PanicLoggerUnaryServerInterceptor(),
 			interceptor.LoggingUnaryServerInterceptor(),
 			interceptor.UnaryAuthInterceptor(tokenOpe, userSvc),
-			interceptor.UnaryAuthzInterceptor(authSvc, userRepo),
+			interceptor.UnaryAuthzInterceptor(authSvc, userRepo, catalog),
 			interceptor.ErrorTranslationUnaryServerInterceptor,
 			interceptor.RatelimitUnaryServerInterceptor(store),
 			//interceptor.SetVersionHeaderUnaryServerInterceptor(opts.Version),
@@ -72,7 +74,7 @@ func New(
 			interceptor.PanicLoggerStreamServerInterceptor(),
 			interceptor.LoggingStreamServerInterceptor(),
 			interceptor.StreamAuthInterceptor(tokenOpe, userSvc),
-			interceptor.StreamAuthzInterceptor(authSvc, userRepo),
+			interceptor.StreamAuthzInterceptor(authSvc, userRepo, catalog),
 			interceptor.ErrorTranslationStreamServerInterceptor,
 			//s.gatekeeper.StreamServerInterceptor(),
 			interceptor.RatelimitStreamServerInterceptor(store),

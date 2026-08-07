@@ -1,4 +1,4 @@
-.PHONY: install build dev tunnel migrate generate pre-commit-install lint test
+.PHONY: install build cli dev tunnel migrate generate pre-commit-install lint test
 
 # Code-generation tools are pinned: with @latest, `make gen` produced different
 # output depending on when `make init` last ran, and a one-line proto change
@@ -49,7 +49,14 @@ gen:
 	go run cmd/gen-adapter/main.go && \
 	buf generate && \
 	go run cmd/openapi223/main.go && \
-	go run cmd/proto2yaml/proto_to_yaml.go -input=./proto -out=./internal/infrastructure/persistence/yaml/proto/services.yaml
+	go run cmd/proto2yaml/proto_to_yaml.go -input=./proto -out=./internal/infrastructure/persistence/yaml/proto/services.yaml && \
+	go run ./cmd/gen-web-client && \
+	go run ./cmd/hub api docs --out ../.agents/skills/hub-api/references/api-reference.md
+
+# Installs the `hub` API client on the PATH. It is a plain HTTP client, so it
+# needs an endpoint and a token but no database.
+cli:
+	cd server && go install ./cmd/hub
 
 lint:
 	cd server && golangci-lint run ./...

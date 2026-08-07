@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -522,7 +523,7 @@ var File_system_permission_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_permission_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\"system/permission/v1/service.proto\x12\x14system.permission.v1\x1a\x1cgoogle/api/annotations.proto\x1a system/permission/v1/model.proto\"&\n" +
+	"\"system/permission/v1/service.proto\x12\x14system.permission.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a system/permission/v1/model.proto\"&\n" +
 	"\x14GetPermissionRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"Y\n" +
 	"\x15GetPermissionResponse\x12@\n" +
@@ -556,13 +557,13 @@ const file_system_permission_v1_service_proto_rawDesc = "" +
 	"permission\")\n" +
 	"\x17DeletePermissionRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x1a\n" +
-	"\x18DeletePermissionResponse2\xee\x05\n" +
-	"\x11PermissionService\x12\x8a\x01\n" +
-	"\rGetPermission\x12*.system.permission.v1.GetPermissionRequest\x1a+.system.permission.v1.GetPermissionResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/permissions/{id}\x12\x88\x01\n" +
-	"\x0eListPermission\x12+.system.permission.v1.ListPermissionRequest\x1a,.system.permission.v1.ListPermissionResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/permissions\x12\x91\x01\n" +
-	"\x10CreatePermission\x12-.system.permission.v1.CreatePermissionRequest\x1a..system.permission.v1.CreatePermissionResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/permissions\x12\x96\x01\n" +
-	"\x10UpdatePermission\x12-.system.permission.v1.UpdatePermissionRequest\x1a..system.permission.v1.UpdatePermissionResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/permissions/{id}\x12\x93\x01\n" +
-	"\x10DeletePermission\x12-.system.permission.v1.DeletePermissionRequest\x1a..system.permission.v1.DeletePermissionResponse\" \x82\xd3\xe4\x93\x02\x1a*\x18/api/v1/permissions/{id}B=Z;github.com/linzhengen/hub/v1/server/pb/system/permission/v1b\x06proto3"
+	"\x18DeletePermissionResponse2\xcd\a\n" +
+	"\x11PermissionService\x12\xae\x01\n" +
+	"\rGetPermission\x12*.system.permission.v1.GetPermissionRequest\x1a+.system.permission.v1.GetPermissionResponse\"D\x8a\xa6\x1d \"\x1eGet a single permission by id.\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/permissions/{id}\x12\xc2\x01\n" +
+	"\x0eListPermission\x12+.system.permission.v1.ListPermissionRequest\x1a,.system.permission.v1.ListPermissionResponse\"U\x8a\xa6\x1d6\"4List permissions, optionally filtered by id or name.\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/permissions\x12\xc8\x01\n" +
+	"\x10CreatePermission\x12-.system.permission.v1.CreatePermissionRequest\x1a..system.permission.v1.CreatePermissionResponse\"U\x8a\xa6\x1d3\"1Create a permission binding a verb to a resource.\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/permissions\x12\xc6\x01\n" +
+	"\x10UpdatePermission\x12-.system.permission.v1.UpdatePermissionRequest\x1a..system.permission.v1.UpdatePermissionResponse\"S\x8a\xa6\x1d,\"*Update a permission's verb or description.\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/permissions/{id}\x12\xad\x01\n" +
+	"\x10DeletePermission\x12-.system.permission.v1.DeletePermissionRequest\x1a..system.permission.v1.DeletePermissionResponse\":\x8a\xa6\x1d\x16\"\x14Delete a permission.\x82\xd3\xe4\x93\x02\x1a*\x18/api/v1/permissions/{id}B=Z;github.com/linzhengen/hub/v1/server/pb/system/permission/v1b\x06proto3"
 
 var (
 	file_system_permission_v1_service_proto_rawDescOnce sync.Once

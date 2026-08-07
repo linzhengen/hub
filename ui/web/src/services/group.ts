@@ -1,4 +1,5 @@
-import { fetchApi } from '@/lib/api-client';
+import { groupServiceOperations as ops } from '@/api/operations';
+import { apiRequest } from '@/api/request';
 import type { paths, components } from '@/api/schema/system-group-v1-service';
 import type { RequestParameters } from '@/api/helper';
 
@@ -24,33 +25,15 @@ export type DeleteGroupResponse = components['schemas']['v1DeleteGroupResponse']
 // Helper type for list groups parameters (query)
 export type ListGroupsParams = RequestParameters<paths, '/api/v1/groups', 'get'>;
 
-function buildQueryString(params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === null) continue;
-    if (Array.isArray(value)) {
-      // For arrays, join with commas (common API pattern)
-      searchParams.append(key, value.join(','));
-    } else {
-      searchParams.append(key, value.toString());
-    }
-  }
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
-}
-
 export const groupService = {
-  listGroups: (params?: ListGroupsParams) => {
-    const query = params ? buildQueryString(params) : '';
-    return fetchApi<ListGroupsResponse>(`/groups${query}`);
-  },
-  getGroup: (id: string) => fetchApi<GetGroupResponse>(`/groups/${id}`),
-  createGroup: (data: CreateGroupRequest) => fetchApi<CreateGroupResponse>('/groups', { method: 'POST', body: JSON.stringify(data) }),
-  updateGroup: (id: string, data: UpdateGroupRequest) => fetchApi<UpdateGroupResponse>(`/groups/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteGroup: (id: string) => fetchApi<DeleteGroupResponse>(`/groups/${id}`, { method: 'DELETE' }),
+  listGroups: (params?: ListGroupsParams) => apiRequest<ListGroupsResponse>(ops.listGroup, { query: params }),
+  getGroup: (id: string) => apiRequest<GetGroupResponse>(ops.getGroup, { path: { id } }),
+  createGroup: (data: CreateGroupRequest) => apiRequest<CreateGroupResponse>(ops.createGroup, { body: data }),
+  updateGroup: (id: string, data: UpdateGroupRequest) => apiRequest<UpdateGroupResponse>(ops.updateGroup, { path: { id }, body: data }),
+  deleteGroup: (id: string) => apiRequest<DeleteGroupResponse>(ops.deleteGroup, { path: { id } }),
 
-  assignRole: (id: string, data: AssignRoleRequest) => fetchApi<AssignRoleResponse>(`/groups/${id}/roles/assign`, { method: 'POST', body: JSON.stringify(data) }),
-  assignRolesToGroup: (id: string, data: AssignRolesToGroupRequest) => fetchApi<AssignRolesToGroupResponse>(`/groups/${id}/roles/assignRoles`, { method: 'POST', body: JSON.stringify(data) }),
-  addUsersToGroup: (id: string, data: AddUsersToGroupRequest) => fetchApi<AddUsersToGroupResponse>(`/groups/${id}/users/add`, { method: 'POST', body: JSON.stringify(data) }),
-  removeUsersFromGroup: (id: string, data: RemoveUsersFromGroupRequest) => fetchApi<RemoveUsersFromGroupResponse>(`/groups/${id}/users/remove`, { method: 'POST', body: JSON.stringify(data) }),
+  assignRole: (id: string, data: AssignRoleRequest) => apiRequest<AssignRoleResponse>(ops.assignRole, { path: { id }, body: data }),
+  assignRolesToGroup: (id: string, data: AssignRolesToGroupRequest) => apiRequest<AssignRolesToGroupResponse>(ops.assignRolesToGroup, { path: { groupId: id }, body: data }),
+  addUsersToGroup: (id: string, data: AddUsersToGroupRequest) => apiRequest<AddUsersToGroupResponse>(ops.addUsersToGroup, { path: { groupId: id }, body: data }),
+  removeUsersFromGroup: (id: string, data: RemoveUsersFromGroupRequest) => apiRequest<RemoveUsersFromGroupResponse>(ops.removeUsersFromGroup, { path: { groupId: id }, body: data }),
 };

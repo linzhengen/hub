@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -906,7 +907,7 @@ var File_system_group_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_group_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dsystem/group/v1/service.proto\x12\x0fsystem.group.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bsystem/group/v1/model.proto\"!\n" +
+	"\x1dsystem/group/v1/service.proto\x12\x0fsystem.group.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\"!\n" +
 	"\x0fGetGroupRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x10GetGroupResponse\x12,\n" +
@@ -954,18 +955,18 @@ const file_system_group_v1_service_proto_rawDesc = "" +
 	"\x19AssignRolesToGroupRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\tR\agroupId\x12\x19\n" +
 	"\brole_ids\x18\x02 \x03(\tR\aroleIds\"\x1c\n" +
-	"\x1aAssignRolesToGroupResponse2\xbb\t\n" +
-	"\fGroupService\x12l\n" +
-	"\bGetGroup\x12 .system.group.v1.GetGroupRequest\x1a!.system.group.v1.GetGroupResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/groups/{id}\x12j\n" +
-	"\tListGroup\x12!.system.group.v1.ListGroupRequest\x1a\".system.group.v1.ListGroupResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/groups\x12s\n" +
-	"\vCreateGroup\x12#.system.group.v1.CreateGroupRequest\x1a$.system.group.v1.CreateGroupResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/api/v1/groups\x12x\n" +
-	"\vUpdateGroup\x12#.system.group.v1.UpdateGroupRequest\x1a$.system.group.v1.UpdateGroupResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1/groups/{id}\x12u\n" +
-	"\vDeleteGroup\x12#.system.group.v1.DeleteGroupRequest\x1a$.system.group.v1.DeleteGroupResponse\"\x1b\x82\xd3\xe4\x93\x02\x15*\x13/api/v1/groups/{id}\x12\x82\x01\n" +
+	"\x1aAssignRolesToGroupResponse2\xae\f\n" +
+	"\fGroupService\x12\x8b\x01\n" +
+	"\bGetGroup\x12 .system.group.v1.GetGroupRequest\x1a!.system.group.v1.GetGroupResponse\":\x8a\xa6\x1d\x1b\"\x19Get a single group by id.\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/groups/{id}\x12\xad\x01\n" +
+	"\tListGroup\x12!.system.group.v1.ListGroupRequest\x1a\".system.group.v1.ListGroupResponse\"Y\x8a\xa6\x1d?\"=List groups, optionally filtered by id, name, status or role.\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/groups\x12\x88\x01\n" +
+	"\vCreateGroup\x12#.system.group.v1.CreateGroupRequest\x1a$.system.group.v1.CreateGroupResponse\".\x8a\xa6\x1d\x11\"\x0fCreate a group.\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/api/v1/groups\x12\xab\x01\n" +
+	"\vUpdateGroup\x12#.system.group.v1.UpdateGroupRequest\x1a$.system.group.v1.UpdateGroupResponse\"Q\x8a\xa6\x1d/\"-Update a group's name, status or description.\x82\xd3\xe4\x93\x02\x18:\x01*\x1a\x13/api/v1/groups/{id}\x12\x8a\x01\n" +
+	"\vDeleteGroup\x12#.system.group.v1.DeleteGroupRequest\x1a$.system.group.v1.DeleteGroupResponse\"0\x8a\xa6\x1d\x11\"\x0fDelete a group.\x82\xd3\xe4\x93\x02\x15*\x13/api/v1/groups/{id}\x12\xa7\x01\n" +
 	"\n" +
-	"AssignRole\x12\".system.group.v1.AssignRoleRequest\x1a#.system.group.v1.AssignRoleResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/groups/{id}/roles/assign\x12\x94\x01\n" +
-	"\x0fAddUsersToGroup\x12'.system.group.v1.AddUsersToGroupRequest\x1a(.system.group.v1.AddUsersToGroupResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/groups/{group_id}/users/add\x12\xa6\x01\n" +
-	"\x14RemoveUsersFromGroup\x12,.system.group.v1.RemoveUsersFromGroupRequest\x1a-.system.group.v1.RemoveUsersFromGroupResponse\"1\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/groups/{group_id}/users/remove\x12\xa5\x01\n" +
-	"\x12AssignRolesToGroup\x12*.system.group.v1.AssignRolesToGroupRequest\x1a+.system.group.v1.AssignRolesToGroupResponse\"6\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/groups/{group_id}/roles/assignRolesB8Z6github.com/linzhengen/hub/v1/server/pb/system/group/v1b\x06proto3"
+	"AssignRole\x12\".system.group.v1.AssignRoleRequest\x1a#.system.group.v1.AssignRoleResponse\"P\x8a\xa6\x1d!\"\x1fGrant a single role to a group.\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/groups/{id}/roles/assign\x12\xcd\x01\n" +
+	"\x0fAddUsersToGroup\x12'.system.group.v1.AddUsersToGroupRequest\x1a(.system.group.v1.AddUsersToGroupResponse\"g\x8a\xa6\x1d5\"3Add users to a group, keeping the existing members.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/groups/{group_id}/users/add\x12\xc6\x01\n" +
+	"\x14RemoveUsersFromGroup\x12,.system.group.v1.RemoveUsersFromGroupRequest\x1a-.system.group.v1.RemoveUsersFromGroupResponse\"Q\x8a\xa6\x1d\x1c\"\x1aRemove users from a group.\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/groups/{group_id}/users/remove\x12\xd6\x01\n" +
+	"\x12AssignRolesToGroup\x12*.system.group.v1.AssignRolesToGroupRequest\x1a+.system.group.v1.AssignRolesToGroupResponse\"g\x8a\xa6\x1d-\"+Replace a group's roles with the given set.\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/groups/{group_id}/roles/assignRolesB8Z6github.com/linzhengen/hub/v1/server/pb/system/group/v1b\x06proto3"
 
 var (
 	file_system_group_v1_service_proto_rawDescOnce sync.Once
