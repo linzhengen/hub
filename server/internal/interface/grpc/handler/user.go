@@ -123,6 +123,14 @@ func (h userHandler) UpdateMe(ctx context.Context, request *pbv1.UpdateMeRequest
 	}, nil
 }
 
+func (h userHandler) SendMeVerifyEmail(ctx context.Context, _ *pbv1.SendMeVerifyEmailRequest) (*pbv1.SendMeVerifyEmailResponse, error) {
+	if err := h.userUseCase.SendMeVerifyEmail(ctx); err != nil {
+		return nil, err
+	}
+
+	return &pbv1.SendMeVerifyEmailResponse{}, nil
+}
+
 func (h userHandler) GetUser(ctx context.Context, request *pbv1.GetUserRequest) (*pbv1.GetUserResponse, error) {
 	u, err := h.userUseCase.Get(ctx, request.Id)
 	if err != nil {

@@ -19,6 +19,7 @@ type Client interface {
 	UpdateEmail(ctx context.Context, userID, email string) error
 	CreateUser(ctx context.Context, username, email, password string) (string, error)
 	DeleteUser(ctx context.Context, userID string) error
+	SendVerifyEmail(ctx context.Context, userID string) error
 }
 
 // GoCloak defines the interface for Keycloak operations
@@ -29,6 +30,7 @@ type GoCloak interface {
 	CreateUser(ctx context.Context, token, realm string, user gocloak.User) (string, error)
 	DeleteUser(ctx context.Context, token, realm, userID string) error
 	UpdateUser(ctx context.Context, token, realm string, user gocloak.User) error
+	SendVerifyEmail(ctx context.Context, token, userID, realm string) error
 }
 
 // RealGoCloak wraps the actual gocloak.GoCloak client
@@ -66,6 +68,11 @@ func (g *RealGoCloak) DeleteUser(ctx context.Context, token, realm, userID strin
 // UpdateUser implements the GoCloak interface
 func (g *RealGoCloak) UpdateUser(ctx context.Context, token, realm string, user gocloak.User) error {
 	return g.client.UpdateUser(ctx, token, realm, user)
+}
+
+// SendVerifyEmail implements the GoCloak interface
+func (g *RealGoCloak) SendVerifyEmail(ctx context.Context, token, userID, realm string) error {
+	return g.client.SendVerifyEmail(ctx, token, userID, realm)
 }
 
 type client struct {
@@ -208,4 +215,16 @@ func (c *client) UpdateEmail(ctx context.Context, userID, email string) error {
 
 	// Update the user in Keycloak
 	return c.gocloak.UpdateUser(ctx, token, c.cfg.Realm, user)
+}
+
+// SendVerifyEmail asks Keycloak to send the address-verification email to the
+// given user. Keycloak owns the mail template and delivery; the realm's SMTP
+// settings must be configured for this to have any effect.
+func (c *client) SendVerifyEmail(ctx context.Context, userID string) error {
+	token, err := c.getToken(ctx)
+	if err != nil {
+		return err
+	}
+
+	return c.gocloak.SendVerifyEmail(ctx, token, userID, c.cfg.Realm)
 }

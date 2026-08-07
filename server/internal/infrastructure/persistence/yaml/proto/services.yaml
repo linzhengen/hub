@@ -230,6 +230,13 @@ services:
             method: PUT
             path: /api/v1/me
             body: '*'
+        - name: SendMeVerifyEmail
+          request: SendMeVerifyEmailRequest
+          response: SendMeVerifyEmailResponse
+          http:
+            method: POST
+            path: /api/v1/me/verify-email
+            body: '*'
         - name: GetUser
           request: GetUserRequest
           response: GetUserResponse

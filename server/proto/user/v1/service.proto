@@ -21,6 +21,12 @@ service UserService {
       body: "*"
     };
   }
+  rpc SendMeVerifyEmail(SendMeVerifyEmailRequest) returns (SendMeVerifyEmailResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/me/verify-email"
+      body: "*"
+    };
+  }
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {
     option (google.api.http) = {get: "/api/v1/users/{id}"};
   }
@@ -90,6 +96,13 @@ message UpdateMeResponse {
   user.v1.User user = 1;
   repeated system.group.v1.Group groups = 2;
 }
+
+// The verification email is always sent to the authenticated user, so the
+// request carries no target: taking a user id here would let a caller trigger
+// mail to someone else's address.
+message SendMeVerifyEmailRequest {}
+
+message SendMeVerifyEmailResponse {}
 
 message GetUserRequest {
   string id = 1;

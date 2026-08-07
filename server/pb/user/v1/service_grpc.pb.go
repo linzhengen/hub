@@ -19,16 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_GetMe_FullMethodName         = "/user.v1.UserService/GetMe"
-	UserService_GetMeMenus_FullMethodName    = "/user.v1.UserService/GetMeMenus"
-	UserService_UpdateMe_FullMethodName      = "/user.v1.UserService/UpdateMe"
-	UserService_GetUser_FullMethodName       = "/user.v1.UserService/GetUser"
-	UserService_ListUser_FullMethodName      = "/user.v1.UserService/ListUser"
-	UserService_UpdateUser_FullMethodName    = "/user.v1.UserService/UpdateUser"
-	UserService_DeleteUser_FullMethodName    = "/user.v1.UserService/DeleteUser"
-	UserService_AssignGroup_FullMethodName   = "/user.v1.UserService/AssignGroup"
-	UserService_UnassignGroup_FullMethodName = "/user.v1.UserService/UnassignGroup"
-	UserService_CreateUser_FullMethodName    = "/user.v1.UserService/CreateUser"
+	UserService_GetMe_FullMethodName             = "/user.v1.UserService/GetMe"
+	UserService_GetMeMenus_FullMethodName        = "/user.v1.UserService/GetMeMenus"
+	UserService_UpdateMe_FullMethodName          = "/user.v1.UserService/UpdateMe"
+	UserService_SendMeVerifyEmail_FullMethodName = "/user.v1.UserService/SendMeVerifyEmail"
+	UserService_GetUser_FullMethodName           = "/user.v1.UserService/GetUser"
+	UserService_ListUser_FullMethodName          = "/user.v1.UserService/ListUser"
+	UserService_UpdateUser_FullMethodName        = "/user.v1.UserService/UpdateUser"
+	UserService_DeleteUser_FullMethodName        = "/user.v1.UserService/DeleteUser"
+	UserService_AssignGroup_FullMethodName       = "/user.v1.UserService/AssignGroup"
+	UserService_UnassignGroup_FullMethodName     = "/user.v1.UserService/UnassignGroup"
+	UserService_CreateUser_FullMethodName        = "/user.v1.UserService/CreateUser"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -38,6 +39,7 @@ type UserServiceClient interface {
 	GetMe(ctx context.Context, in *GetMeRequest, opts ...grpc.CallOption) (*GetMeResponse, error)
 	GetMeMenus(ctx context.Context, in *GetMeMenusRequest, opts ...grpc.CallOption) (*GetMeMenusResponse, error)
 	UpdateMe(ctx context.Context, in *UpdateMeRequest, opts ...grpc.CallOption) (*UpdateMeResponse, error)
+	SendMeVerifyEmail(ctx context.Context, in *SendMeVerifyEmailRequest, opts ...grpc.CallOption) (*SendMeVerifyEmailResponse, error)
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
 	ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
@@ -79,6 +81,16 @@ func (c *userServiceClient) UpdateMe(ctx context.Context, in *UpdateMeRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateMeResponse)
 	err := c.cc.Invoke(ctx, UserService_UpdateMe_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) SendMeVerifyEmail(ctx context.Context, in *SendMeVerifyEmailRequest, opts ...grpc.CallOption) (*SendMeVerifyEmailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendMeVerifyEmailResponse)
+	err := c.cc.Invoke(ctx, UserService_SendMeVerifyEmail_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -162,6 +174,7 @@ type UserServiceServer interface {
 	GetMe(context.Context, *GetMeRequest) (*GetMeResponse, error)
 	GetMeMenus(context.Context, *GetMeMenusRequest) (*GetMeMenusResponse, error)
 	UpdateMe(context.Context, *UpdateMeRequest) (*UpdateMeResponse, error)
+	SendMeVerifyEmail(context.Context, *SendMeVerifyEmailRequest) (*SendMeVerifyEmailResponse, error)
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	ListUser(context.Context, *ListUserRequest) (*ListUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
@@ -186,6 +199,9 @@ func (UnimplementedUserServiceServer) GetMeMenus(context.Context, *GetMeMenusReq
 }
 func (UnimplementedUserServiceServer) UpdateMe(context.Context, *UpdateMeRequest) (*UpdateMeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateMe not implemented")
+}
+func (UnimplementedUserServiceServer) SendMeVerifyEmail(context.Context, *SendMeVerifyEmailRequest) (*SendMeVerifyEmailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendMeVerifyEmail not implemented")
 }
 func (UnimplementedUserServiceServer) GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUser not implemented")
@@ -278,6 +294,24 @@ func _UserService_UpdateMe_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).UpdateMe(ctx, req.(*UpdateMeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_SendMeVerifyEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendMeVerifyEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SendMeVerifyEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SendMeVerifyEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SendMeVerifyEmail(ctx, req.(*SendMeVerifyEmailRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -426,6 +460,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateMe",
 			Handler:    _UserService_UpdateMe_Handler,
+		},
+		{
+			MethodName: "SendMeVerifyEmail",
+			Handler:    _UserService_SendMeVerifyEmail_Handler,
 		},
 		{
 			MethodName: "GetUser",
