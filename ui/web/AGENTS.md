@@ -5,7 +5,7 @@
 - **Styling**: Tailwind CSS 4, Lucide Icons
 - **UI Components**: Shadcn UI (located in `src/components/ui`), Ant Design Icons
 - **State Management & Data Fetching**: TanStack Query (React Query) v5
-- **Routing**: React Router v7
+- **Routing**: React Router v8 (import from `react-router`; `react-router-dom` was discontinued in v8)
 - **Forms**: React Hook Form with Zod validation
 - **API Client**: Custom `fetchApi` wrapper in `src/lib/api-client.ts`
 

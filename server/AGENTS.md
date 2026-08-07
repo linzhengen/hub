@@ -166,6 +166,14 @@ The `Makefile` defines various commands to streamline the development process.
     - `protoc-gen-openapiv2`: Generates OpenAPI v2 definitions.
     - `protoc-gen-go`: Generates Go code from Protobuf.
     - `protoc-gen-go-grpc`: Generates gRPC server/client code.
+  - Every tool is pinned to an explicit version through a `*_VERSION` variable
+    at the top of the root `Makefile`. Do not switch them back to `@latest`:
+    `make gen`'s output depends on the generator version, so an unpinned tool
+    makes a one-line proto change rewrite the whole of `pb/`.
+  - `PROTOC_GEN_GO_VERSION` tracks `google.golang.org/protobuf` and
+    `GRPC_GATEWAY_VERSION` tracks `github.com/grpc-ecosystem/grpc-gateway/v2`,
+    both in `go.mod`. When you bump either module, bump the matching variable
+    and re-run `make gen` in the same change.
 
 - **`make dev`**:
   - Executes `docker compose up` to start the services defined in Docker Compose (application, database, etc.) locally.
