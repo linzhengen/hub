@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
+import { ME_QUERY_KEY, useMe } from '@/hooks/useMe';
 import { Card, Descriptions, Tag, Button, Form, Input, Modal, Divider, Spin } from 'antd';
 import { UserOutlined, MailOutlined, SafetyOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
@@ -13,16 +14,12 @@ interface ProfileFormValues {
 }
 
 export function My() {
-  const { user: authUser, isAuthenticated } = useAuth();
+  const { user: authUser } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editForm] = Form.useForm();
 
-  const { data: meResponse, isLoading, error } = useQuery<GetMeResponse>({
-    queryKey: ['me'],
-    queryFn: () => userService.getMe(),
-    enabled: isAuthenticated,
-  });
+  const { data: meResponse, isLoading, error } = useMe();
   const apiUser = meResponse?.user;
   const apiGroups = meResponse?.groups;
 
@@ -43,7 +40,7 @@ export function My() {
     mutationFn: (data: UpdateMeRequest) => userService.updateMe(data),
     // UpdateMeResponse は GetMeResponse と同じ形なので、そのままキャッシュに反映する
     onSuccess: (response) => {
-      queryClient.setQueryData<GetMeResponse>(['me'], response);
+      queryClient.setQueryData<GetMeResponse>(ME_QUERY_KEY, response);
       setIsEditing(false);
       editForm.resetFields();
       toast.success('Profile updated successfully');
