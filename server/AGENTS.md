@@ -190,11 +190,26 @@ Auth is handled via gRPC interceptors defined in `internal/interface/grpc/interc
     5.  The `Enforce` method uses the `auth.Repository` to run a complex SQL query (`SelectUserAuthorizedPolices` in `internal/infrastructure/persistence/postgres/query/auth.sql`). This query joins the `users`, `user_groups`, `groups`, `group_roles`, `role_permissions`, `permissions`, and `resources` tables to determine all permissions the user has through their group memberships and assigned roles.
     6.  The service then checks if any of the user's permissions match the required permission for the action. `*` is a wildcard and may appear anywhere in a pattern, any number of times: `api.*`, `*Service` and `api.system.*.v1.*Service` are all valid.
     7.  If a matching permission is found, the request is allowed to proceed; otherwise, a `Permission Denied` error is returned.
--   **Policy cache:** `AUTHZ_POLICY_CACHE_TTL` memoises a user's effective
-    policies for that long, so a burst of requests runs the permission join once
-    instead of once per call. It is off by default because the trade is a
-    security one: a grant or revocation takes up to the TTL to reach a user who
-    is already making requests. Turn it on only where that window is acceptable.
+-   **Policy cache:** `AUTHZ_POLICY_CACHE_TTL` (default 5m) memoises a user's
+    effective policies, so a burst of requests runs the permission join once
+    instead of once per call.
+
+    The TTL does **not** decide how stale a decision can be. `rbac_revisions`
+    holds a counter that database triggers bump on every write to `users`,
+    `user_groups`, `groups`, `group_roles`, `roles`, `role_permissions`,
+    `permissions` and `resources`. The cache re-reads that counter at most once
+    a second and drops everything it holds when the number moves, so a grant or
+    revocation lands within a second on every replica however long the TTL is.
+    The TTL only bounds how long an entry nobody invalidated is kept.
+
+    The triggers live in the database rather than the use cases because the
+    graph is also edited by `cli seed`, `resource-import`, migrations and by
+    hand; any of those forgetting to invalidate would leave a revoked
+    permission working. **A new table that an authorization decision reads
+    needs a trigger too.**
+
+    `internal/infrastructure/auth/cache_integration_test.go` checks the
+    triggers against a real database. It skips unless `HUB_TEST_DSN` is set.
 -   **Inspecting permissions:** `hub api describe <rpc>` reports the resource
     and action an rpc needs, which is the quickest way to explain a 403.
 

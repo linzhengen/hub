@@ -14,6 +14,11 @@ type MockAuthRepository struct {
 	mock.Mock
 }
 
+func (m *MockAuthRepository) Revision(ctx context.Context) (int64, error) {
+	args := m.Called(ctx)
+	return int64(args.Int(0)), args.Error(1)
+}
+
 func (m *MockAuthRepository) FindUserAuthorizedPolicies(ctx context.Context, userId string) ([]Policy, error) {
 	args := m.Called(ctx, userId)
 	if args.Get(0) == nil {

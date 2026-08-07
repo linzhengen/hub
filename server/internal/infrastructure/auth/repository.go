@@ -36,3 +36,7 @@ func (r *Repository) FindUserAuthorizedPolicies(ctx context.Context, userId stri
 
 	return policies, nil
 }
+
+func (r *Repository) Revision(ctx context.Context) (int64, error) {
+	return persistence.GetQ(ctx, r.q).SelectRbacRevision(ctx)
+}

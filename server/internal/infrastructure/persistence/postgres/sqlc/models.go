@@ -36,6 +36,12 @@ type Permission struct {
 	UpdatedAt   time.Time
 }
 
+type RbacRevision struct {
+	ID        int16
+	Revision  int64
+	UpdatedAt time.Time
+}
+
 type Resource struct {
 	ID           string
 	ParentID     string
