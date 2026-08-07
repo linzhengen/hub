@@ -49,9 +49,12 @@ type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) CreateIfNotExists(ctx context.Context, u *user.User) error {
+func (m *MockUserService) CreateIfNotExists(ctx context.Context, u *user.User) (*user.User, error) {
 	args := m.Called(ctx, u)
-	return args.Error(0)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*user.User), args.Error(1)
 }
 
 type MockUserRepository struct {
@@ -421,7 +424,7 @@ func TestUnaryAuthInterceptor(t *testing.T) {
 		mockUserSvc := new(MockUserService)
 		mockUserSvc.On("CreateIfNotExists", mock.Anything, mock.MatchedBy(func(u *user.User) bool {
 			return u.Id == mockToken.UserId
-		})).Return(nil)
+		})).Return(&user.User{Id: mockToken.UserId, Status: user.Active}, nil)
 
 		interceptor := UnaryAuthInterceptor(mockTokenOp, mockUserSvc)
 
@@ -480,7 +483,7 @@ func TestUnaryAuthInterceptor(t *testing.T) {
 		mockUserSvc := new(MockUserService)
 		mockUserSvc.On("CreateIfNotExists", mock.Anything, mock.MatchedBy(func(u *user.User) bool {
 			return u.Id == mockToken.UserId
-		})).Return(errors.New("db error"))
+		})).Return(nil, errors.New("db error"))
 
 		interceptor := UnaryAuthInterceptor(mockTokenOp, mockUserSvc)
 
@@ -516,7 +519,7 @@ func TestStreamAuthInterceptor(t *testing.T) {
 		mockUserSvc := new(MockUserService)
 		mockUserSvc.On("CreateIfNotExists", mock.Anything, mock.MatchedBy(func(u *user.User) bool {
 			return u.Id == mockToken.UserId
-		})).Return(nil)
+		})).Return(&user.User{Id: mockToken.UserId, Status: user.Active}, nil)
 
 		interceptor := StreamAuthInterceptor(mockTokenOp, mockUserSvc)
 
@@ -578,7 +581,7 @@ func TestStreamAuthInterceptor(t *testing.T) {
 		mockUserSvc := new(MockUserService)
 		mockUserSvc.On("CreateIfNotExists", mock.Anything, mock.MatchedBy(func(u *user.User) bool {
 			return u.Id == mockToken.UserId
-		})).Return(errors.New("db error"))
+		})).Return(nil, errors.New("db error"))
 
 		interceptor := StreamAuthInterceptor(mockTokenOp, mockUserSvc)
 
@@ -990,38 +993,62 @@ func TestAuthzTargetWithoutCatalog(t *testing.T) {
 	assert.False(t, public)
 }
 
-func TestAuthServerStream_SendMsg(t *testing.T) {
-	mockStream := new(MockServerStream)
-	msg := "response"
-	mockStream.On("SendMsg", msg).Return(nil)
+// The point of carrying the user on the context: authentication already read
+// the row, so authorization must not read it a second time.
+func TestAuthzReusesTheUserAuthenticationAlreadyRead(t *testing.T) {
+	u := &user.User{Id: "user1", Status: user.Active}
+	ctx := authenticated(context.Background(), u.Id, u)
 
-	stream := &authServerStream{
-		ctx:          context.Background(),
-		userId:       "user-1",
-		ServerStream: mockStream,
-	}
+	mockUserRepo := new(MockUserRepository)
+	mockAuthSvc := new(MockAuthService)
+	mockAuthSvc.On("Enforce", mock.Anything, mock.Anything).Return(true, nil)
 
-	err := stream.SendMsg(msg)
+	interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
+	info := &grpc.UnaryServerInfo{FullMethod: "/user.v1.UserService/ListUser"}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) { return "response", nil }
+
+	resp, err := interceptor(ctx, nil, info, handler)
 
 	assert.NoError(t, err)
-	mockStream.AssertCalled(t, "SendMsg", msg)
-	mockStream.AssertNotCalled(t, "RecvMsg", mock.Anything)
+	assert.Equal(t, "response", resp)
+	mockUserRepo.AssertNotCalled(t, "FindOne", mock.Anything, mock.Anything)
+	mockAuthSvc.AssertExpectations(t)
 }
 
-func TestAuthServerStream_RecvMsg(t *testing.T) {
-	mockStream := new(MockServerStream)
-	msg := "request"
-	mockStream.On("RecvMsg", msg).Return(nil)
+// An inactive account is still rejected when the row comes off the context.
+func TestAuthzRejectsAnInactiveUserFromTheContext(t *testing.T) {
+	u := &user.User{Id: "user1", Status: user.InActive}
+	ctx := authenticated(context.Background(), u.Id, u)
 
-	stream := &authServerStream{
-		ctx:          context.Background(),
-		userId:       "user-1",
-		ServerStream: mockStream,
+	mockUserRepo := new(MockUserRepository)
+	mockAuthSvc := new(MockAuthService)
+
+	interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
+	info := &grpc.UnaryServerInfo{FullMethod: "/user.v1.UserService/ListUser"}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return "should not reach here", nil
 	}
 
-	err := stream.RecvMsg(msg)
+	resp, err := interceptor(ctx, nil, info, handler)
 
-	assert.NoError(t, err)
-	mockStream.AssertCalled(t, "RecvMsg", msg)
-	mockStream.AssertNotCalled(t, "SendMsg", mock.Anything)
+	assert.Nil(t, resp)
+	assert.Equal(t, codes.PermissionDenied, status.Code(err))
+	mockAuthSvc.AssertNotCalled(t, "Enforce", mock.Anything, mock.Anything)
+}
+
+// The wrapped stream must expose the authenticated context straight away:
+// the authorization interceptor reads it before any message is exchanged.
+func TestAuthServerStreamExposesTheAuthenticatedContext(t *testing.T) {
+	u := &user.User{Id: "user-1", Status: user.Active}
+	ctx := authenticated(context.Background(), u.Id, u)
+
+	stream := &authServerStream{ctx: ctx, ServerStream: &MockServerStream{ctx: context.Background()}}
+
+	userID, ok := contextx.GetUserID(stream.Context())
+	assert.True(t, ok)
+	assert.Equal(t, "user-1", userID)
+
+	got, ok := user.FromContext(stream.Context())
+	assert.True(t, ok)
+	assert.Equal(t, u, got)
 }

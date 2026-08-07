@@ -115,7 +115,6 @@ The `cmd/` directory contains multiple entrypoints for the application:
 -   **`cmd/cli/`**: Operational commands that talk to the database directly, such as running migrations and seeds.
 -   **`cmd/hub/`**: The `hub` API client. Unlike `cmd/cli` it never touches the database; it calls the REST gateway with a token, and its command tree is generated from `pkg/apicatalog`. Install it with `make cli`.
 -   **`cmd/openapi223/`**: A utility to patch the generated OpenAPI spec.
--   **`cmd/proto2yaml/`**: A utility to convert protobuf service definitions into a YAML format.
 -   **`cmd/gen-web-client/`**: Writes the web client's operation table from the API catalog.
 
 ## 9. Shared Packages (`pkg/`)
@@ -235,7 +234,6 @@ The `Makefile` defines various commands to streamline the development process.
     - `sqlc generate`
     - `buf generate`
     - `go run cmd/openapi223/main.go`
-    - `go run ./cmd/proto2yaml/proto_to_yaml.go`
 
 - **`make pre-commit-install`**:
   - Sets up `pre-commit` and installs the Git commit hooks. This automatically runs linters and formatters before a commit.
