@@ -8,6 +8,10 @@ minimumReleaseAgeExclude:
 # same thing true for a plain local `pnpm install`.
 allowBuilds:
   esbuild: true
+  # msw comes in only as vitest's optional mocking backend and is never used
+  # here. Its postinstall just copies a service worker into a public directory,
+  # so there is nothing to run.
+  msw: false
 
 # esbuild reaches us through tsx, which still resolves an 0.27 copy carrying
 # GHSA "arbitrary file read when running the development server". The pin stays

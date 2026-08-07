@@ -46,7 +46,7 @@ graph TD
 
 | Layer | Technology / Tool |
 | :--- | :--- |
-| **Backend** | Go 1.25, gRPC, gRPC-Gateway, Protocol Buffers, sqlc, golangci-lint |
+| **Backend** | Go 1.26, gRPC, gRPC-Gateway, Protocol Buffers, sqlc, golangci-lint |
 | **Frontend** | React 19, Vite, TypeScript, Tailwind CSS 4, Shadcn UI, TanStack Query v5, Keycloak JS |
 | **Auth** | Keycloak, FreeMarker Templates (Theme) |
 | **Infra** | Terraform, Kubernetes, Kustomize |
