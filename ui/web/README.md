@@ -4,7 +4,7 @@ React + Vite + TypeScript frontend for the hub project. See [AGENTS.md](AGENTS.m
 
 ## Prerequisites
 
-- Node.js
+- Node.js 26+ (see `engines` in `package.json`)
 - pnpm
 
 ## Run Locally

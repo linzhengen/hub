@@ -46,7 +46,7 @@ graph TD
 
 | 分层 | 技术 / 工具 |
 | :--- | :--- |
-| **后端** | Go 1.25, gRPC, gRPC-Gateway, Protocol Buffers, sqlc, golangci-lint |
+| **后端** | Go 1.26, gRPC, gRPC-Gateway, Protocol Buffers, sqlc, golangci-lint |
 | **前端** | React 19, Vite, TypeScript, Tailwind CSS 4, Shadcn UI, TanStack Query v5, Keycloak JS |
 | **认证** | Keycloak, FreeMarker Templates (Theme) |
 | **基础设施** | Terraform, Kubernetes, Kustomize |
