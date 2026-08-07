@@ -11,6 +11,7 @@ import (
 	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
 	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
+	"github.com/linzhengen/hub/v1/server/internal/usecase/pagination"
 
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
@@ -113,10 +114,8 @@ func (uc roleUseCase) List(ctx context.Context, params *ListRoleQueryParams) ([]
 		return nil, 0, err
 	}
 
-	// Apply pagination only when limit > 0
-	if params.Limit > 0 {
-		b = b.Limit(uint(params.Limit)).Offset(uint(params.Offset))
-	}
+	page := pagination.New(params.Limit, params.Offset)
+	b = b.Limit(page.Limit()).Offset(page.Offset())
 
 	items, err := uc.list(ctx, b)
 	if err != nil {

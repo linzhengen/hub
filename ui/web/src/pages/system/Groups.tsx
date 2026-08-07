@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { groupService, Group, CreateGroupRequest, UpdateGroupRequest } from '@/services/group.ts';
 import { roleService } from '@/services/role.ts';
 import { userService } from '@/services/user.ts';
@@ -8,6 +8,8 @@ import { Button, Modal, Input, Table, Form, Select, Space, Card } from 'antd';
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UserOutlined, SearchOutlined, FolderOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+import { MAX_PAGE_SIZE, useServerPagination } from '@/hooks/useServerPagination';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 import { Users, Shield, TrendingUp } from 'lucide-react';
 
@@ -24,19 +26,25 @@ export function Groups() {
   const [editForm] = Form.useForm();
   const [searchText, setSearchText] = useState('');
 
+  const search = useDebouncedValue(searchText);
+  const pagination = useServerPagination(search);
+
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['groups'],
-    queryFn: () => groupService.listGroups(),
+    queryKey: ['groups', pagination.params, search],
+    queryFn: () => groupService.listGroups({ ...pagination.params, groupName: search || undefined }),
+    placeholderData: keepPreviousData,
   });
 
+  // The role and user pickers need the whole list, not a page of it.
   const { data: rolesData } = useQuery({
-    queryKey: ['roles'],
-    queryFn: () => roleService.listRoles(),
+    queryKey: ['roles', 'all'],
+    queryFn: () => roleService.listRoles({ limit: MAX_PAGE_SIZE }),
   });
 
   const { data: usersData } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => userService.listUsers(),
+    queryKey: ['users', 'all'],
+    queryFn: () => userService.listUsers({ limit: MAX_PAGE_SIZE }),
   });
 
   const createMutation = useMutation({
@@ -276,11 +284,6 @@ export function Groups() {
   ];
 
   // 検索フィルター
-  const filteredGroups = data?.groups?.filter(group =>
-    !searchText ||
-    (group.name ?? '').toLowerCase().includes(searchText.toLowerCase()) ||
-    (group.description && group.description.toLowerCase().includes(searchText.toLowerCase()))
-  );
 
   // 統計データの計算
   const totalGroups = data?.groups?.length || 0;
@@ -305,7 +308,7 @@ export function Groups() {
         </div>
         <div className="flex items-center gap-3">
           <Input
-            placeholder="Search groups..."
+            placeholder="Search by name..."
             prefix={<SearchOutlined className="text-gray-400 dark:text-gray-500" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -389,18 +392,13 @@ export function Groups() {
       <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <Table
           columns={columns}
-          dataSource={filteredGroups}
+          dataSource={data?.groups}
           loading={isLoading}
           rowKey="id"
           locale={{
             emptyText: error ? 'Failed to load groups' : 'No groups found'
           }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} groups`,
-          }}
+          pagination={pagination.tableProps(Number(data?.total ?? 0), 'groups')}
         />
       </Card>
 

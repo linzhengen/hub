@@ -10,6 +10,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/linzhengen/hub/v1/server/internal/usecase/pagination"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -325,7 +327,7 @@ func TestGroupUseCase_List_WithPagination(t *testing.T) {
 	require.Equal(t, "Group 1", groups[0].Name)
 }
 
-func TestGroupUseCase_List_WithoutPagination(t *testing.T) {
+func TestGroupUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	require.NoError(t, err)
@@ -362,7 +364,7 @@ func TestGroupUseCase_List_WithoutPagination(t *testing.T) {
 
 	countQuery, countArgs, _ := dialect.From("groups").Select(goqu.COUNT("*")).Prepared(true).ToSQL()
 	// No limit or offset should be applied
-	query, args, _ := dialect.From("groups").Select("*").Prepared(true).ToSQL()
+	query, args, _ := dialect.From("groups").Select("*").Limit(uint(pagination.DefaultLimit)).Offset(0).Prepared(true).ToSQL()
 
 	// convert []interface{} to []driver.Value
 	countDriverArgs := make([]driver.Value, len(countArgs))

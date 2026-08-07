@@ -9,6 +9,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/linzhengen/hub/v1/server/internal/usecase/pagination"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,6 +54,7 @@ func TestUserUseCase_List_WithGroupIds(t *testing.T) {
 	query, args, _ := dialect.From("users").
 		Select("users.id", "users.username", "users.email", "users.status", "users.created_at", "users.updated_at").
 		Where(goqu.L("EXISTS ?", subquery)).
+		Limit(uint(pagination.DefaultLimit)).Offset(0).
 		Prepared(true).ToSQL()
 
 	// convert []interface{} to []driver.Value
@@ -162,7 +165,7 @@ func TestUserUseCase_List_WithPagination(t *testing.T) {
 	require.Len(t, users, 1)
 }
 
-func TestUserUseCase_List_WithoutPagination(t *testing.T) {
+func TestUserUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	require.NoError(t, err)
@@ -180,7 +183,8 @@ func TestUserUseCase_List_WithoutPagination(t *testing.T) {
 		dialectWrapper: dialect,
 	}
 
-	// Test with limit = 0 (no pagination)
+	// A caller that asks for no particular page size gets the default one,
+	// not every row in the table.
 	params := &ListUserQueryParams{
 		Limit:  0,
 		Offset: 0,
@@ -193,8 +197,7 @@ func TestUserUseCase_List_WithoutPagination(t *testing.T) {
 	countRows := sqlmock.NewRows([]string{"count"}).AddRow(2)
 
 	countQuery, countArgs, _ := dialect.From("users").Select(goqu.COUNT("users.id")).Prepared(true).ToSQL()
-	// No limit or offset should be applied
-	query, args, _ := dialect.From("users").Select("users.id", "users.username", "users.email", "users.status", "users.created_at", "users.updated_at").Prepared(true).ToSQL()
+	query, args, _ := dialect.From("users").Select("users.id", "users.username", "users.email", "users.status", "users.created_at", "users.updated_at").Limit(uint(pagination.DefaultLimit)).Offset(0).Prepared(true).ToSQL()
 
 	// convert []interface{} to []driver.Value
 	countDriverArgs := make([]driver.Value, len(countArgs))
