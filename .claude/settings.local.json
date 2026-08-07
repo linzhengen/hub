@@ -41,7 +41,9 @@
       "Bash(go mod:*)",
       "Bash(helm lint:*)",
       "Bash(helm template:*)",
-      "Bash(kustomize build:*)"
+      "Bash(kustomize build:*)",
+      "Bash(gh api:*)",
+      "Bash(buf generate:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
