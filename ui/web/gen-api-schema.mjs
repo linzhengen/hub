@@ -48,9 +48,13 @@ async function generateSchema() {
     );
 
     try {
+      // The generator is a devDependency rather than an `npx` fetch: its
+      // output depends on its version, so an unpinned one makes a proto change
+      // rewrite files it did not touch. Same reasoning as the pinned protoc
+      // plugins in the root Makefile.
       await execFileAsync(
-        'npx',
-        ['openapi-typescript', yamlFile, '--output', outputPath],
+        'pnpm',
+        ['exec', 'openapi-typescript', yamlFile, '--output', outputPath],
         { stdio: 'inherit' },
       );
     } catch (error) {

@@ -1,4 +1,4 @@
-.PHONY: install build cli dev tunnel migrate generate pre-commit-install lint test
+.PHONY: install build cli dev tunnel migrate generate gen-go-artifacts pre-commit-install lint test
 
 # Code-generation tools are pinned: with @latest, `make gen` produced different
 # output depending on when `make init` last ran, and a one-line proto change
@@ -49,6 +49,14 @@ gen:
 	go run cmd/gen-adapter/main.go && \
 	buf generate && \
 	go run cmd/openapi223/main.go && \
+	go run ./cmd/gen-web-client && \
+	go run ./cmd/hub api docs --out ../.agents/skills/hub-api/references/api-reference.md
+	cd ui/web && pnpm gen-api
+
+# Regenerates only the artifacts derived from the Go descriptors, which is what
+# CI can check without buf, sqlc or a BSR token. `make gen` is the full run.
+gen-go-artifacts:
+	cd server && \
 	go run ./cmd/gen-web-client && \
 	go run ./cmd/hub api docs --out ../.agents/skills/hub-api/references/api-reference.md
 

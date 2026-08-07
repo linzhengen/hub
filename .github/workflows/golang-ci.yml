@@ -7,6 +7,9 @@ on:
       - 'server/**'
       - 'go.mod'
       - 'go.sum'
+      - 'ui/web/src/api/operations.ts'
+      - '.agents/skills/hub-api/references/**'
+      - 'Makefile'
       - '.github/workflows/golang-ci.yml'
   pull_request:
     branches: [ main ]
@@ -14,6 +17,9 @@ on:
       - 'server/**'
       - 'go.mod'
       - 'go.sum'
+      - 'ui/web/src/api/operations.ts'
+      - '.agents/skills/hub-api/references/**'
+      - 'Makefile'
       - '.github/workflows/golang-ci.yml'
   workflow_dispatch:
 
@@ -34,6 +40,33 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: latest
+
+  generated:
+    name: Generated artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      # operations.ts and the agent API reference are derived from the protobuf
+      # descriptors, so a proto change that skips `make gen` leaves the web
+      # client and the agent documentation describing an API that no longer
+      # exists. Only the Go-derived artifacts are checked here: the rest of
+      # `make gen` needs buf with a BSR token, sqlc and pnpm.
+      - name: Regenerate
+        run: make gen-go-artifacts
+
+      - name: Fail if the checked-in artifacts are stale
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Generated artifacts are out of date. Run 'make gen' and commit the result."
+            exit 1
+          fi
 
   test:
     name: Test
