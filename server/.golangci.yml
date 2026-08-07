@@ -1,0 +1,7 @@
+version: "2"
+
+# golangci-lint does not check formatting unless asked, so gofmt drift used to
+# accumulate unnoticed - cmd/gen-adapter sat unformatted for some time.
+formatters:
+  enable:
+    - gofmt
