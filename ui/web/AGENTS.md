@@ -51,6 +51,8 @@
 
 - **Runner**: Vitest with the `jsdom` environment, configured in the `test`
   block of `vite.config.ts` (which imports `defineConfig` from `vitest/config`).
+  `src/test/setup.ts` holds the global setup — currently a `matchMedia` stub,
+  which Ant Design's responsive components need and jsdom does not provide.
 - **Location**: co-located with the code under test as `*.test.ts` / `*.test.tsx`
   under `src/`. The `@/` alias resolves in tests as it does in the app.
 - **Components/hooks**: use `@testing-library/react`. Query by role/label rather

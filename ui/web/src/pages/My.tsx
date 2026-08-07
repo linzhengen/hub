@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
 import { Card, Descriptions, Tag, Button, Form, Input, Modal, Divider, Spin } from 'antd';
 import { UserOutlined, MailOutlined, SafetyOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
 import { userService } from '@/services/user';
-import type { GetMeResponse } from '@/services/user';
+import type { GetMeResponse, UpdateMeRequest } from '@/services/user';
 
 interface ProfileFormValues {
   name: string;
@@ -13,40 +14,42 @@ interface ProfileFormValues {
 
 export function My() {
   const { user: authUser, isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editForm] = Form.useForm();
-  const [meResponse, setMeResponse] = useState<GetMeResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const { data: meResponse, isLoading, error } = useQuery<GetMeResponse>({
+    queryKey: ['me'],
+    queryFn: () => userService.getMe(),
+    enabled: isAuthenticated,
+  });
   const apiUser = meResponse?.user;
   const apiGroups = meResponse?.groups;
 
-  // APIからユーザー情報を取得
+  // 取得に失敗しても authUser にフォールバックして表示は続けるため、通知のみ行う
   useEffect(() => {
-    if (!isAuthenticated) {
-      setMeResponse(null);
-      return;
-    }
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const response = await userService.getMe();
-        setMeResponse(response);
-      } catch (error) {
-        console.error('Failed to fetch user from API:', error);
-        toast.error('Failed to load profile data from server');
-        // フォールバックとしてauthUserを使用
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, [isAuthenticated]);
+    if (!error) return;
+    console.error('Failed to fetch user from API:', error);
+    toast.error('Failed to load profile data from server');
+  }, [error]);
 
   // 表示用のユーザー情報をマージ
   const displayUser = apiUser || authUser;
   const displayName = apiUser?.username || authUser?.name;
   const displayEmail = apiUser?.email || authUser?.email;
   const emailVerified = authUser?.emailVerified || false;
+
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateMeRequest) => userService.updateMe(data),
+    // UpdateMeResponse は GetMeResponse と同じ形なので、そのままキャッシュに反映する
+    onSuccess: (response) => {
+      queryClient.setQueryData<GetMeResponse>(['me'], response);
+      setIsEditing(false);
+      editForm.resetFields();
+      toast.success('Profile updated successfully');
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   // 編集開始時の処理
   const handleEditStart = () => {
@@ -63,12 +66,9 @@ export function My() {
     editForm.resetFields();
   };
 
-  // 編集保存（現在はモック）
+  // 編集保存
   const handleEditSubmit = (values: ProfileFormValues) => {
-    console.log('Profile update values:', values);
-    // TODO: 実際のAPI呼び出しを実装
-    toast.success('Profile updated successfully');
-    setIsEditing(false);
+    updateMutation.mutate({ username: values.name, email: values.email });
   };
 
   // メール再送信（確認メール）
@@ -100,7 +100,7 @@ export function My() {
       </div>
 
       {/* プロファイル情報カード */}
-      {loading && !meResponse ? (
+      {isLoading ? (
         <div className="flex justify-center py-12">
           <Spin size="large" tip="Loading profile..." />
         </div>
@@ -229,6 +229,7 @@ export function My() {
         title="Edit My"
         open={isEditing}
         onCancel={handleEditCancel}
+        maskClosable={!updateMutation.isPending}
         footer={null}
         width={500}
       >
@@ -256,13 +257,14 @@ export function My() {
           </Form.Item>
           <Form.Item className="mb-0">
             <div className="flex justify-end gap-3">
-              <Button onClick={handleEditCancel}>
+              <Button onClick={handleEditCancel} disabled={updateMutation.isPending}>
                 Cancel
               </Button>
               <Button
                 type="primary"
                 htmlType="submit"
                 icon={<SaveOutlined />}
+                loading={updateMutation.isPending}
               >
                 Save Changes
               </Button>

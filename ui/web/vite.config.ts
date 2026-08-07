@@ -23,6 +23,10 @@ export default defineConfig(() => {
     test: {
       environment: 'jsdom',
       include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      setupFiles: ['./src/test/setup.ts'],
+      // restoreMocks は spyOn のみが対象なので、vi.mock で作った vi.fn() の
+      // 呼び出し履歴がテスト間で漏れないよう clearMocks も有効にする
+      clearMocks: true,
       restoreMocks: true,
     },
     resolve: {
