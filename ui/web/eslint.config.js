@@ -23,11 +23,6 @@ export default tseslint.config(
       // all downgraded to warnings while the codebase still violated them;
       // the violations are gone, so the preset's levels now apply as-is.
       ...reactHooks.configs.recommended.rules,
-      // The one exception: AppSidebar derives its open submenu from the
-      // current route inside an effect. Rewriting that means deciding how a
-      // manual toggle should interact with navigation, which is a behaviour
-      // change rather than a refactor. Tracked in #67.
-      'react-hooks/set-state-in-effect': 'warn',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

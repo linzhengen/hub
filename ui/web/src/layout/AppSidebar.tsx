@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
@@ -45,14 +45,33 @@ const navItems: NavItem[] = [
 
 const othersItems: NavItem[] = [];
 
+type Submenu = { type: "main" | "others"; index: number };
+
+/** 手動で開閉したサブメニューと、その操作を行ったルート */
+type ManualSubmenu = { pathname: string; submenu: Submenu | null };
+
+/** 現在のパスを含むサブメニューを返す。該当しなければ null */
+const findSubmenuForPath = (pathname: string): Submenu | null => {
+  const groups = [
+    { type: "main", items: navItems },
+    { type: "others", items: othersItems },
+  ] as const;
+
+  let match: Submenu | null = null;
+  for (const group of groups) {
+    group.items.forEach((nav, index) => {
+      if (nav.subItems?.some((subItem) => subItem.path === pathname)) {
+        match = { type: group.type, index };
+      }
+    });
+  }
+  return match;
+};
+
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
 
-  const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "others";
-    index: number;
-  } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
     {}
   );
@@ -64,29 +83,16 @@ const AppSidebar: React.FC = () => {
     [location.pathname]
   );
 
-  useEffect(() => {
-    let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType as "main" | "others",
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
-      });
-    });
-
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
-    }
-  }, [location, isActive]);
+  // どのサブメニューを開くかは現在のルートから決まる純粋な導出なので、effect で
+  // setState せず描画時に計算する。手動トグルはそのルートにいる間だけ上書きし、
+  // 遷移すると破棄される（effect がナビゲーションのたびに上書きしていた従来の
+  // 挙動と同じ）。
+  const routeSubmenu = useMemo(() => findSubmenuForPath(location.pathname), [location.pathname]);
+  const [manualSubmenu, setManualSubmenu] = useState<ManualSubmenu | null>(null);
+  const openSubmenu = useMemo(
+    () => (manualSubmenu?.pathname === location.pathname ? manualSubmenu.submenu : routeSubmenu),
+    [manualSubmenu, location.pathname, routeSubmenu]
+  );
 
   useEffect(() => {
     if (openSubmenu !== null) {
@@ -101,15 +107,10 @@ const AppSidebar: React.FC = () => {
   }, [openSubmenu]);
 
   const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
-    setOpenSubmenu((prevOpenSubmenu) => {
-      if (
-        prevOpenSubmenu &&
-        prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
-      ) {
-        return null;
-      }
-      return { type: menuType, index };
+    const isAlreadyOpen = openSubmenu?.type === menuType && openSubmenu?.index === index;
+    setManualSubmenu({
+      pathname: location.pathname,
+      submenu: isAlreadyOpen ? null : { type: menuType, index },
     });
   };
 
