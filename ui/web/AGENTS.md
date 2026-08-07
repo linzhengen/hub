@@ -44,7 +44,9 @@
 ## Testing & Quality
 
 - Run `pnpm lint` (which runs `tsc --noEmit`) to check for type errors.
-- Run `pnpm lint:eslint` to check for ESLint issues (`eslint.config.js`).
+- Run `pnpm lint:eslint` to check for ESLint issues (`eslint.config.js`). The
+  React Compiler rules run at the preset's error level — do not downgrade one to
+  silence a new violation.
 - Run `pnpm test` (Vitest, single run) or `pnpm test:watch` while developing.
   All three are run in CI (`web-ci.yml`).
 - Follow the project-wide TDD and strong typing practices.
