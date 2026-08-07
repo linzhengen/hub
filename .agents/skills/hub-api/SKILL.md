@@ -28,13 +28,18 @@ hub config set --endpoint http://localhost:9090 \
   --oidc-issuer http://localhost:8080/realms/hub --oidc-client-id hub
 
 # トークンを取得（--username 無しならクライアントクレデンシャル）
-hub auth login --username admin --password admin
+hub auth login --username admin        # パスワードは対話入力
+HUB_PASSWORD=... hub auth login -u admin   # 非対話環境
 hub auth whoami
 ```
 
-`hub auth whoami` が 401 を返す場合はトークン切れです。再度 `hub auth login`
-を実行してください。403 の場合は認証は通っていて **権限が足りません** — 下の
-「RBAC」を読んでください。
+**`--password` はシェル履歴とプロセス一覧に残ります。** 端末があれば省略して
+対話入力、無ければ `HUB_PASSWORD` を使ってください。
+
+アクセストークンは有効期限が来ると**自動で更新されます**（`hub auth login` が
+リフレッシュトークンをプロファイルに保存するため）。それでも 401 が続く場合は
+リフレッシュトークンも切れているので、再度 `hub auth login` してください。
+403 の場合は認証は通っていて **権限が足りません** — 下の「RBAC」を読んでください。
 
 ## 手順
 
@@ -94,6 +99,20 @@ hub user list -o table   # 一覧レスポンスを表に
 hub user list -o yaml
 hub user list | jq '.users[] | {id, email}'
 ```
+
+### 一覧は既定で 50 件までです
+
+API は limit 未指定なら 50 件、最大 200 件しか返しません。全件必要なら
+`--all` を付けてください。CLI が最後のページまで追って1つのレスポンスに
+まとめます。
+
+```bash
+hub user list --all | jq '.users | length'
+hub permission list --all
+```
+
+`--all` はページングを持つ一覧操作にのみ使えます。持たない操作に付けると
+エラーになります。
 
 `-o table` はレスポンス内の唯一の配列フィールドを表にします。表にできない形
 （単一オブジェクトなど）は JSON にフォールバックします。

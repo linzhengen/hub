@@ -162,6 +162,9 @@ taken verbatim, so it must include the /api/v1 prefix.
 			if c.dryRun {
 				return Render(cmd.OutOrStdout(), c.format, req)
 			}
+			if err := c.ensureFreshToken(cmd.Context()); err != nil {
+				return err
+			}
 			response, err := c.client.Do(cmd.Context(), req)
 			if err != nil {
 				return err
