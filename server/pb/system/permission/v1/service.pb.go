@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -523,40 +524,41 @@ var File_system_permission_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_permission_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\"system/permission/v1/service.proto\x12\x14system.permission.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a system/permission/v1/model.proto\"&\n" +
-	"\x14GetPermissionRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"Y\n" +
+	"\"system/permission/v1/service.proto\x12\x14system.permission.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a system/permission/v1/model.proto\"0\n" +
+	"\x14GetPermissionRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"Y\n" +
 	"\x15GetPermissionResponse\x12@\n" +
 	"\n" +
 	"permission\x18\x01 \x01(\v2 .system.permission.v1.PermissionR\n" +
-	"permission\"\x95\x01\n" +
-	"\x15ListPermissionRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\rR\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\rR\x06offset\x12%\n" +
-	"\x0epermission_ids\x18\x03 \x03(\tR\rpermissionIds\x12'\n" +
-	"\x0fpermission_name\x18\x04 \x01(\tR\x0epermissionName\"r\n" +
+	"permission\"\xb7\x01\n" +
+	"\x15ListPermissionRequest\x12\x1e\n" +
+	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\rR\x06offset\x124\n" +
+	"\x0epermission_ids\x18\x03 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\rpermissionIds\x120\n" +
+	"\x0fpermission_name\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18@R\x0epermissionName\"r\n" +
 	"\x16ListPermissionResponse\x12B\n" +
 	"\vpermissions\x18\x01 \x03(\v2 .system.permission.v1.PermissionR\vpermissions\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"p\n" +
-	"\x17CreatePermissionRequest\x12\x1f\n" +
-	"\vresource_id\x18\x02 \x01(\tR\n" +
-	"resourceId\x12\x12\n" +
-	"\x04verb\x18\x03 \x01(\tR\x04verb\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\"\\\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\x8f\x01\n" +
+	"\x17CreatePermissionRequest\x12)\n" +
+	"\vresource_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\n" +
+	"resourceId\x12\x1d\n" +
+	"\x04verb\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04verb\x12*\n" +
+	"\vdescription\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\"\\\n" +
 	"\x18CreatePermissionResponse\x12@\n" +
 	"\n" +
 	"permission\x18\x01 \x01(\v2 .system.permission.v1.PermissionR\n" +
-	"permission\"_\n" +
-	"\x17UpdatePermissionRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04verb\x18\x02 \x01(\tR\x04verb\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"\\\n" +
+	"permission\"~\n" +
+	"\x17UpdatePermissionRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x1d\n" +
+	"\x04verb\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04verb\x12*\n" +
+	"\vdescription\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\"\\\n" +
 	"\x18UpdatePermissionResponse\x12@\n" +
 	"\n" +
 	"permission\x18\x01 \x01(\v2 .system.permission.v1.PermissionR\n" +
-	"permission\")\n" +
-	"\x17DeletePermissionRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x1a\n" +
+	"permission\"3\n" +
+	"\x17DeletePermissionRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"\x1a\n" +
 	"\x18DeletePermissionResponse2\xcd\a\n" +
 	"\x11PermissionService\x12\xae\x01\n" +
 	"\rGetPermission\x12*.system.permission.v1.GetPermissionRequest\x1a+.system.permission.v1.GetPermissionResponse\"D\x8a\xa6\x1d \"\x1eGet a single permission by id.\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/permissions/{id}\x12\xc2\x01\n" +

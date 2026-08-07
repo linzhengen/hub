@@ -22,6 +22,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 
+	validate "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+
 	hubv1 "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 
 	// Importing the generated packages registers their descriptors with
@@ -64,6 +66,14 @@ type Field struct {
 	Message string
 	// In says where the field travels in the REST mapping.
 	In Location
+	// Constraints describes the buf.validate rules the server enforces, in the
+	// short forms `hub api describe` prints: "required", "email", "uuid",
+	// "len 1..64", "<= 200". Empty when the field is unconstrained.
+	//
+	// It is rendered here rather than left as the raw rule so a caller - an
+	// agent, most of all - can read what will be accepted without knowing
+	// protovalidate.
+	Constraints []string
 }
 
 // Operation is a single rpc together with its REST mapping and RBAC rule.
@@ -340,6 +350,8 @@ func fieldsOf(md protoreflect.MessageDescriptor, path, body string) []Field {
 			Optional: fd.HasOptionalKeyword(),
 			In:       locationOf(string(fd.Name()), pathParams, body),
 		}
+		f.Constraints = constraintsOf(fd)
+
 		switch fd.Kind() {
 		case protoreflect.EnumKind:
 			values := fd.Enum().Values()
@@ -355,6 +367,76 @@ func fieldsOf(md protoreflect.MessageDescriptor, path, body string) []Field {
 		fields = append(fields, f)
 	}
 	return fields
+}
+
+// constraintsOf renders a field's buf.validate rules into short human phrases.
+//
+// Only the rules this codebase actually uses are translated; anything else is
+// left out rather than half-described, so what is printed is always accurate.
+func constraintsOf(fd protoreflect.FieldDescriptor) []string {
+	opts, ok := fd.Options().(*descriptorpb.FieldOptions)
+	if !ok || opts == nil {
+		return nil
+	}
+	rules, ok := proto.GetExtension(opts, validate.E_Field).(*validate.FieldRules)
+	if !ok || rules == nil {
+		return nil
+	}
+
+	var out []string
+	if rules.GetRequired() {
+		out = append(out, "required")
+	}
+	if repeated := rules.GetRepeated(); repeated != nil {
+		if repeated.GetMinItems() > 0 {
+			out = append(out, fmt.Sprintf("at least %d item(s)", repeated.GetMinItems()))
+		}
+		if repeated.GetMaxItems() > 0 {
+			out = append(out, fmt.Sprintf("at most %d item(s)", repeated.GetMaxItems()))
+		}
+		out = append(out, prefixed("each ", stringConstraints(repeated.GetItems().GetString()))...)
+	}
+	out = append(out, stringConstraints(rules.GetString())...)
+	if u := rules.GetUint32(); u != nil && u.GetLte() > 0 {
+		out = append(out, fmt.Sprintf("<= %d", u.GetLte()))
+	}
+	if u := rules.GetUint64(); u != nil && u.GetLte() > 0 {
+		out = append(out, fmt.Sprintf("<= %d", u.GetLte()))
+	}
+	return out
+}
+
+func stringConstraints(rules *validate.StringRules) []string {
+	if rules == nil {
+		return nil
+	}
+
+	var out []string
+	switch rules.GetWellKnown().(type) {
+	case *validate.StringRules_Email:
+		out = append(out, "email")
+	case *validate.StringRules_Uuid:
+		out = append(out, "uuid")
+	case *validate.StringRules_Uri:
+		out = append(out, "uri")
+	}
+	switch {
+	case rules.MinLen != nil && rules.MaxLen != nil:
+		out = append(out, fmt.Sprintf("length %d..%d", rules.GetMinLen(), rules.GetMaxLen()))
+	case rules.MinLen != nil:
+		out = append(out, fmt.Sprintf("length >= %d", rules.GetMinLen()))
+	case rules.MaxLen != nil:
+		out = append(out, fmt.Sprintf("length <= %d", rules.GetMaxLen()))
+	}
+	return out
+}
+
+func prefixed(prefix string, values []string) []string {
+	out := make([]string, 0, len(values))
+	for _, v := range values {
+		out = append(out, prefix+v)
+	}
+	return out
 }
 
 func locationOf(name string, pathParams map[string]bool, body string) Location {

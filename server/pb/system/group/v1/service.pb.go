@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -931,56 +932,58 @@ var File_system_group_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_group_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dsystem/group/v1/service.proto\x12\x0fsystem.group.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\"!\n" +
-	"\x0fGetGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
+	"\x1dsystem/group/v1/service.proto\x12\x0fsystem.group.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\"+\n" +
+	"\x0fGetGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"@\n" +
 	"\x10GetGroupResponse\x12,\n" +
-	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"\xce\x01\n" +
-	"\x10ListGroupRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\rR\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\rR\x06offset\x12\x1b\n" +
-	"\tgroup_ids\x18\x03 \x03(\tR\bgroupIds\x12\x1d\n" +
+	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"\xff\x01\n" +
+	"\x10ListGroupRequest\x12\x1e\n" +
+	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\rR\x06offset\x12*\n" +
+	"\tgroup_ids\x18\x03 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\bgroupIds\x12&\n" +
 	"\n" +
-	"group_name\x18\x04 \x01(\tR\tgroupName\x125\n" +
-	"\x06status\x18\x05 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12\x19\n" +
-	"\brole_ids\x18\x06 \x03(\tR\aroleIds\"Y\n" +
+	"group_name\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18@R\tgroupName\x125\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12(\n" +
+	"\brole_ids\x18\x06 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\aroleIds\"Y\n" +
 	"\x11ListGroupResponse\x12.\n" +
 	"\x06groups\x18\x01 \x03(\v2\x16.system.group.v1.GroupR\x06groups\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"\x81\x01\n" +
-	"\x12CreateGroupRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x125\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"C\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\x96\x01\n" +
+	"\x12CreateGroupRequest\x12\x1d\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x125\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12*\n" +
+	"\vdescription\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\"C\n" +
 	"\x13CreateGroupResponse\x12,\n" +
-	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"\x91\x01\n" +
-	"\x12UpdateGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x125\n" +
-	"\x06status\x18\x03 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\"C\n" +
+	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"\xb0\x01\n" +
+	"\x12UpdateGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x1d\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x125\n" +
+	"\x06status\x18\x03 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12*\n" +
+	"\vdescription\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\"C\n" +
 	"\x13UpdateGroupResponse\x12,\n" +
-	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"$\n" +
-	"\x12DeleteGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x15\n" +
-	"\x13DeleteGroupResponse\"C\n" +
-	"\x16AddRolesToGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\brole_ids\x18\x02 \x03(\tR\aroleIds\"G\n" +
+	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\".\n" +
+	"\x12DeleteGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"\x15\n" +
+	"\x13DeleteGroupResponse\"^\n" +
+	"\x16AddRolesToGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12*\n" +
+	"\brole_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\aroleIds\"G\n" +
 	"\x17AddRolesToGroupResponse\x12,\n" +
-	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"H\n" +
-	"\x1bRemoveRolesFromGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\brole_ids\x18\x02 \x03(\tR\aroleIds\"L\n" +
+	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"c\n" +
+	"\x1bRemoveRolesFromGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12*\n" +
+	"\brole_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\aroleIds\"L\n" +
 	"\x1cRemoveRolesFromGroupResponse\x12,\n" +
-	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"C\n" +
-	"\x16AddUsersToGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\buser_ids\x18\x02 \x03(\tR\auserIds\"G\n" +
+	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"^\n" +
+	"\x16AddUsersToGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12*\n" +
+	"\buser_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\auserIds\"G\n" +
 	"\x17AddUsersToGroupResponse\x12,\n" +
-	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"H\n" +
-	"\x1bRemoveUsersFromGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\buser_ids\x18\x02 \x03(\tR\auserIds\"L\n" +
+	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"c\n" +
+	"\x1bRemoveUsersFromGroupRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12*\n" +
+	"\buser_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\auserIds\"L\n" +
 	"\x1cRemoveUsersFromGroupResponse\x12,\n" +
 	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group2\xb2\f\n" +
 	"\fGroupService\x12\x8b\x01\n" +

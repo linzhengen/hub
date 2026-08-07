@@ -46,6 +46,9 @@ type fieldModel struct {
 	Kind       string   `json:"kind" yaml:"kind"`
 	Repeated   bool     `json:"repeated,omitempty" yaml:"repeated,omitempty"`
 	EnumValues []string `json:"enumValues,omitempty" yaml:"enumValues,omitempty"`
+	// Constraints is what the server will reject the field for, so a caller
+	// can get the request right before sending it.
+	Constraints []string `json:"constraints,omitempty" yaml:"constraints,omitempty"`
 }
 
 func summarise(op apicatalog.Operation, withFields bool) operationSummary {
@@ -65,12 +68,13 @@ func summarise(op apicatalog.Operation, withFields bool) operationSummary {
 	}
 	for _, field := range op.Fields {
 		s.Fields = append(s.Fields, fieldModel{
-			Name:       field.JSONName,
-			Flag:       "--" + FlagName(field),
-			In:         string(field.In),
-			Kind:       field.Kind,
-			Repeated:   field.Repeated,
-			EnumValues: field.EnumValues,
+			Name:        field.JSONName,
+			Flag:        "--" + FlagName(field),
+			In:          string(field.In),
+			Kind:        field.Kind,
+			Repeated:    field.Repeated,
+			EnumValues:  field.EnumValues,
+			Constraints: field.Constraints,
 		})
 	}
 	return s

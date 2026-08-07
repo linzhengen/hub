@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -1083,33 +1084,36 @@ var File_system_resource_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_resource_v1_service_proto_rawDesc = "" +
 	"\n" +
-	" system/resource/v1/service.proto\x12\x12system.resource.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1esystem/resource/v1/model.proto\"$\n" +
-	"\x12GetResourceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"O\n" +
+	" system/resource/v1/service.proto\x12\x12system.resource.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1esystem/resource/v1/model.proto\".\n" +
+	"\x12GetResourceRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"O\n" +
 	"\x13GetResourceResponse\x128\n" +
-	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource\"\xfe\x01\n" +
-	"\x13ListResourceRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\rR\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\rR\x06offset\x12!\n" +
-	"\fresource_ids\x18\x03 \x03(\tR\vresourceIds\x12#\n" +
-	"\rresource_name\x18\x04 \x01(\tR\fresourceName\x122\n" +
+	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource\"\xa1\x02\n" +
+	"\x13ListResourceRequest\x12\x1e\n" +
+	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\rR\x06offset\x120\n" +
+	"\fresource_ids\x18\x03 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\vresourceIds\x12-\n" +
+	"\rresource_name\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\fresourceName\x122\n" +
 	"\x06status\x18\x05 \x01(\x0e2\x1a.system.resource.v1.StatusR\x06status\x12=\n" +
 	"\rresource_type\x18\x06 \x01(\x0e2\x18.system.resource.v1.TypeR\fresourceType\"h\n" +
 	"\x14ListResourceResponse\x12:\n" +
 	"\tresources\x18\x01 \x03(\v2\x1c.system.resource.v1.ResourceR\tresources\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"\xc3\x01\n" +
-	"\x17ListMenuResourceRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\rR\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\rR\x06offset\x12!\n" +
-	"\fresource_ids\x18\x03 \x03(\tR\vresourceIds\x12#\n" +
-	"\rresource_name\x18\x04 \x01(\tR\fresourceName\x122\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\xe6\x01\n" +
+	"\x17ListMenuResourceRequest\x12\x1e\n" +
+	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\rR\x06offset\x120\n" +
+	"\fresource_ids\x18\x03 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\vresourceIds\x12-\n" +
+	"\rresource_name\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\fresourceName\x122\n" +
 	"\x06status\x18\x05 \x01(\x0e2\x1a.system.resource.v1.StatusR\x06status\"l\n" +
 	"\x18ListMenuResourceResponse\x12:\n" +
 	"\tresources\x18\x01 \x03(\v2\x1c.system.resource.v1.ResourceR\tresources\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"\x9d\x04\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\xa9\x04\n" +
 	"\x15CreateResourceRequest\x12\x1b\n" +
-	"\tparent_id\x18\x01 \x01(\tR\bparentId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12>\n" +
+	"\tparent_id\x18\x01 \x01(\tR\bparentId\x12\x1e\n" +
+	"\x04name\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\x12>\n" +
 	"\n" +
 	"identifier\x18\x04 \x01(\v2\x1e.system.resource.v1.IdentifierR\n" +
 	"identifier\x12,\n" +
@@ -1128,11 +1132,12 @@ const file_system_resource_v1_service_proto_rawDesc = "" +
 	"_componentB\x0e\n" +
 	"\f_description\"R\n" +
 	"\x16CreateResourceResponse\x128\n" +
-	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource\"\xad\x04\n" +
-	"\x15UpdateResourceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tparent_id\x18\x02 \x01(\tR\bparentId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12>\n" +
+	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource\"\xc3\x04\n" +
+	"\x15UpdateResourceRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x1b\n" +
+	"\tparent_id\x18\x02 \x01(\tR\bparentId\x12\x1e\n" +
+	"\x04name\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\x12>\n" +
 	"\n" +
 	"identifier\x18\x04 \x01(\v2\x1e.system.resource.v1.IdentifierR\n" +
 	"identifier\x12,\n" +
@@ -1151,14 +1156,16 @@ const file_system_resource_v1_service_proto_rawDesc = "" +
 	"_componentB\x0e\n" +
 	"\f_description\"R\n" +
 	"\x16UpdateResourceResponse\x128\n" +
-	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource\"'\n" +
-	"\x15DeleteResourceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x18\n" +
-	"\x16DeleteResourceResponse\"\xb7\x03\n" +
+	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource\"1\n" +
+	"\x15DeleteResourceRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"\x18\n" +
+	"\x16DeleteResourceResponse\"\xcf\x03\n" +
 	"\x19CreateMenuResourceRequest\x12\x1b\n" +
-	"\tparent_id\x18\x01 \x01(\tR\bparentId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\tR\x04path\x12!\n" +
+	"\tparent_id\x18\x01 \x01(\tR\bparentId\x12\x1e\n" +
+	"\x04name\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\x12\x1e\n" +
+	"\x04path\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xff\x01R\x04path\x12!\n" +
 	"\tcomponent\x18\x04 \x01(\tH\x00R\tcomponent\x88\x01\x01\x12#\n" +
 	"\rdisplay_order\x18\x05 \x01(\x05R\fdisplayOrder\x12%\n" +
 	"\vdescription\x18\x06 \x01(\tH\x01R\vdescription\x88\x01\x01\x12W\n" +
@@ -1171,12 +1178,14 @@ const file_system_resource_v1_service_proto_rawDesc = "" +
 	"_componentB\x0e\n" +
 	"\f_description\"V\n" +
 	"\x1aCreateMenuResourceResponse\x128\n" +
-	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource\"\xc7\x03\n" +
-	"\x19UpdateMenuResourceRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tparent_id\x18\x02 \x01(\tR\bparentId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
-	"\x04path\x18\x04 \x01(\tR\x04path\x12!\n" +
+	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource\"\xe9\x03\n" +
+	"\x19UpdateMenuResourceRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x1b\n" +
+	"\tparent_id\x18\x02 \x01(\tR\bparentId\x12\x1e\n" +
+	"\x04name\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x04name\x12\x1e\n" +
+	"\x04path\x18\x04 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xff\x01R\x04path\x12!\n" +
 	"\tcomponent\x18\x05 \x01(\tH\x00R\tcomponent\x88\x01\x01\x12#\n" +
 	"\rdisplay_order\x18\x06 \x01(\x05R\fdisplayOrder\x12%\n" +
 	"\vdescription\x18\a \x01(\tH\x01R\vdescription\x88\x01\x01\x12W\n" +

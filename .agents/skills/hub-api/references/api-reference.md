@@ -21,10 +21,10 @@ Grant roles to a group, keeping the roles it already has.
 - endpoint: `POST /api/v1/groups/{id}/roles/add`
 - rbac: `AddRolesToGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--role-ids` | `roleIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--role-ids` | `roleIds` | body | repeated string | at least 1 item(s), each uuid |
 
 ### AddUsersToGroup
 
@@ -34,10 +34,10 @@ Add users to a group, keeping the existing members.
 - endpoint: `POST /api/v1/groups/{id}/users/add`
 - rbac: `AddUsersToGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--user-ids` | `userIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--user-ids` | `userIds` | body | repeated string | at least 1 item(s), each uuid |
 
 ### CreateGroup
 
@@ -47,11 +47,11 @@ Create a group.
 - endpoint: `POST /api/v1/groups`
 - rbac: `CreateGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--name` | `name` | body | string |
-| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
-| `--description` | `description` | body | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--name` | `name` | body | string | length 1..64 |
+| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
+| `--description` | `description` | body | string | length <= 255 |
 
 ### DeleteGroup
 
@@ -61,9 +61,9 @@ Delete a group.
 - endpoint: `DELETE /api/v1/groups/{id}`
 - rbac: `DeleteGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### GetGroup
 
@@ -73,9 +73,9 @@ Get a single group by id.
 - endpoint: `GET /api/v1/groups/{id}`
 - rbac: `GetGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### ListGroup
 
@@ -85,14 +85,14 @@ List groups, optionally filtered by id, name, status or role.
 - endpoint: `GET /api/v1/groups`
 - rbac: `ListGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--limit` | `limit` | query | uint32 |
-| `--offset` | `offset` | query | uint32 |
-| `--group-ids` | `groupIds` | query | repeated string |
-| `--group-name` | `groupName` | query | string |
-| `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
-| `--role-ids` | `roleIds` | query | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--group-ids` | `groupIds` | query | repeated string | each uuid |
+| `--group-name` | `groupName` | query | string | length <= 64 |
+| `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
+| `--role-ids` | `roleIds` | query | repeated string | each uuid |
 
 ### RemoveRolesFromGroup
 
@@ -102,10 +102,10 @@ Revoke roles from a group.
 - endpoint: `POST /api/v1/groups/{id}/roles/remove`
 - rbac: `RemoveRolesFromGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--role-ids` | `roleIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--role-ids` | `roleIds` | body | repeated string | at least 1 item(s), each uuid |
 
 ### RemoveUsersFromGroup
 
@@ -115,10 +115,10 @@ Remove users from a group.
 - endpoint: `POST /api/v1/groups/{id}/users/remove`
 - rbac: `RemoveUsersFromGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--user-ids` | `userIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--user-ids` | `userIds` | body | repeated string | at least 1 item(s), each uuid |
 
 ### UpdateGroup
 
@@ -128,12 +128,12 @@ Update a group's name, status or description.
 - endpoint: `PUT /api/v1/groups/{id}`
 - rbac: `UpdateGroup` on `api.system.group.v1.GroupService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--name` | `name` | body | string |
-| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
-| `--description` | `description` | body | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--name` | `name` | body | string | length 1..64 |
+| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
+| `--description` | `description` | body | string | length <= 255 |
 
 ## system.permission.v1.PermissionService
 
@@ -145,11 +145,11 @@ Create a permission binding a verb to a resource.
 - endpoint: `POST /api/v1/permissions`
 - rbac: `CreatePermission` on `api.system.permission.v1.PermissionService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--resource-id` | `resourceId` | body | string |
-| `--verb` | `verb` | body | string |
-| `--description` | `description` | body | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--resource-id` | `resourceId` | body | string | uuid |
+| `--verb` | `verb` | body | string | length 1..64 |
+| `--description` | `description` | body | string | length <= 255 |
 
 ### DeletePermission
 
@@ -159,9 +159,9 @@ Delete a permission.
 - endpoint: `DELETE /api/v1/permissions/{id}`
 - rbac: `DeletePermission` on `api.system.permission.v1.PermissionService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### GetPermission
 
@@ -171,9 +171,9 @@ Get a single permission by id.
 - endpoint: `GET /api/v1/permissions/{id}`
 - rbac: `GetPermission` on `api.system.permission.v1.PermissionService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### ListPermission
 
@@ -183,12 +183,12 @@ List permissions, optionally filtered by id or name.
 - endpoint: `GET /api/v1/permissions`
 - rbac: `ListPermission` on `api.system.permission.v1.PermissionService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--limit` | `limit` | query | uint32 |
-| `--offset` | `offset` | query | uint32 |
-| `--permission-ids` | `permissionIds` | query | repeated string |
-| `--permission-name` | `permissionName` | query | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--permission-ids` | `permissionIds` | query | repeated string | each uuid |
+| `--permission-name` | `permissionName` | query | string | length <= 64 |
 
 ### UpdatePermission
 
@@ -198,11 +198,11 @@ Update a permission's verb or description.
 - endpoint: `PUT /api/v1/permissions/{id}`
 - rbac: `UpdatePermission` on `api.system.permission.v1.PermissionService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--verb` | `verb` | body | string |
-| `--description` | `description` | body | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--verb` | `verb` | body | string | length 1..64 |
+| `--description` | `description` | body | string | length <= 255 |
 
 ## system.resource.v1.ResourceService
 
@@ -214,16 +214,16 @@ Create a menu resource.
 - endpoint: `POST /api/v1/resources/menus`
 - rbac: `CreateMenuResource` on `api.system.resource.v1.ResourceService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--parent-id` | `parentId` | body | string |
-| `--name` | `name` | body | string |
-| `--path` | `path` | body | string |
-| `--component` | `component` | body | string |
-| `--display-order` | `displayOrder` | body | int32 |
-| `--description` | `description` | body | string |
-| `--metadata` | `metadata` | body | map |
-| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--parent-id` | `parentId` | body | string |  |
+| `--name` | `name` | body | string | length 1..128 |
+| `--path` | `path` | body | string | length 1..255 |
+| `--component` | `component` | body | string |  |
+| `--display-order` | `displayOrder` | body | int32 |  |
+| `--description` | `description` | body | string |  |
+| `--metadata` | `metadata` | body | map |  |
+| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
 
 ### CreateResource
 
@@ -233,18 +233,18 @@ Create a resource (an API or menu entry RBAC can guard).
 - endpoint: `POST /api/v1/resources`
 - rbac: `CreateResource` on `api.system.resource.v1.ResourceService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--parent-id` | `parentId` | body | string |
-| `--name` | `name` | body | string |
-| `--identifier` | `identifier` | body | message |
-| `--type` | `type` | body | `TYPE_UNSPECIFIED` \| `TYPE_MENU` \| `TYPE_API` |
-| `--path` | `path` | body | string |
-| `--component` | `component` | body | string |
-| `--display-order` | `displayOrder` | body | int32 |
-| `--description` | `description` | body | string |
-| `--metadata` | `metadata` | body | map |
-| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--parent-id` | `parentId` | body | string |  |
+| `--name` | `name` | body | string | length 1..128 |
+| `--identifier` | `identifier` | body | message |  |
+| `--type` | `type` | body | `TYPE_UNSPECIFIED` \| `TYPE_MENU` \| `TYPE_API` |  |
+| `--path` | `path` | body | string |  |
+| `--component` | `component` | body | string |  |
+| `--display-order` | `displayOrder` | body | int32 |  |
+| `--description` | `description` | body | string |  |
+| `--metadata` | `metadata` | body | map |  |
+| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
 
 ### DeleteResource
 
@@ -254,9 +254,9 @@ Delete a resource.
 - endpoint: `DELETE /api/v1/resources/{id}`
 - rbac: `DeleteResource` on `api.system.resource.v1.ResourceService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### GetResource
 
@@ -266,9 +266,9 @@ Get a single resource by id.
 - endpoint: `GET /api/v1/resources/{id}`
 - rbac: `GetResource` on `api.system.resource.v1.ResourceService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### ListMenuResource
 
@@ -278,13 +278,13 @@ List menu resources.
 - endpoint: `GET /api/v1/resources/menus`
 - rbac: `ListMenuResource` on `api.system.resource.v1.ResourceService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--limit` | `limit` | query | uint32 |
-| `--offset` | `offset` | query | uint32 |
-| `--resource-ids` | `resourceIds` | query | repeated string |
-| `--resource-name` | `resourceName` | query | string |
-| `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--resource-ids` | `resourceIds` | query | repeated string | each uuid |
+| `--resource-name` | `resourceName` | query | string | length <= 128 |
+| `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
 
 ### ListResource
 
@@ -294,14 +294,14 @@ List resources, optionally filtered by id, name, status or type.
 - endpoint: `GET /api/v1/resources`
 - rbac: `ListResource` on `api.system.resource.v1.ResourceService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--limit` | `limit` | query | uint32 |
-| `--offset` | `offset` | query | uint32 |
-| `--resource-ids` | `resourceIds` | query | repeated string |
-| `--resource-name` | `resourceName` | query | string |
-| `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
-| `--resource-type` | `resourceType` | query | `TYPE_UNSPECIFIED` \| `TYPE_MENU` \| `TYPE_API` |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--resource-ids` | `resourceIds` | query | repeated string | each uuid |
+| `--resource-name` | `resourceName` | query | string | length <= 128 |
+| `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
+| `--resource-type` | `resourceType` | query | `TYPE_UNSPECIFIED` \| `TYPE_MENU` \| `TYPE_API` |  |
 
 ### UpdateMenuResource
 
@@ -311,17 +311,17 @@ Update a menu resource.
 - endpoint: `PUT /api/v1/resources/{id}/menus`
 - rbac: `UpdateMenuResource` on `api.system.resource.v1.ResourceService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--parent-id` | `parentId` | body | string |
-| `--name` | `name` | body | string |
-| `--path` | `path` | body | string |
-| `--component` | `component` | body | string |
-| `--display-order` | `displayOrder` | body | int32 |
-| `--description` | `description` | body | string |
-| `--metadata` | `metadata` | body | map |
-| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--parent-id` | `parentId` | body | string |  |
+| `--name` | `name` | body | string | length 1..128 |
+| `--path` | `path` | body | string | length 1..255 |
+| `--component` | `component` | body | string |  |
+| `--display-order` | `displayOrder` | body | int32 |  |
+| `--description` | `description` | body | string |  |
+| `--metadata` | `metadata` | body | map |  |
+| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
 
 ### UpdateResource
 
@@ -331,19 +331,19 @@ Update a resource.
 - endpoint: `PUT /api/v1/resources/{id}`
 - rbac: `UpdateResource` on `api.system.resource.v1.ResourceService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--parent-id` | `parentId` | body | string |
-| `--name` | `name` | body | string |
-| `--identifier` | `identifier` | body | message |
-| `--type` | `type` | body | `TYPE_UNSPECIFIED` \| `TYPE_MENU` \| `TYPE_API` |
-| `--path` | `path` | body | string |
-| `--component` | `component` | body | string |
-| `--display-order` | `displayOrder` | body | int32 |
-| `--description` | `description` | body | string |
-| `--metadata` | `metadata` | body | map |
-| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--parent-id` | `parentId` | body | string |  |
+| `--name` | `name` | body | string | length 1..128 |
+| `--identifier` | `identifier` | body | message |  |
+| `--type` | `type` | body | `TYPE_UNSPECIFIED` \| `TYPE_MENU` \| `TYPE_API` |  |
+| `--path` | `path` | body | string |  |
+| `--component` | `component` | body | string |  |
+| `--display-order` | `displayOrder` | body | int32 |  |
+| `--description` | `description` | body | string |  |
+| `--metadata` | `metadata` | body | map |  |
+| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
 
 ## system.role.v1.RoleService
 
@@ -355,10 +355,10 @@ Grant permissions to a role, keeping the ones it already has.
 - endpoint: `POST /api/v1/roles/{id}/permissions/add`
 - rbac: `AddPermissionsToRole` on `api.system.role.v1.RoleService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--permission-ids` | `permissionIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--permission-ids` | `permissionIds` | body | repeated string | at least 1 item(s), each uuid |
 
 ### CreateRole
 
@@ -368,10 +368,10 @@ Create a role.
 - endpoint: `POST /api/v1/roles`
 - rbac: `CreateRole` on `api.system.role.v1.RoleService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--name` | `name` | body | string |
-| `--description` | `description` | body | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--name` | `name` | body | string | length 1..64 |
+| `--description` | `description` | body | string | length <= 255 |
 
 ### DeleteRole
 
@@ -381,9 +381,9 @@ Delete a role.
 - endpoint: `DELETE /api/v1/roles/{id}`
 - rbac: `DeleteRole` on `api.system.role.v1.RoleService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### GetRole
 
@@ -393,9 +393,9 @@ Get a single role by id.
 - endpoint: `GET /api/v1/roles/{id}`
 - rbac: `GetRole` on `api.system.role.v1.RoleService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### ListRole
 
@@ -405,13 +405,13 @@ List roles, optionally filtered by id, name or permission.
 - endpoint: `GET /api/v1/roles`
 - rbac: `ListRole` on `api.system.role.v1.RoleService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--limit` | `limit` | query | uint32 |
-| `--offset` | `offset` | query | uint32 |
-| `--role-ids` | `roleIds` | query | repeated string |
-| `--role-name` | `roleName` | query | string |
-| `--permission-ids` | `permissionIds` | query | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--role-ids` | `roleIds` | query | repeated string | each uuid |
+| `--role-name` | `roleName` | query | string | length <= 64 |
+| `--permission-ids` | `permissionIds` | query | repeated string | each uuid |
 
 ### RemovePermissionsFromRole
 
@@ -421,10 +421,10 @@ Revoke permissions from a role.
 - endpoint: `POST /api/v1/roles/{id}/permissions/remove`
 - rbac: `RemovePermissionsFromRole` on `api.system.role.v1.RoleService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--permission-ids` | `permissionIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--permission-ids` | `permissionIds` | body | repeated string | at least 1 item(s), each uuid |
 
 ### UpdateRole
 
@@ -434,11 +434,11 @@ Update a role's name or description.
 - endpoint: `PUT /api/v1/roles/{id}`
 - rbac: `UpdateRole` on `api.system.role.v1.RoleService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--name` | `name` | body | string |
-| `--description` | `description` | body | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--name` | `name` | body | string | length 1..64 |
+| `--description` | `description` | body | string | length <= 255 |
 
 ## user.v1.UserService
 
@@ -450,10 +450,10 @@ Add a user to groups, keeping the groups they are already in.
 - endpoint: `POST /api/v1/users/{id}/groups/add`
 - rbac: `AddGroupsToUser` on `api.user.v1.UserService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--group-ids` | `groupIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--group-ids` | `groupIds` | body | repeated string | at least 1 item(s), each uuid |
 
 ### CreateUser
 
@@ -463,12 +463,12 @@ Create a user and optionally place them in groups.
 - endpoint: `POST /api/v1/users`
 - rbac: `CreateUser` on `api.user.v1.UserService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--username` | `username` | body | string |
-| `--email` | `email` | body | string |
-| `--password` | `password` | body | string |
-| `--group-ids` | `groupIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--username` | `username` | body | string | length 1..64 |
+| `--email` | `email` | body | string | email |
+| `--password` | `password` | body | string | length 8..128 |
+| `--group-ids` | `groupIds` | body | repeated string | each uuid |
 
 ### DeleteUser
 
@@ -478,9 +478,9 @@ Delete a user.
 - endpoint: `DELETE /api/v1/users/{id}`
 - rbac: `DeleteUser` on `api.user.v1.UserService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### GetMe
 
@@ -510,9 +510,9 @@ Get a single user by id.
 - endpoint: `GET /api/v1/users/{id}`
 - rbac: `GetUser` on `api.user.v1.UserService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
 
 ### ListUser
 
@@ -522,15 +522,15 @@ List users, optionally filtered by id, email, name, status or group.
 - endpoint: `GET /api/v1/users`
 - rbac: `ListUser` on `api.user.v1.UserService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--limit` | `limit` | query | uint32 |
-| `--offset` | `offset` | query | uint32 |
-| `--user-ids` | `userIds` | query | repeated string |
-| `--user-emails` | `userEmails` | query | repeated string |
-| `--user-name` | `userName` | query | string |
-| `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
-| `--group-ids` | `groupIds` | query | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--user-ids` | `userIds` | query | repeated string | each uuid |
+| `--user-emails` | `userEmails` | query | repeated string |  |
+| `--user-name` | `userName` | query | string | length <= 64 |
+| `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
+| `--group-ids` | `groupIds` | query | repeated string | each uuid |
 
 ### RemoveGroupsFromUser
 
@@ -540,10 +540,10 @@ Remove a user from groups.
 - endpoint: `POST /api/v1/users/{id}/groups/remove`
 - rbac: `RemoveGroupsFromUser` on `api.user.v1.UserService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--group-ids` | `groupIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--group-ids` | `groupIds` | body | repeated string | at least 1 item(s), each uuid |
 
 ### SendMeVerifyEmail
 
@@ -563,11 +563,11 @@ Update the authenticated user's own username, email or password.
 - endpoint: `PUT /api/v1/me`
 - rbac: `UpdateMe` on `api.user.v1.UserService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--username` | `username` | body | string |
-| `--email` | `email` | body | string |
-| `--password` | `password` | body | string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--username` | `username` | body | string | length 1..64 |
+| `--email` | `email` | body | string | email |
+| `--password` | `password` | body | string |  |
 
 ### UpdateUser
 
@@ -577,11 +577,11 @@ Update a user's username, email, status, password or group membership.
 - endpoint: `PUT /api/v1/users/{id}`
 - rbac: `UpdateUser` on `api.user.v1.UserService`
 
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--username` | `username` | body | string |
-| `--email` | `email` | body | string |
-| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
-| `--password` | `password` | body | string |
-| `--group-ids` | `groupIds` | body | repeated string |
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--username` | `username` | body | string | length 1..64 |
+| `--email` | `email` | body | string | email |
+| `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
+| `--password` | `password` | body | string | length 8..128 |
+| `--group-ids` | `groupIds` | body | repeated string | each uuid |

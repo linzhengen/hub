@@ -70,6 +70,56 @@ func TestFieldsAreSplitBetweenPathQueryAndBody(t *testing.T) {
 	assert.Equal(t, apicatalog.InBody, body.In, `body: "*" puts every non-path field in the body`)
 }
 
+// The rules are surfaced so a caller - an agent above all - can get a request
+// right before sending it, rather than learning by rejection.
+func TestFieldsCarryTheirValidationRules(t *testing.T) {
+	catalog := apicatalog.Default()
+
+	create, ok := catalog.ByFullMethod("/user.v1.UserService/CreateUser")
+	require.True(t, ok)
+
+	for name, want := range map[string][]string{
+		"username":  {"length 1..64"},
+		"email":     {"email"},
+		"password":  {"length 8..128"},
+		"group_ids": {"each uuid"},
+	} {
+		field, ok := create.Field(name)
+		require.True(t, ok, name)
+		assert.Equal(t, want, field.Constraints, name)
+	}
+
+	list, ok := catalog.ByFullMethod("/user.v1.UserService/ListUser")
+	require.True(t, ok)
+	limit, ok := list.Field("limit")
+	require.True(t, ok)
+	assert.Equal(t, []string{"<= 200"}, limit.Constraints)
+
+	offset, ok := list.Field("offset")
+	require.True(t, ok)
+	assert.Empty(t, offset.Constraints, "an unconstrained field reports nothing")
+
+	add, ok := catalog.ByFullMethod("/system.group.v1.GroupService/AddRolesToGroup")
+	require.True(t, ok)
+	roleIDs, ok := add.Field("role_ids")
+	require.True(t, ok)
+	assert.Equal(t, []string{"at least 1 item(s)", "each uuid"}, roleIDs.Constraints)
+}
+
+// Every id a caller passes should be checked, or a typo becomes a confusing
+// "not found" instead of a clear rejection.
+func TestEveryIdPathParameterIsConstrained(t *testing.T) {
+	for _, op := range apicatalog.Default().Operations() {
+		for _, field := range op.Fields {
+			if field.In != apicatalog.InPath {
+				continue
+			}
+			assert.Contains(t, field.Constraints, "uuid",
+				"%s.%s takes %s in the path with no uuid rule", op.Service, op.Method, field.Name)
+		}
+	}
+}
+
 func TestFind(t *testing.T) {
 	catalog := apicatalog.Default()
 

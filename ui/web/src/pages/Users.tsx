@@ -387,7 +387,10 @@ export function Users() {
           <Form.Item
             name="password"
             label="Password"
-            rules={[{ required: true, message: 'Please input password!' }]}
+            rules={[
+              { required: true, message: 'Please input password!' },
+              { min: 8, message: 'Password must be at least 8 characters' }
+            ]}
           >
             <Input.Password />
           </Form.Item>
@@ -453,6 +456,7 @@ export function Users() {
             <Form.Item
               name="password"
               label="Password (leave empty to keep unchanged)"
+              rules={[{ min: 8, message: 'Password must be at least 8 characters' }]}
             >
               <Input.Password placeholder="••••••••" />
             </Form.Item>
