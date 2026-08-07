@@ -63,6 +63,23 @@
 - Prefer testing observable behaviour (returned values, dispatched events,
   rendered roles) over implementation details.
 
+### E2E Tests
+
+- **Runner**: Playwright (`playwright.config.ts`), specs in `e2e/`. Run with
+  `pnpm test:e2e`, or `pnpm test:e2e:ui` for the interactive runner. CI runs
+  them in the separate `Web E2E` job in `web-ci.yml`.
+- **No servers required.** Keycloak's authorization/token/logout endpoints and
+  the backend API are stubbed at the network boundary via Playwright route
+  interception (`e2e/keycloak-stub.ts`, `e2e/api-stub.ts`). The app itself —
+  keycloak-js, AuthProvider, api-client — runs unmodified. That means these
+  tests cover how the app drives the OIDC flow, not Keycloak's own behaviour
+  (signature validation, session management, SMTP).
+- The suite runs against the **dev server, not a production build**: React only
+  double-invokes effects in development, and that is the condition under which
+  Keycloak initialization used to break. Do not switch it to `vite preview`.
+- If the environment already ships a Chromium, point
+  `PLAYWRIGHT_CHROMIUM_PATH` at it instead of downloading a matching build.
+
 ### Dialogs
 
 - Never use the native `window.confirm` / `window.alert`. They do not follow the

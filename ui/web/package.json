@@ -14,6 +14,8 @@
     "clean": "find dist -mindepth 1 ! -name '.gitkeep' -delete",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "lint": "tsc --noEmit",
     "lint:eslint": "eslint .",
     "gen-api": "node gen-api-schema.mjs"
@@ -52,6 +54,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.6.0",

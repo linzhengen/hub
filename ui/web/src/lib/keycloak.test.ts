@@ -25,7 +25,7 @@ vi.mock('keycloak-js', () => ({
   },
 }));
 
-const { initializeKeycloak } = await import('@/lib/keycloak');
+const { initializeKeycloak, resetKeycloakInitializationForTests } = await import('@/lib/keycloak');
 const { clearTokens, getToken, getSecondsUntilExpiry } = await import('@/lib/auth-token');
 
 /** exp は秒精度なので、固定時刻を使って残り秒数を決定的にする */
@@ -40,6 +40,7 @@ beforeEach(() => {
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'error').mockImplementation(() => {});
   clearTokens();
+  resetKeycloakInitializationForTests();
   keycloakStub.token = 'access-token';
   keycloakStub.refreshToken = 'refresh-token';
   keycloakStub.tokenParsed = { sub: 'user-1', exp: expIn(300) };
@@ -120,5 +121,37 @@ describe('initializeKeycloak', () => {
     keycloakStub.init.mockRejectedValue(new Error('keycloak down'));
 
     await expect(initializeKeycloak(handlers())).rejects.toThrow('keycloak down');
+  });
+});
+
+describe('二重初期化の抑止', () => {
+  it('複数回呼ばれても keycloak.init は一度しか実行しない', async () => {
+    // StrictMode は開発ビルドで effect を二重に実行する。keycloak.init() は
+    // 二度目に必ず throw するため、素直に呼ぶと未認証と判定されてしまう。
+    const first = handlers();
+    const second = handlers();
+
+    const results = await Promise.all([initializeKeycloak(first), initializeKeycloak(second)]);
+
+    expect(keycloakStub.init).toHaveBeenCalledTimes(1);
+    expect(results).toEqual([true, true]);
+  });
+
+  it('通知先は最後に渡されたハンドラになる', async () => {
+    // 先行する effect は cleanup 済みで、その setState は捨てられる。
+    // 古いクロージャに通知すると認証状態が画面に反映されない。
+    const stale = handlers();
+    const latest = handlers();
+
+    const pending = initializeKeycloak(stale);
+    await initializeKeycloak(latest);
+    await pending;
+
+    expect(latest.onAuthenticated).toHaveBeenCalledWith(keycloakStub.tokenParsed);
+    expect(stale.onAuthenticated).not.toHaveBeenCalled();
+
+    keycloakStub.onAuthLogout?.();
+    expect(latest.onLoggedOut).toHaveBeenCalledTimes(1);
+    expect(stale.onLoggedOut).not.toHaveBeenCalled();
   });
 });
