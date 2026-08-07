@@ -75,39 +75,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    try {
-      console.log('Logging out...');
+    // id_token_hint を明示的に渡すことで Keycloak がセッションを確実に破棄する。
+    // keycloak-js が idToken を持っていない場合は手動でログアウト URL を組み立てる。
+    const idToken = keycloak.idToken;
+    const keycloakBaseUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080';
+    const realm = import.meta.env.VITE_KEYCLOAK_REALM || 'hub';
+    const redirectUri = window.location.origin;
 
-      // keycloak-js は id_token_hint を this.idToken から自動的に付与するため、
-      // options 経由で渡す必要はない。
-      const logoutOptions: KeycloakLogoutOptions = {
-        redirectUri: window.location.origin,
-      };
+    clearTokens();
 
-      // トークンを先にクリアする（もしリダイレクトに失敗しても再認証が必要な状態にするため）
-      clearTokens();
-
-      // keycloak.logout() はリダイレクトを伴うため、ここで処理が中断される可能性がある
+    if (idToken) {
+      const logoutOptions: KeycloakLogoutOptions = { redirectUri };
       await keycloak.logout(logoutOptions);
-
-      // keycloak.logout() がリダイレクトしない場合に備えて状態を更新
-      setIsAuthenticated(false);
-      setUser(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-      // エラーが発生してもローカルの状態はクリアする
-      clearTokens();
-      setIsAuthenticated(false);
-      setUser(null);
-
-      // 手動でログイン画面にリダイレクト
-      const keycloakBaseUrl = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080';
-      const realm = import.meta.env.VITE_KEYCLOAK_REALM || 'hub';
-      const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'hub-web';
-      const redirectUri = encodeURIComponent(window.location.origin);
-      const loginUrl = `${keycloakBaseUrl}/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=openid`;
-
-      window.location.href = loginUrl;
+    } else {
+      // idToken がない場合は直接ログアウトエンドポイントへ遷移する
+      const logoutUrl =
+        `${keycloakBaseUrl}/realms/${realm}/protocol/openid-connect/logout` +
+        `?post_logout_redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&client_id=hub-web`;
+      window.location.href = logoutUrl;
     }
   };
 

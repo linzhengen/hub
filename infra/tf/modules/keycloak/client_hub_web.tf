@@ -13,6 +13,10 @@ resource "keycloak_openid_client" "hub_web" {
     "http://localhost:3000/*",
     "http://localhost:9090/*"
   ]
+  valid_post_logout_redirect_uris = [
+    "http://localhost:3000",
+    "http://localhost:9090"
+  ]
   web_origins = [
     "http://localhost:3000",
     "http://localhost:9090"
