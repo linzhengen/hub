@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Modal } from 'antd';
+import { App } from 'antd';
 import { useAuth } from '@/providers/AuthProvider';
 
 /**
@@ -7,6 +7,7 @@ import { useAuth } from '@/providers/AuthProvider';
  */
 export const AuthErrorHandler: React.FC = () => {
   const { logout } = useAuth();
+  const { modal } = App.useApp();
   const isModalShown = useRef(false);
 
   useEffect(() => {
@@ -14,7 +15,7 @@ export const AuthErrorHandler: React.FC = () => {
       if (isModalShown.current) return;
 
       isModalShown.current = true;
-      Modal.error({
+      modal.error({
         title: 'セッションが切れました',
         content: 'もう一度ログインしてください。',
         okText: 'ログイン画面へ',
@@ -35,7 +36,7 @@ export const AuthErrorHandler: React.FC = () => {
     return () => {
       window.removeEventListener('api-unauthorized', handleUnauthorized);
     };
-  }, [logout]);
+  }, [logout, modal]);
 
   return null;
 };

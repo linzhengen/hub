@@ -6,6 +6,7 @@ import { resourceService } from '@/services/resource.ts';
 import { Button, Modal, Input, Table, Form, Space, Card, TreeSelect, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 
 interface RoleFormValues {
   name: string;
@@ -15,6 +16,7 @@ interface RoleFormValues {
 
 export function Roles() {
   const queryClient = useQueryClient();
+  const confirmDanger = useDangerConfirm();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [createForm] = Form.useForm();
@@ -215,9 +217,15 @@ export function Roles() {
             type="text"
             icon={<DeleteOutlined />}
             onClick={() => {
-              if (record.id && confirm('Are you sure you want to delete this role?')) {
-                deleteMutation.mutate(record.id);
-              }
+              const id = record.id;
+              if (!id) return;
+              confirmDanger(
+                {
+                  title: 'Delete role',
+                  content: 'Are you sure you want to delete this role?',
+                },
+                () => deleteMutation.mutate(id),
+              );
             }}
             className="p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             title="Delete Role"
