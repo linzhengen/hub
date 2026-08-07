@@ -6,6 +6,7 @@ resource "keycloak_openid_client" "hub_web" {
   standard_flow_enabled               = true
   implicit_flow_enabled               = false
   direct_access_grants_enabled        = true
+  oauth2_device_authorization_grant_enabled = true
   backchannel_logout_session_required = true
   access_type                         = "PUBLIC"
   access_token_lifespan               = "1800"
