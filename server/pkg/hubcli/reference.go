@@ -53,10 +53,10 @@ func writeFieldTable(b *strings.Builder, op apicatalog.Operation) {
 		return
 	}
 
-	b.WriteString("\n| flag | field | in | type |\n| --- | --- | --- | --- |\n")
+	b.WriteString("\n| flag | field | in | type | rules |\n| --- | --- | --- | --- | --- |\n")
 	for _, field := range op.Fields {
-		fmt.Fprintf(b, "| `--%s` | `%s` | %s | %s |\n",
-			FlagName(field), field.JSONName, field.In, fieldType(field))
+		fmt.Fprintf(b, "| `--%s` | `%s` | %s | %s | %s |\n",
+			FlagName(field), field.JSONName, field.In, fieldType(field), strings.Join(field.Constraints, ", "))
 	}
 }
 

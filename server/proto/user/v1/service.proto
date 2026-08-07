@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package user.v1;
 
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "hub/annotations/v1/annotations.proto";
 import "system/group/v1/model.proto";
@@ -80,10 +81,10 @@ service UserService {
 }
 
 message CreateUserRequest {
-  string username = 1;
-  string email = 2;
-  string password = 3;
-  repeated string group_ids = 5;
+  string username = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string email = 2 [(buf.validate.field).string.email = true];
+  string password = 3 [(buf.validate.field).string = {min_len: 8, max_len: 128}];
+  repeated string group_ids = 5 [(buf.validate.field).repeated.items.string.uuid = true];
 }
 
 message CreateUserResponse {
@@ -104,8 +105,8 @@ message GetMeMenusResponse {
 }
 
 message UpdateMeRequest {
-  string username = 1;
-  string email = 2;
+  string username = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string email = 2 [(buf.validate.field).string.email = true];
   string password = 3;
 }
 
@@ -122,7 +123,7 @@ message SendMeVerifyEmailRequest {}
 message SendMeVerifyEmailResponse {}
 
 message GetUserRequest {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message GetUserResponse {
@@ -130,13 +131,13 @@ message GetUserResponse {
 }
 
 message ListUserRequest {
-  uint32 limit = 1;
+  uint32 limit = 1 [(buf.validate.field).uint32.lte = 200];
   uint32 offset = 2;
-  repeated string user_ids = 3;
+  repeated string user_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
   repeated string user_emails = 4;
-  string user_name = 5;
+  string user_name = 5 [(buf.validate.field).string.max_len = 64];
   User.Status status = 6;
-  repeated string group_ids = 7;
+  repeated string group_ids = 7 [(buf.validate.field).repeated.items.string.uuid = true];
 }
 
 message ListUserResponse {
@@ -145,12 +146,12 @@ message ListUserResponse {
 }
 
 message UpdateUserRequest {
-  string id = 1;
-  string username = 2;
-  string email = 3;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string username = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string email = 3 [(buf.validate.field).string.email = true];
   User.Status status = 4;
-  optional string password = 5;
-  repeated string group_ids = 6;
+  optional string password = 5 [(buf.validate.field).string = {min_len: 8, max_len: 128}];
+  repeated string group_ids = 6 [(buf.validate.field).repeated.items.string.uuid = true];
 }
 
 message UpdateUserResponse {
@@ -158,14 +159,14 @@ message UpdateUserResponse {
 }
 
 message DeleteUserRequest {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message DeleteUserResponse {}
 
 message AddGroupsToUserRequest {
-  string id = 1;
-  repeated string group_ids = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  repeated string group_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
 }
 
 message AddGroupsToUserResponse {
@@ -173,8 +174,8 @@ message AddGroupsToUserResponse {
 }
 
 message RemoveGroupsFromUserRequest {
-  string id = 1;
-  repeated string group_ids = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  repeated string group_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
 }
 
 message RemoveGroupsFromUserResponse {

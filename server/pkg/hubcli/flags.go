@@ -49,6 +49,9 @@ func fieldUsage(field apicatalog.Field) string {
 	default:
 		parts = append(parts, field.Kind)
 	}
+	// The rules go in the flag's help as well as in `hub api describe`, so a
+	// caller reading `--help` learns what will be rejected.
+	parts = append(parts, field.Constraints...)
 	return strings.Join(parts, ", ")
 }
 

@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -715,42 +716,44 @@ var File_system_role_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_role_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1csystem/role/v1/service.proto\x12\x0esystem.role.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1asystem/role/v1/model.proto\" \n" +
-	"\x0eGetRoleRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\";\n" +
+	"\x1csystem/role/v1/service.proto\x12\x0esystem.role.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1asystem/role/v1/model.proto\"*\n" +
+	"\x0eGetRoleRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\";\n" +
 	"\x0fGetRoleResponse\x12(\n" +
-	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"\x9e\x01\n" +
-	"\x0fListRoleRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\rR\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\rR\x06offset\x12\x19\n" +
-	"\brole_ids\x18\x03 \x03(\tR\aroleIds\x12\x1b\n" +
-	"\trole_name\x18\x04 \x01(\tR\broleName\x12%\n" +
-	"\x0epermission_ids\x18\x05 \x03(\tR\rpermissionIds\"T\n" +
+	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"\xcf\x01\n" +
+	"\x0fListRoleRequest\x12\x1e\n" +
+	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\rR\x06offset\x12(\n" +
+	"\brole_ids\x18\x03 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\aroleIds\x12$\n" +
+	"\trole_name\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18@R\broleName\x124\n" +
+	"\x0epermission_ids\x18\x05 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\rpermissionIds\"T\n" +
 	"\x10ListRoleResponse\x12*\n" +
 	"\x05roles\x18\x01 \x03(\v2\x14.system.role.v1.RoleR\x05roles\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"I\n" +
-	"\x11CreateRoleRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\">\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"^\n" +
+	"\x11CreateRoleRequest\x12\x1d\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12*\n" +
+	"\vdescription\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\">\n" +
 	"\x12CreateRoleResponse\x12(\n" +
-	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"Y\n" +
-	"\x11UpdateRoleRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\">\n" +
+	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"x\n" +
+	"\x11UpdateRoleRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x1d\n" +
+	"\x04name\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12*\n" +
+	"\vdescription\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\">\n" +
 	"\x12UpdateRoleResponse\x12(\n" +
-	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"#\n" +
-	"\x11DeleteRoleRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeleteRoleResponse\"T\n" +
-	"\x1bAddPermissionsToRoleRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
-	"\x0epermission_ids\x18\x02 \x03(\tR\rpermissionIds\"H\n" +
+	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"-\n" +
+	"\x11DeleteRoleRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"\x14\n" +
+	"\x12DeleteRoleResponse\"o\n" +
+	"\x1bAddPermissionsToRoleRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x126\n" +
+	"\x0epermission_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\rpermissionIds\"H\n" +
 	"\x1cAddPermissionsToRoleResponse\x12(\n" +
-	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"Y\n" +
-	" RemovePermissionsFromRoleRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
-	"\x0epermission_ids\x18\x02 \x03(\tR\rpermissionIds\"M\n" +
+	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"t\n" +
+	" RemovePermissionsFromRoleRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x126\n" +
+	"\x0epermission_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\rpermissionIds\"M\n" +
 	"!RemovePermissionsFromRoleResponse\x12(\n" +
 	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role2\xa4\t\n" +
 	"\vRoleService\x12\x84\x01\n" +

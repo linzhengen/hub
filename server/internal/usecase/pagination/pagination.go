@@ -31,6 +31,11 @@ type Page struct {
 
 // New clamps a requested page size into the allowed range. A limit of zero
 // means "no preference" and gets DefaultLimit, not "unlimited".
+//
+// An API caller never reaches the upper clamp: the proto declares
+// `limit <= MaxLimit` and the validating interceptor rejects anything larger,
+// which is a clearer answer than silently returning fewer rows than asked for.
+// The clamp remains for callers that do not come through the API.
 func New(limit, offset uint32) Page {
 	switch {
 	case limit == 0:

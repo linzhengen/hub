@@ -381,6 +381,34 @@ inconsistency in four places at once. Keep to the following.
 -   Number fields from 1 in new messages. Where a number is skipped for
     compatibility, say so in a comment.
 
+### Validation belongs in the proto
+
+Request constraints are declared with [protovalidate](https://github.com/bufbuild/protovalidate)
+and enforced by `UnaryValidateInterceptor`, which runs after authorization and
+returns `InvalidArgument`. Do not re-check the same thing in a handler or a use
+case: two places to state a rule is two places for them to disagree.
+
+```proto
+message CreateUserRequest {
+  string username = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string email    = 2 [(buf.validate.field).string.email = true];
+  repeated string group_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
+}
+```
+
+-   **Every id is a uuid.** A path parameter without that rule turns a typo into
+    a confusing "not found"; a test enforces this.
+-   **A `limit` is bounded** by `pagination.MaxLimit`, so a caller asking for
+    more is told rather than quietly given less.
+-   **A link request needs `min_items: 1`**: adding nothing to a group is a
+    mistake, not a no-op.
+-   Constrain an `optional` field freely - the rule is skipped when the field is
+    absent, which is what "leave the password unchanged" relies on.
+
+`pkg/apicatalog` reads the rules back off the descriptors, so `hub api describe`
+and the flag help state them. **A rule added to a .proto reaches the CLI, the
+agent reference and the server together.**
+
 ### Renaming an rpc is a data migration
 
 The RBAC verb of an API permission *is* the rpc name. Renaming an rpc orphans

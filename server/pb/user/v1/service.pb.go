@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	v1 "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -1127,12 +1128,14 @@ var File_user_v1_service_proto protoreflect.FileDescriptor
 
 const file_user_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x15user/v1/service.proto\x12\auser.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\x1a\x13user/v1/model.proto\"~\n" +
-	"\x11CreateUserRequest\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
-	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x1b\n" +
-	"\tgroup_ids\x18\x05 \x03(\tR\bgroupIds\"7\n" +
+	"\x15user/v1/service.proto\x12\auser.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\x1a\x13user/v1/model.proto\"\xad\x01\n" +
+	"\x11CreateUserRequest\x12%\n" +
+	"\busername\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\busername\x12\x1d\n" +
+	"\x05email\x18\x02 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12&\n" +
+	"\bpassword\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\b\x18\x80\x01R\bpassword\x12*\n" +
+	"\tgroup_ids\x18\x05 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\bgroupIds\"7\n" +
 	"\x12CreateUserResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"\x0e\n" +
 	"\fGetMeRequest\"b\n" +
@@ -1141,53 +1144,57 @@ const file_user_v1_service_proto_rawDesc = "" +
 	"\x06groups\x18\x02 \x03(\v2\x16.system.group.v1.GroupR\x06groups\"\x13\n" +
 	"\x11GetMeMenusRequest\"9\n" +
 	"\x12GetMeMenusResponse\x12#\n" +
-	"\x05menus\x18\x01 \x03(\v2\r.user.v1.MenuR\x05menus\"_\n" +
-	"\x0fUpdateMeRequest\x12\x1a\n" +
-	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
-	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
+	"\x05menus\x18\x01 \x03(\v2\r.user.v1.MenuR\x05menus\"s\n" +
+	"\x0fUpdateMeRequest\x12%\n" +
+	"\busername\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\busername\x12\x1d\n" +
+	"\x05email\x18\x02 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12\x1a\n" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\"e\n" +
 	"\x10UpdateMeResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\x12.\n" +
 	"\x06groups\x18\x02 \x03(\v2\x16.system.group.v1.GroupR\x06groups\"\x1a\n" +
 	"\x18SendMeVerifyEmailRequest\"\x1b\n" +
-	"\x19SendMeVerifyEmailResponse\" \n" +
-	"\x0eGetUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"4\n" +
+	"\x19SendMeVerifyEmailResponse\"*\n" +
+	"\x0eGetUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"4\n" +
 	"\x0fGetUserResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"\xe3\x01\n" +
-	"\x0fListUserRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\rR\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\rR\x06offset\x12\x19\n" +
-	"\buser_ids\x18\x03 \x03(\tR\auserIds\x12\x1f\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"\x94\x02\n" +
+	"\x0fListUserRequest\x12\x1e\n" +
+	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\rR\x06offset\x12(\n" +
+	"\buser_ids\x18\x03 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\auserIds\x12\x1f\n" +
 	"\vuser_emails\x18\x04 \x03(\tR\n" +
-	"userEmails\x12\x1b\n" +
-	"\tuser_name\x18\x05 \x01(\tR\buserName\x12,\n" +
-	"\x06status\x18\x06 \x01(\x0e2\x14.user.v1.User.StatusR\x06status\x12\x1b\n" +
-	"\tgroup_ids\x18\a \x03(\tR\bgroupIds\"M\n" +
+	"userEmails\x12$\n" +
+	"\tuser_name\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x18@R\buserName\x12,\n" +
+	"\x06status\x18\x06 \x01(\x0e2\x14.user.v1.User.StatusR\x06status\x12*\n" +
+	"\tgroup_ids\x18\a \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\bgroupIds\"M\n" +
 	"\x10ListUserResponse\x12#\n" +
 	"\x05users\x18\x01 \x03(\v2\r.user.v1.UserR\x05users\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"\xce\x01\n" +
-	"\x11UpdateUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x12,\n" +
-	"\x06status\x18\x04 \x01(\x0e2\x14.user.v1.User.StatusR\x06status\x12\x1f\n" +
-	"\bpassword\x18\x05 \x01(\tH\x00R\bpassword\x88\x01\x01\x12\x1b\n" +
-	"\tgroup_ids\x18\x06 \x03(\tR\bgroupIdsB\v\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\x87\x02\n" +
+	"\x11UpdateUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12%\n" +
+	"\busername\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\busername\x12\x1d\n" +
+	"\x05email\x18\x03 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12,\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x14.user.v1.User.StatusR\x06status\x12+\n" +
+	"\bpassword\x18\x05 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\b\x18\x80\x01H\x00R\bpassword\x88\x01\x01\x12*\n" +
+	"\tgroup_ids\x18\x06 \x03(\tB\r\xbaH\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\bgroupIdsB\v\n" +
 	"\t_password\"7\n" +
 	"\x12UpdateUserResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"#\n" +
-	"\x11DeleteUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeleteUserResponse\"E\n" +
-	"\x16AddGroupsToUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tgroup_ids\x18\x02 \x03(\tR\bgroupIds\"<\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"-\n" +
+	"\x11DeleteUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"\x14\n" +
+	"\x12DeleteUserResponse\"`\n" +
+	"\x16AddGroupsToUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12,\n" +
+	"\tgroup_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\bgroupIds\"<\n" +
 	"\x17AddGroupsToUserResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"J\n" +
-	"\x1bRemoveGroupsFromUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tgroup_ids\x18\x02 \x03(\tR\bgroupIds\"A\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"e\n" +
+	"\x1bRemoveGroupsFromUserRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12,\n" +
+	"\tgroup_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\bgroupIds\"A\n" +
 	"\x1cRemoveGroupsFromUserResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2\xf5\r\n" +
 	"\vUserService\x12\x87\x01\n" +

@@ -9,6 +9,7 @@ import (
 	oidcAdminInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/oidc/admin"
 	oidcUserInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/oidc/user"
 	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/v1/server/internal/interface/grpc/interceptor"
 	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
 )
 
@@ -18,6 +19,8 @@ func ProvideAuth(c *dig.Container) {
 	must(c.Provide(auth.NewService))
 	// the RBAC rules the authz interceptor enforces, read off the protos
 	must(c.Provide(apicatalog.Default))
+	// request constraints, likewise read off the protos
+	must(c.Provide(interceptor.NewValidator))
 	// infrastructure
 	must(c.Provide(func(q persistence.Querier, envCfg config.EnvConfig) auth.Repository {
 		return authInfra.NewCachingRepository(authInfra.NewRepository(q), envCfg.AuthzPolicyCacheTTL)

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package system.resource.v1;
 
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "hub/annotations/v1/annotations.proto";
 import "system/resource/v1/model.proto";
@@ -56,7 +57,7 @@ service ResourceService {
 }
 
 message GetResourceRequest {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message GetResourceResponse {
@@ -64,10 +65,10 @@ message GetResourceResponse {
 }
 
 message ListResourceRequest {
-  uint32 limit = 1;
+  uint32 limit = 1 [(buf.validate.field).uint32.lte = 200];
   uint32 offset = 2;
-  repeated string resource_ids = 3;
-  string resource_name = 4;
+  repeated string resource_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
+  string resource_name = 4 [(buf.validate.field).string.max_len = 128];
   Status status = 5;
   Type resource_type = 6;
 }
@@ -78,10 +79,10 @@ message ListResourceResponse {
 }
 
 message ListMenuResourceRequest {
-  uint32 limit = 1;
+  uint32 limit = 1 [(buf.validate.field).uint32.lte = 200];
   uint32 offset = 2;
-  repeated string resource_ids = 3;
-  string resource_name = 4;
+  repeated string resource_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
+  string resource_name = 4 [(buf.validate.field).string.max_len = 128];
   Status status = 5;
 }
 
@@ -92,7 +93,7 @@ message ListMenuResourceResponse {
 
 message CreateResourceRequest {
   string parent_id = 1;
-  string name = 2;
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
   Identifier identifier = 4;
   Type type = 5;
   string path = 6;
@@ -108,9 +109,9 @@ message CreateResourceResponse {
 }
 
 message UpdateResourceRequest {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.uuid = true];
   string parent_id = 2;
-  string name = 3;
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
   Identifier identifier = 4;
   Type type = 5;
   string path = 6;
@@ -126,15 +127,15 @@ message UpdateResourceResponse {
 }
 
 message DeleteResourceRequest {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message DeleteResourceResponse {}
 
 message CreateMenuResourceRequest {
   string parent_id = 1;
-  string name = 2;
-  string path = 3;
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  string path = 3 [(buf.validate.field).string = {min_len: 1, max_len: 255}];
   optional string component = 4;
   int32 display_order = 5;
   optional string description = 6;
@@ -147,10 +148,10 @@ message CreateMenuResourceResponse {
 }
 
 message UpdateMenuResourceRequest {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.uuid = true];
   string parent_id = 2;
-  string name = 3;
-  string path = 4;
+  string name = 3 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  string path = 4 [(buf.validate.field).string = {min_len: 1, max_len: 255}];
   optional string component = 5;
   int32 display_order = 6;
   optional string description = 7;

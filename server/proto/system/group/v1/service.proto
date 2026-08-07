@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package system.group.v1;
 
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "hub/annotations/v1/annotations.proto";
 import "system/group/v1/model.proto";
@@ -66,7 +67,7 @@ service GroupService {
 }
 
 message GetGroupRequest {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message GetGroupResponse {
@@ -74,12 +75,12 @@ message GetGroupResponse {
 }
 
 message ListGroupRequest {
-  uint32 limit = 1;
+  uint32 limit = 1 [(buf.validate.field).uint32.lte = 200];
   uint32 offset = 2;
-  repeated string group_ids = 3;
-  string group_name = 4;
+  repeated string group_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
+  string group_name = 4 [(buf.validate.field).string.max_len = 64];
   Group.Status status = 5;
-  repeated string role_ids = 6;
+  repeated string role_ids = 6 [(buf.validate.field).repeated.items.string.uuid = true];
 }
 
 message ListGroupResponse {
@@ -88,9 +89,9 @@ message ListGroupResponse {
 }
 
 message CreateGroupRequest {
-  string name = 1;
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   Group.Status status = 2;
-  string description = 3;
+  string description = 3 [(buf.validate.field).string.max_len = 255];
 }
 
 message CreateGroupResponse {
@@ -98,10 +99,10 @@ message CreateGroupResponse {
 }
 
 message UpdateGroupRequest {
-  string id = 1;
-  string name = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   Group.Status status = 3;
-  string description = 4;
+  string description = 4 [(buf.validate.field).string.max_len = 255];
 }
 
 message UpdateGroupResponse {
@@ -109,14 +110,14 @@ message UpdateGroupResponse {
 }
 
 message DeleteGroupRequest {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
 message DeleteGroupResponse {}
 
 message AddRolesToGroupRequest {
-  string id = 1;
-  repeated string role_ids = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  repeated string role_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
 }
 
 message AddRolesToGroupResponse {
@@ -124,8 +125,8 @@ message AddRolesToGroupResponse {
 }
 
 message RemoveRolesFromGroupRequest {
-  string id = 1;
-  repeated string role_ids = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  repeated string role_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
 }
 
 message RemoveRolesFromGroupResponse {
@@ -133,8 +134,8 @@ message RemoveRolesFromGroupResponse {
 }
 
 message AddUsersToGroupRequest {
-  string id = 1;
-  repeated string user_ids = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  repeated string user_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
 }
 
 message AddUsersToGroupResponse {
@@ -142,8 +143,8 @@ message AddUsersToGroupResponse {
 }
 
 message RemoveUsersFromGroupRequest {
-  string id = 1;
-  repeated string user_ids = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  repeated string user_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
 }
 
 message RemoveUsersFromGroupResponse {

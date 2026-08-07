@@ -52,9 +52,29 @@ hub api describe ListUser          # 1 つの rpc の全リクエストフィー
 ```
 
 `hub api describe` は各フィールドについて `flag`（CLI のフラグ名）、`name`
-（JSON 名）、`in`（`path` / `query` / `body`）、`kind`、`enumValues` を返します。
+（JSON 名）、`in`（`path` / `query` / `body`）、`kind`、`enumValues`、
+`constraints` を返します。
+
 enum は **必ず** `enumValues` にある文字列を渡してください（`STATUS_ACTIVE`
 のような完全な名前で、`ACTIVE` ではありません）。
+
+`constraints` はサーバーが実際に弾く条件です。**送る前にここを読んでください。**
+
+```
+--username   ["length 1..64"]
+--email      ["email"]
+--password   ["length 8..128"]
+--group-ids  ["each uuid"]
+```
+
+主な規則:
+
+- **id は必ず UUID** です。`--id abc` のような値は `InvalidArgument` で弾かれます
+- 一覧の `--limit` は **200 が上限**です。超えると弾かれるので、全件は `--all` を使ってください
+- 追加・削除系（`add-*` / `remove-*`）は **1件以上**の id が必要です
+
+違反すると gRPC の `InvalidArgument` が返り、**どのフィールドがなぜ駄目か**が
+メッセージに入ります。
 
 ### 2. 呼ぶ
 
