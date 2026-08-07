@@ -13,6 +13,12 @@ on:
       - '.github/workflows/web-ci.yml'
   workflow_dispatch:
 
+# Both jobs only check out the repo and run the test suites, so a read-only
+# token is enough. Without this the workflow inherits the repository default,
+# which may be read/write.
+permissions:
+  contents: read
+
 jobs:
   build-and-lint:
     name: Web Build & Lint
