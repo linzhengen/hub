@@ -3,6 +3,7 @@ syntax = "proto3";
 package system.group.v1;
 
 import "google/api/annotations.proto";
+import "hub/annotations/v1/annotations.proto";
 import "system/group/v1/model.proto";
 
 option go_package = "github.com/linzhengen/hub/v1/server/pb/system/group/v1";
@@ -10,48 +11,57 @@ option go_package = "github.com/linzhengen/hub/v1/server/pb/system/group/v1";
 service GroupService {
   rpc GetGroup(GetGroupRequest) returns (GetGroupResponse) {
     option (google.api.http) = {get: "/api/v1/groups/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Get a single group by id."};
   }
   rpc ListGroup(ListGroupRequest) returns (ListGroupResponse) {
     option (google.api.http) = {get: "/api/v1/groups"};
+    option (hub.annotations.v1.method_rule) = {summary: "List groups, optionally filtered by id, name, status or role."};
   }
   rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse) {
     option (google.api.http) = {
       post: "/api/v1/groups"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Create a group."};
   }
   rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse) {
     option (google.api.http) = {
       put: "/api/v1/groups/{id}"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Update a group's name, status or description."};
   }
   rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse) {
     option (google.api.http) = {delete: "/api/v1/groups/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Delete a group."};
   }
   rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse) {
     option (google.api.http) = {
       post: "/api/v1/groups/{id}/roles/assign"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Grant a single role to a group."};
   }
   rpc AddUsersToGroup(AddUsersToGroupRequest) returns (AddUsersToGroupResponse) {
     option (google.api.http) = {
       post: "/api/v1/groups/{group_id}/users/add"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Add users to a group, keeping the existing members."};
   }
   rpc RemoveUsersFromGroup(RemoveUsersFromGroupRequest) returns (RemoveUsersFromGroupResponse) {
     option (google.api.http) = {
       post: "/api/v1/groups/{group_id}/users/remove"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Remove users from a group."};
   }
   rpc AssignRolesToGroup(AssignRolesToGroupRequest) returns (AssignRolesToGroupResponse) {
     option (google.api.http) = {
       post: "/api/v1/groups/{group_id}/roles/assignRoles"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Replace a group's roles with the given set."};
   }
 }
 

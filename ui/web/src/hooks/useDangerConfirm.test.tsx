@@ -1,6 +1,6 @@
 import { App } from 'antd';
 import { render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 
 const TriggerButton = ({ onConfirm }: { onConfirm: () => void }) => {
@@ -46,10 +46,6 @@ const openConfirm = async (onConfirm: () => void) => {
   screen.getByRole('button', { name: 'delete' }).click();
   await screen.findByText('Are you sure you want to delete this user?');
 };
-
-afterEach(() => {
-  document.body.innerHTML = '';
-});
 
 describe('useDangerConfirm', () => {
   it('ネイティブの confirm ではなくモーダルを表示する', async () => {

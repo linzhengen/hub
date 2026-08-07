@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	v1 "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -1126,7 +1127,7 @@ var File_user_v1_service_proto protoreflect.FileDescriptor
 
 const file_user_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x15user/v1/service.proto\x12\auser.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bsystem/group/v1/model.proto\x1a\x13user/v1/model.proto\"~\n" +
+	"\x15user/v1/service.proto\x12\auser.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\x1a\x13user/v1/model.proto\"~\n" +
 	"\x11CreateUserRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
@@ -1188,25 +1189,25 @@ const file_user_v1_service_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bgroup_id\x18\x02 \x01(\tR\agroupId\":\n" +
 	"\x15UnassignGroupResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2\xe4\b\n" +
-	"\vUserService\x12J\n" +
-	"\x05GetMe\x12\x15.user.v1.GetMeRequest\x1a\x16.user.v1.GetMeResponse\"\x12\x82\xd3\xe4\x93\x02\f\x12\n" +
-	"/api/v1/me\x12_\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2\xc1\r\n" +
+	"\vUserService\x12\x87\x01\n" +
+	"\x05GetMe\x12\x15.user.v1.GetMeRequest\x1a\x16.user.v1.GetMeResponse\"O\x8a\xa6\x1d9\b\x01\"5Get the profile and groups of the authenticated user.\x82\xd3\xe4\x93\x02\f\x12\n" +
+	"/api/v1/me\x12\xa1\x01\n" +
 	"\n" +
-	"GetMeMenus\x12\x1a.user.v1.GetMeMenusRequest\x1a\x1b.user.v1.GetMeMenusResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/me/menus\x12V\n" +
-	"\bUpdateMe\x12\x18.user.v1.UpdateMeRequest\x1a\x19.user.v1.UpdateMeResponse\"\x15\x82\xd3\xe4\x93\x02\x0f:\x01*\x1a\n" +
-	"/api/v1/me\x12~\n" +
-	"\x11SendMeVerifyEmail\x12!.user.v1.SendMeVerifyEmailRequest\x1a\".user.v1.SendMeVerifyEmailResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/me/verify-email\x12X\n" +
-	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/users/{id}\x12V\n" +
-	"\bListUser\x12\x18.user.v1.ListUserRequest\x1a\x19.user.v1.ListUserResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/users\x12d\n" +
+	"GetMeMenus\x12\x1a.user.v1.GetMeMenusRequest\x1a\x1b.user.v1.GetMeMenusResponse\"Z\x8a\xa6\x1d>\"<List the menu tree the authenticated user is allowed to see.\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/me/menus\x12\x9c\x01\n" +
+	"\bUpdateMe\x12\x18.user.v1.UpdateMeRequest\x1a\x19.user.v1.UpdateMeResponse\"[\x8a\xa6\x1dB\"@Update the authenticated user's own username, email or password.\x82\xd3\xe4\x93\x02\x0f:\x01*\x1a\n" +
+	"/api/v1/me\x12\xc2\x01\n" +
+	"\x11SendMeVerifyEmail\x12!.user.v1.SendMeVerifyEmailRequest\x1a\".user.v1.SendMeVerifyEmailResponse\"f\x8a\xa6\x1d@\">Send a verification email to the authenticated user's address.\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/me/verify-email\x12v\n" +
+	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponse\"8\x8a\xa6\x1d\x1a\"\x18Get a single user by id.\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/users/{id}\x12\xa0\x01\n" +
+	"\bListUser\x12\x18.user.v1.ListUserRequest\x1a\x19.user.v1.ListUserResponse\"_\x8a\xa6\x1dF\"DList users, optionally filtered by id, email, name, status or group.\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/users\x12\xb0\x01\n" +
 	"\n" +
-	"UpdateUser\x12\x1a.user.v1.UpdateUserRequest\x1a\x1b.user.v1.UpdateUserResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/api/v1/users/{id}\x12a\n" +
+	"UpdateUser\x12\x1a.user.v1.UpdateUserRequest\x1a\x1b.user.v1.UpdateUserResponse\"i\x8a\xa6\x1dH\"FUpdate a user's username, email, status, password or group membership.\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/api/v1/users/{id}\x12u\n" +
 	"\n" +
-	"DeleteUser\x12\x1a.user.v1.DeleteUserRequest\x1a\x1b.user.v1.DeleteUserResponse\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/users/{id}\x12u\n" +
-	"\vAssignGroup\x12\x1b.user.v1.AssignGroupRequest\x1a\x1c.user.v1.AssignGroupResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/users/{id}/groups/assign\x12}\n" +
-	"\rUnassignGroup\x12\x1d.user.v1.UnassignGroupRequest\x1a\x1e.user.v1.UnassignGroupResponse\"-\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/users/{id}/groups/unassign\x12_\n" +
+	"DeleteUser\x12\x1a.user.v1.DeleteUserRequest\x1a\x1b.user.v1.DeleteUserResponse\".\x8a\xa6\x1d\x10\"\x0eDelete a user.\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/users/{id}\x12\x98\x01\n" +
+	"\vAssignGroup\x12\x1b.user.v1.AssignGroupRequest\x1a\x1c.user.v1.AssignGroupResponse\"N\x8a\xa6\x1d\x1f\"\x1dAdd a user to a single group.\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/users/{id}/groups/assign\x12\xa5\x01\n" +
+	"\rUnassignGroup\x12\x1d.user.v1.UnassignGroupRequest\x1a\x1e.user.v1.UnassignGroupResponse\"U\x8a\xa6\x1d$\"\"Remove a user from a single group.\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/users/{id}/groups/unassign\x12\x97\x01\n" +
 	"\n" +
-	"CreateUser\x12\x1a.user.v1.CreateUserRequest\x1a\x1b.user.v1.CreateUserResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/usersB0Z.github.com/linzhengen/hub/v1/server/pb/user/v1b\x06proto3"
+	"CreateUser\x12\x1a.user.v1.CreateUserRequest\x1a\x1b.user.v1.CreateUserResponse\"P\x8a\xa6\x1d4\"2Create a user and optionally place them in groups.\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/usersB0Z.github.com/linzhengen/hub/v1/server/pb/user/v1b\x06proto3"
 
 var (
 	file_user_v1_service_proto_rawDescOnce sync.Once

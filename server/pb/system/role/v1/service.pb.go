@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -794,7 +795,7 @@ var File_system_role_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_role_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1csystem/role/v1/service.proto\x12\x0esystem.role.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1asystem/role/v1/model.proto\" \n" +
+	"\x1csystem/role/v1/service.proto\x12\x0esystem.role.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1asystem/role/v1/model.proto\" \n" +
 	"\x0eGetRoleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\";\n" +
 	"\x0fGetRoleResponse\x12(\n" +
@@ -834,19 +835,20 @@ const file_system_role_v1_service_proto_rawDesc = "" +
 	" RemovePermissionsFromRoleRequest\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12%\n" +
 	"\x0epermission_ids\x18\x02 \x03(\tR\rpermissionIds\"#\n" +
-	"!RemovePermissionsFromRoleResponse2\xa7\b\n" +
-	"\vRoleService\x12f\n" +
-	"\aGetRole\x12\x1e.system.role.v1.GetRoleRequest\x1a\x1f.system.role.v1.GetRoleResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/roles/{id}\x12d\n" +
-	"\bListRole\x12\x1f.system.role.v1.ListRoleRequest\x1a .system.role.v1.ListRoleResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/roles\x12m\n" +
+	"!RemovePermissionsFromRoleResponse2\xe8\n" +
 	"\n" +
-	"CreateRole\x12!.system.role.v1.CreateRoleRequest\x1a\".system.role.v1.CreateRoleResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/roles\x12r\n" +
+	"\vRoleService\x12\x84\x01\n" +
+	"\aGetRole\x12\x1e.system.role.v1.GetRoleRequest\x1a\x1f.system.role.v1.GetRoleResponse\"8\x8a\xa6\x1d\x1a\"\x18Get a single role by id.\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/roles/{id}\x12\xa4\x01\n" +
+	"\bListRole\x12\x1f.system.role.v1.ListRoleRequest\x1a .system.role.v1.ListRoleResponse\"U\x8a\xa6\x1d<\":List roles, optionally filtered by id, name or permission.\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/roles\x12\x81\x01\n" +
 	"\n" +
-	"UpdateRole\x12!.system.role.v1.UpdateRoleRequest\x1a\".system.role.v1.UpdateRoleResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/api/v1/roles/{id}\x12o\n" +
+	"CreateRole\x12!.system.role.v1.CreateRoleRequest\x1a\".system.role.v1.CreateRoleResponse\",\x8a\xa6\x1d\x10\"\x0eCreate a role.\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/roles\x12\x9c\x01\n" +
 	"\n" +
-	"DeleteRole\x12!.system.role.v1.DeleteRoleRequest\x1a\".system.role.v1.DeleteRoleResponse\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/roles/{id}\x12\x97\x01\n" +
-	"\x10AssignPermission\x12'.system.role.v1.AssignPermissionRequest\x1a(.system.role.v1.AssignPermissionResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/roles/{id}/permissions/assign\x12\xa1\x01\n" +
-	"\x14AddPermissionsToRole\x12+.system.role.v1.AddPermissionsToRoleRequest\x1a,.system.role.v1.AddPermissionsToRoleResponse\".\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/roles/{role_id}/permissions\x12\xb7\x01\n" +
-	"\x19RemovePermissionsFromRole\x120.system.role.v1.RemovePermissionsFromRoleRequest\x1a1.system.role.v1.RemovePermissionsFromRoleResponse\"5\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/roles/{role_id}/permissions/removeB7Z5github.com/linzhengen/hub/v1/server/pb/system/role/v1b\x06proto3"
+	"UpdateRole\x12!.system.role.v1.UpdateRoleRequest\x1a\".system.role.v1.UpdateRoleResponse\"G\x8a\xa6\x1d&\"$Update a role's name or description.\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/api/v1/roles/{id}\x12\x83\x01\n" +
+	"\n" +
+	"DeleteRole\x12!.system.role.v1.DeleteRoleRequest\x1a\".system.role.v1.DeleteRoleResponse\".\x8a\xa6\x1d\x10\"\x0eDelete a role.\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/roles/{id}\x12\xc1\x01\n" +
+	"\x10AssignPermission\x12'.system.role.v1.AssignPermissionRequest\x1a(.system.role.v1.AssignPermissionResponse\"Z\x8a\xa6\x1d&\"$Grant a single permission to a role.\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/roles/{id}/permissions/assign\x12\xde\x01\n" +
+	"\x14AddPermissionsToRole\x12+.system.role.v1.AddPermissionsToRoleRequest\x1a,.system.role.v1.AddPermissionsToRoleResponse\"k\x8a\xa6\x1d9\"7Grant permissions to a role, keeping the existing ones.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/roles/{role_id}/permissions\x12\xdc\x01\n" +
+	"\x19RemovePermissionsFromRole\x120.system.role.v1.RemovePermissionsFromRoleRequest\x1a1.system.role.v1.RemovePermissionsFromRoleResponse\"Z\x8a\xa6\x1d!\"\x1fRevoke permissions from a role.\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/roles/{role_id}/permissions/removeB7Z5github.com/linzhengen/hub/v1/server/pb/system/role/v1b\x06proto3"
 
 var (
 	file_system_role_v1_service_proto_rawDescOnce sync.Once

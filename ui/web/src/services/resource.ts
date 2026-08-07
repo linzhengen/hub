@@ -1,4 +1,5 @@
-import { fetchApi } from '@/lib/api-client';
+import { resourceServiceOperations as ops } from '@/api/operations';
+import { apiRequest } from '@/api/request';
 import type { paths, components } from '@/api/schema/system-resource-v1-service';
 import type { RequestParameters } from '@/api/helper';
 
@@ -24,35 +25,14 @@ export type UpdateMenuResourceResponse = components['schemas']['v1UpdateMenuReso
 export type ListResourcesParams = RequestParameters<paths, '/api/v1/resources', 'get'>;
 export type ListMenuResourcesParams = RequestParameters<paths, '/api/v1/resources/menus', 'get'>;
 
-function buildQueryString(params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === null) continue;
-    if (Array.isArray(value)) {
-      // For arrays, join with commas (common API pattern)
-      searchParams.append(key, value.join(','));
-    } else {
-      searchParams.append(key, value.toString());
-    }
-  }
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
-}
-
 export const resourceService = {
-  listResources: (params?: ListResourcesParams) => {
-    const query = params ? buildQueryString(params) : '';
-    return fetchApi<ListResourceResponse>(`/resources${query}`);
-  },
-  getResource: (id: string) => fetchApi<GetResourceResponse>(`/resources/${id}`),
-  createResource: (data: CreateResourceRequest) => fetchApi<CreateResourceResponse>('/resources', { method: 'POST', body: JSON.stringify(data) }),
-  updateResource: (id: string, data: UpdateResourceRequest) => fetchApi<UpdateResourceResponse>(`/resources/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteResource: (id: string) => fetchApi<DeleteResourceResponse>(`/resources/${id}`, { method: 'DELETE' }),
+  listResources: (params?: ListResourcesParams) => apiRequest<ListResourceResponse>(ops.listResource, { query: params }),
+  getResource: (id: string) => apiRequest<GetResourceResponse>(ops.getResource, { path: { id } }),
+  createResource: (data: CreateResourceRequest) => apiRequest<CreateResourceResponse>(ops.createResource, { body: data }),
+  updateResource: (id: string, data: UpdateResourceRequest) => apiRequest<UpdateResourceResponse>(ops.updateResource, { path: { id }, body: data }),
+  deleteResource: (id: string) => apiRequest<DeleteResourceResponse>(ops.deleteResource, { path: { id } }),
 
-  listMenuResources: (params?: ListMenuResourcesParams) => {
-    const query = params ? buildQueryString(params) : '';
-    return fetchApi<ListMenuResourceResponse>(`/resources/menus${query}`);
-  },
-  createMenuResource: (data: CreateMenuResourceRequest) => fetchApi<CreateMenuResourceResponse>('/resources/menus', { method: 'POST', body: JSON.stringify(data) }),
-  updateMenuResource: (id: string, data: UpdateMenuResourceRequest) => fetchApi<UpdateMenuResourceResponse>(`/resources/${id}/menus`, { method: 'PUT', body: JSON.stringify(data) }),
+  listMenuResources: (params?: ListMenuResourcesParams) => apiRequest<ListMenuResourceResponse>(ops.listMenuResource, { query: params }),
+  createMenuResource: (data: CreateMenuResourceRequest) => apiRequest<CreateMenuResourceResponse>(ops.createMenuResource, { body: data }),
+  updateMenuResource: (id: string, data: UpdateMenuResourceRequest) => apiRequest<UpdateMenuResourceResponse>(ops.updateMenuResource, { path: { id }, body: data }),
 };

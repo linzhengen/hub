@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package hub.annotations.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1";
+
+// MethodRule carries everything the platform needs to know about an RPC beyond
+// its request and response types: how RBAC treats it and how it is described to
+// humans and agents.
+//
+// Before this option existed the authorization interceptor derived both facts
+// from the gRPC method string and kept its list of unauthenticated methods in a
+// Go `switch`, so a new public endpoint meant editing the interceptor. Keeping
+// the rule next to the rpc makes the proto the single source of truth for the
+// server, the CLI and the generated agent documentation alike.
+message MethodRule {
+  // Skips the RBAC enforcement step. The caller must still be authenticated:
+  // public means "any signed-in user", not "anonymous".
+  bool public = 1;
+
+  // Resource identifier to enforce on. Defaults to `api.<proto package>.<Service>`,
+  // which is what `resource-import` registers, so it only needs setting when an
+  // rpc guards something other than its own service.
+  string resource = 2;
+
+  // Action (verb) to enforce on. Defaults to the rpc name.
+  string action = 3;
+
+  // One-line description of what the rpc does. Surfaced by `hub api list`,
+  // `hub api describe` and the generated agent skill reference, so write it for
+  // a reader who has never seen the proto.
+  string summary = 4;
+}
+
+extend google.protobuf.MethodOptions {
+  MethodRule method_rule = 60001;
+}

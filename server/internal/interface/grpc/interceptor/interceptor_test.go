@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -22,6 +21,7 @@ import (
 	"github.com/linzhengen/hub/v1/server/internal/domain/oidc/token"
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/user"
+	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
 )
 
 // Mock implementations
@@ -620,7 +620,7 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 				req.Action == "Method"
 		})).Return(true, nil)
 
-		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
 
 		expectedResp := "response"
@@ -651,7 +651,7 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 		mockAuthSvc := new(MockAuthService)
 		// Enforce should not be called for GetMe
 
-		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.UnaryServerInfo{FullMethod: "/user.v1.UserService/GetMe"}
 
 		expectedResp := "response"
@@ -673,7 +673,7 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 		mockUserRepo := new(MockUserRepository)
 		mockAuthSvc := new(MockAuthService)
 
-		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
 
 		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -698,7 +698,7 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 
 		mockAuthSvc := new(MockAuthService)
 
-		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
 
 		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -723,7 +723,7 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 
 		mockAuthSvc := new(MockAuthService)
 
-		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
 
 		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -753,7 +753,7 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 
 		mockAuthSvc := new(MockAuthService)
 
-		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
 
 		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -788,7 +788,7 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 				req.Action == "Method"
 		})).Return(false, nil)
 
-		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
 
 		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -823,7 +823,7 @@ func TestUnaryAuthzInterceptor(t *testing.T) {
 				req.Action == "Method"
 		})).Return(false, errors.New("authorization error"))
 
-		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
 
 		handler := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -861,7 +861,7 @@ func TestStreamAuthzInterceptor(t *testing.T) {
 				req.Action == "Method"
 		})).Return(true, nil)
 
-		interceptor := StreamAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := StreamAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.StreamServerInfo{FullMethod: "/test.Service/Method"}
 
 		stream := &MockServerStream{ctx: ctx}
@@ -889,7 +889,7 @@ func TestStreamAuthzInterceptor(t *testing.T) {
 
 		mockAuthSvc := new(MockAuthService)
 
-		interceptor := StreamAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := StreamAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.StreamServerInfo{FullMethod: "/test.Service/Method"}
 		stream := &MockServerStream{ctx: ctx}
 
@@ -914,7 +914,7 @@ func TestStreamAuthzInterceptor(t *testing.T) {
 
 		mockAuthSvc := new(MockAuthService)
 
-		interceptor := StreamAuthzInterceptor(mockAuthSvc, mockUserRepo)
+		interceptor := StreamAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
 		info := &grpc.StreamServerInfo{FullMethod: "/test.Service/Method"}
 		stream := &MockServerStream{ctx: ctx}
 
@@ -934,69 +934,60 @@ func TestStreamAuthzInterceptor(t *testing.T) {
 	// (Skipping for brevity as they would be very similar)
 }
 
-// Tests for extractResourceAndAction
-func TestExtractResourceAndAction(t *testing.T) {
+// authzTarget prefers the rule declared on the rpc and falls back to the
+// naming convention for methods the catalog does not know about, such as the
+// gRPC health service.
+func TestAuthzTarget(t *testing.T) {
 	tests := []struct {
+		name             string
 		fullMethod       string
 		expectedResource string
 		expectedAction   string
+		expectedPublic   bool
 	}{
 		{
+			name:             "public rpc declared in the proto",
 			fullMethod:       "/user.v1.UserService/GetMe",
 			expectedResource: "api.user.v1.UserService",
 			expectedAction:   "GetMe",
+			expectedPublic:   true,
 		},
 		{
-			fullMethod:       "/system.role.RoleService/CreateRole",
-			expectedResource: "api.system.role.RoleService",
+			name:             "guarded rpc in the catalog",
+			fullMethod:       "/system.role.v1.RoleService/CreateRole",
+			expectedResource: "api.system.role.v1.RoleService",
 			expectedAction:   "CreateRole",
 		},
 		{
-			fullMethod:       "invalid",
-			expectedResource: "",
-			expectedAction:   "",
+			name:             "method outside the catalog falls back to the convention",
+			fullMethod:       "/grpc.health.v1.Health/Check",
+			expectedResource: "api.grpc.health.v1.Health",
+			expectedAction:   "Check",
+		},
+		{
+			name:       "malformed method",
+			fullMethod: "invalid",
 		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.fullMethod, func(t *testing.T) {
-			resource, action := extractResourceAndAction(tt.fullMethod)
+		t.Run(tt.name, func(t *testing.T) {
+			resource, action, public := authzTarget(apicatalog.Default(), tt.fullMethod)
 			assert.Equal(t, tt.expectedResource, resource)
 			assert.Equal(t, tt.expectedAction, action)
+			assert.Equal(t, tt.expectedPublic, public)
 		})
 	}
 }
 
-// Tests for shouldSkipAuthz
-func TestShouldSkipAuthz(t *testing.T) {
-	tests := []struct {
-		resource string
-		action   string
-		expected bool
-	}{
-		{
-			resource: "api.user.v1.UserService",
-			action:   "GetMe",
-			expected: true,
-		},
-		{
-			resource: "api.user.v1.UserService",
-			action:   "UpdateUser",
-			expected: false,
-		},
-		{
-			resource: "api.system.role.RoleService",
-			action:   "GetMe",
-			expected: false,
-		},
-	}
+// A nil catalog must still authorize rather than panic, so a caller that has
+// not wired one up fails closed onto the convention.
+func TestAuthzTargetWithoutCatalog(t *testing.T) {
+	resource, action, public := authzTarget(nil, "/user.v1.UserService/GetMe")
 
-	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s/%s", tt.resource, tt.action), func(t *testing.T) {
-			result := shouldSkipAuthz(tt.resource, tt.action)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
+	assert.Equal(t, "api.user.v1.UserService", resource)
+	assert.Equal(t, "GetMe", action)
+	assert.False(t, public)
 }
 
 func TestAuthServerStream_SendMsg(t *testing.T) {

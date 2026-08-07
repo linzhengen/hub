@@ -7,12 +7,14 @@
 - **State Management & Data Fetching**: TanStack Query (React Query) v5
 - **Routing**: React Router v8 (import from `react-router`; `react-router-dom` was discontinued in v8)
 - **Forms**: React Hook Form with Zod validation
-- **API Client**: Custom `fetchApi` wrapper in `src/lib/api-client.ts`
+- **API Client**: `apiRequest` in `src/api/request.ts`, over the `fetchApi` wrapper in `src/lib/api-client.ts`
 
 ## Directory Structure
 
 - `src/api/schema`: Generated TypeScript definitions from OpenAPI/Protobuf.
-- `src/services`: Domain-specific API service wrappers using `fetchApi`.
+- `src/api/operations.ts`: Generated verb/path/path-parameter table, one entry per rpc. Do not edit; `make gen` rewrites it.
+- `src/api/request.ts`: `apiRequest`, `buildPath` and `buildQueryString` — the single place URLs and query strings are built.
+- `src/services`: Domain-specific API service wrappers over `apiRequest`.
 - `src/hooks`: Custom React hooks, including data fetching hooks using TanStack Query.
 - `src/components/ui`: Base UI components (mostly Shadcn UI).
 - `src/components/common`: Shared business components.
@@ -23,10 +25,30 @@
 ## Development Workflow
 
 ### API Integration
-1. Generate/Update schemas in `src/api/schema` using `pnpm gen-api`.
-2. Implement or update a service in `src/services` that uses the generated types and `fetchApi`.
+1. Regenerate the schemas in `src/api/schema` with `pnpm gen-api`, and `src/api/operations.ts` with `make gen` at the repository root.
+2. Implement or update a service in `src/services`: take the operation from `src/api/operations.ts` and call it through `apiRequest`.
 3. Use `@tanstack/react-query` to consume the services in components/pages (using `useQuery` or `useMutation`).
 4. If needed, create custom hooks in `src/hooks` for complex data fetching or state logic.
+
+**Never write a REST path or build a query string by hand.** The verb, the path
+and its parameters come from `src/api/operations.ts`, which is generated from
+the same protobuf definitions the server routes on, so a route that moves
+breaks the TypeScript build instead of failing at runtime.
+
+```ts
+import { userServiceOperations as ops } from '@/api/operations';
+import { apiRequest } from '@/api/request';
+
+export const userService = {
+  listUsers: (params?: ListUsersParams) => apiRequest<ListUsersResponse>(ops.listUser, { query: params }),
+  getUser: (id: string) => apiRequest<GetUserResponse>(ops.getUser, { path: { id } }),
+  createUser: (data: CreateUserRequest) => apiRequest<CreateUserResponse>(ops.createUser, { body: data }),
+};
+```
+
+Repeated query parameters are sent as repeated keys (`?userIds=a&userIds=b`),
+which is how grpc-gateway parses them; a comma-joined value arrives as the
+single id `"a,b"`.
 
 ### Component Guidelines
 - Use Shadcn UI primitives from `src/components/ui` whenever possible.

@@ -3,6 +3,7 @@ syntax = "proto3";
 package system.permission.v1;
 
 import "google/api/annotations.proto";
+import "hub/annotations/v1/annotations.proto";
 import "system/permission/v1/model.proto";
 
 option go_package = "github.com/linzhengen/hub/v1/server/pb/system/permission/v1";
@@ -10,24 +11,29 @@ option go_package = "github.com/linzhengen/hub/v1/server/pb/system/permission/v1
 service PermissionService {
   rpc GetPermission(GetPermissionRequest) returns (GetPermissionResponse) {
     option (google.api.http) = {get: "/api/v1/permissions/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Get a single permission by id."};
   }
   rpc ListPermission(ListPermissionRequest) returns (ListPermissionResponse) {
     option (google.api.http) = {get: "/api/v1/permissions"};
+    option (hub.annotations.v1.method_rule) = {summary: "List permissions, optionally filtered by id or name."};
   }
   rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse) {
     option (google.api.http) = {
       post: "/api/v1/permissions"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Create a permission binding a verb to a resource."};
   }
   rpc UpdatePermission(UpdatePermissionRequest) returns (UpdatePermissionResponse) {
     option (google.api.http) = {
       put: "/api/v1/permissions/{id}"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Update a permission's verb or description."};
   }
   rpc DeletePermission(DeletePermissionRequest) returns (DeletePermissionResponse) {
     option (google.api.http) = {delete: "/api/v1/permissions/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Delete a permission."};
   }
 }
 

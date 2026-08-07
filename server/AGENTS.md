@@ -22,6 +22,9 @@
 3. **Define Protobuf**
    * Add the necessary definitions to `proto/`.
    * Refer to existing `.proto` files.
+   * Give every new rpc a `hub.annotations.v1.method_rule` option with a
+     `summary`. It is what the authorization interceptor, the `hub` CLI and the
+     generated agent reference all read (see section 11).
 4. **Define SQL**
    * Create SQL queries for `sqlc` in `internal/infrastructure/persistence/postgres/query/`.
 5. **Generate Code**
@@ -94,6 +97,10 @@ The project relies heavily on code generation to reduce boilerplate and ensure c
     -   `buf generate` creates Go gRPC servers/clients (`pb/`) and gRPC-Gateway stubs.
 -   **OpenAPI**: `make gen` also generates OpenAPI v2 (Swagger) specifications from the gRPC definitions.
 -   **SQLC**: As mentioned above, `sqlc` generates Go code from SQL queries.
+-   **Web client**: `cmd/gen-web-client` writes `ui/web/src/api/operations.ts`, the verb/path table the browser client calls through, so the UI never repeats a REST path.
+-   **Agent reference**: `hub api docs` writes `.agents/skills/hub-api/references/api-reference.md`, the API reference the `hub-api` agent skill ships.
+
+    All three read `pkg/apicatalog`, so a proto change reaches the server, the web client, the CLI and the agent documentation in one `make gen`.
 
 ## 7. Configuration
 
@@ -105,9 +112,11 @@ The project relies heavily on code generation to reduce boilerplate and ensure c
 The `cmd/` directory contains multiple entrypoints for the application:
 
 -   **`cmd/server/`**: The main entry point for running the gRPC and HTTP API server.
--   **`cmd/cli/`**: An entry point for command-line operations, such as running database seeds.
+-   **`cmd/cli/`**: Operational commands that talk to the database directly, such as running migrations and seeds.
+-   **`cmd/hub/`**: The `hub` API client. Unlike `cmd/cli` it never touches the database; it calls the REST gateway with a token, and its command tree is generated from `pkg/apicatalog`. Install it with `make cli`.
 -   **`cmd/openapi223/`**: A utility to patch the generated OpenAPI spec.
 -   **`cmd/proto2yaml/`**: A utility to convert protobuf service definitions into a YAML format.
+-   **`cmd/gen-web-client/`**: Writes the web client's operation table from the API catalog.
 
 ## 9. Shared Packages (`pkg/`)
 
@@ -116,6 +125,8 @@ The `pkg/` directory contains utility packages that are shared across the projec
 -   `pkg/logger`: A structured logger.
 -   `pkg/jwt`: JWT handling utilities.
 -   `pkg/hash`: Hashing utilities.
+-   `pkg/apicatalog`: The API surface derived from the protobuf descriptors - REST mapping, request fields and RBAC rule per rpc. The authorization interceptor, the CLI and the code generators all read it.
+-   `pkg/hubcli`: The `hub` CLI, built on `pkg/apicatalog`.
 
 ## 10. Communication Flow
 
@@ -145,14 +156,46 @@ Auth is handled via gRPC interceptors defined in `internal/interface/grpc/interc
 ### Authorization (What can you do?)
 
 -   **Implementation:** Authorization is a custom **Role-Based Access Control (RBAC)** implementation.
+-   **Rules live in the proto.** Each rpc carries a `hub.annotations.v1.method_rule` option:
+
+    ```proto
+    rpc GetMe(GetMeRequest) returns (GetMeResponse) {
+      option (google.api.http) = {get: "/api/v1/me"};
+      option (hub.annotations.v1.method_rule) = {
+        public: true
+        summary: "Get the profile and groups of the authenticated user."
+      };
+    }
+    ```
+
+    -   `public: true` skips the enforcement step. The caller must still be
+        authenticated, so public means "any signed-in user", not "anonymous".
+        Only `GetMe` is public: a user with no roles yet must still be able to
+        load their own profile.
+    -   `resource` and `action` override what is enforced. Left empty they
+        default to `api.<proto package>.<Service>` and the rpc name, which is
+        what `cli resource-import` registers.
+    -   `summary` is the one-line description the CLI and the generated agent
+        reference show.
+
+    `pkg/apicatalog` reads these options off the descriptors at startup, so
+    making an endpoint public is a one-line proto change. Do not add a special
+    case to the interceptor.
 -   **Flow:**
     1.  The `UnaryAuthzInterceptor` or `StreamAuthzInterceptor` runs after the authentication interceptor.
-    2.  It extracts the user's ID from the `context`.
-    3.  It determines the required permission by parsing the gRPC method name (e.g., `/user.v1.UserService/GetMe` requires permission to perform the `GetMe` action on the `api.user.v1.UserService` resource).
-    4.  It calls the `auth.Service.Enforce` method.
-    5.  The `Enforce` method uses the `auth.Repository` to run a complex SQL query (`SelectUserAuthorizedPolices` in `internal/infrastructure/persistence/mysql/query/auth.sql`). This query joins the `users`, `user_groups`, `groups`, `group_roles`, `role_permissions`, `permissions`, and `resources` tables to determine all permissions the user has through their group memberships and assigned roles.
-    6.  The service then checks if any of the user's permissions match the required permission for the action. Wildcards (`*`) are supported.
+    2.  It extracts the user's ID from the `context` and rejects an inactive account.
+    3.  It looks the rpc up in `pkg/apicatalog` to get its resource, action and public flag. A method outside the catalog - gRPC health checking, say - falls back to the same naming convention.
+    4.  Unless the rpc is public, it calls `auth.Service.Enforce`.
+    5.  The `Enforce` method uses the `auth.Repository` to run a complex SQL query (`SelectUserAuthorizedPolices` in `internal/infrastructure/persistence/postgres/query/auth.sql`). This query joins the `users`, `user_groups`, `groups`, `group_roles`, `role_permissions`, `permissions`, and `resources` tables to determine all permissions the user has through their group memberships and assigned roles.
+    6.  The service then checks if any of the user's permissions match the required permission for the action. `*` is a wildcard and may appear anywhere in a pattern, any number of times: `api.*`, `*Service` and `api.system.*.v1.*Service` are all valid.
     7.  If a matching permission is found, the request is allowed to proceed; otherwise, a `Permission Denied` error is returned.
+-   **Policy cache:** `AUTHZ_POLICY_CACHE_TTL` memoises a user's effective
+    policies for that long, so a burst of requests runs the permission join once
+    instead of once per call. It is off by default because the trade is a
+    security one: a grant or revocation takes up to the TTL to reach a user who
+    is already making requests. Turn it on only where that window is acceptable.
+-   **Inspecting permissions:** `hub api describe <rpc>` reports the resource
+    and action an rpc needs, which is the quickest way to explain a 403.
 
 ## 12. Development Commands (Makefile)
 

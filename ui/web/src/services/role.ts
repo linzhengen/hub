@@ -1,4 +1,5 @@
-import { fetchApi } from '@/lib/api-client';
+import { roleServiceOperations as ops } from '@/api/operations';
+import { apiRequest } from '@/api/request';
 import type { paths, components } from '@/api/schema/system-role-v1-service';
 import type { RequestParameters } from '@/api/helper';
 
@@ -21,32 +22,14 @@ export type DeleteRoleResponse = components['schemas']['v1DeleteRoleResponse'];
 // Helper type for list roles parameters (query)
 export type ListRolesParams = RequestParameters<paths, '/api/v1/roles', 'get'>;
 
-function buildQueryString(params: Record<string, unknown>): string {
-  const searchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === null) continue;
-    if (Array.isArray(value)) {
-      // For arrays, join with commas (common API pattern)
-      searchParams.append(key, value.join(','));
-    } else {
-      searchParams.append(key, value.toString());
-    }
-  }
-  const queryString = searchParams.toString();
-  return queryString ? `?${queryString}` : '';
-}
-
 export const roleService = {
-  listRoles: (params?: ListRolesParams) => {
-    const query = params ? buildQueryString(params) : '';
-    return fetchApi<ListRolesResponse>(`/roles${query}`);
-  },
-  getRole: (id: string) => fetchApi<GetRoleResponse>(`/roles/${id}`),
-  createRole: (data: CreateRoleRequest) => fetchApi<CreateRoleResponse>('/roles', { method: 'POST', body: JSON.stringify(data) }),
-  updateRole: (id: string, data: UpdateRoleRequest) => fetchApi<UpdateRoleResponse>(`/roles/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deleteRole: (id: string) => fetchApi<DeleteRoleResponse>(`/roles/${id}`, { method: 'DELETE' }),
+  listRoles: (params?: ListRolesParams) => apiRequest<ListRolesResponse>(ops.listRole, { query: params }),
+  getRole: (id: string) => apiRequest<GetRoleResponse>(ops.getRole, { path: { id } }),
+  createRole: (data: CreateRoleRequest) => apiRequest<CreateRoleResponse>(ops.createRole, { body: data }),
+  updateRole: (id: string, data: UpdateRoleRequest) => apiRequest<UpdateRoleResponse>(ops.updateRole, { path: { id }, body: data }),
+  deleteRole: (id: string) => apiRequest<DeleteRoleResponse>(ops.deleteRole, { path: { id } }),
 
-  assignPermission: (id: string, data: AssignPermissionRequest) => fetchApi<AssignPermissionResponse>(`/roles/${id}/permissions/assign`, { method: 'POST', body: JSON.stringify(data) }),
-  addPermissionsToRole: (id: string, data: AddPermissionsToRoleRequest) => fetchApi<AddPermissionsToRoleResponse>(`/roles/${id}/permissions`, { method: 'POST', body: JSON.stringify(data) }),
-  removePermissionsFromRole: (id: string, data: RemovePermissionsFromRoleRequest) => fetchApi<RemovePermissionsFromRoleResponse>(`/roles/${id}/permissions/remove`, { method: 'POST', body: JSON.stringify(data) }),
+  assignPermission: (id: string, data: AssignPermissionRequest) => apiRequest<AssignPermissionResponse>(ops.assignPermission, { path: { id }, body: data }),
+  addPermissionsToRole: (id: string, data: AddPermissionsToRoleRequest) => apiRequest<AddPermissionsToRoleResponse>(ops.addPermissionsToRole, { path: { roleId: id }, body: data }),
+  removePermissionsFromRole: (id: string, data: RemovePermissionsFromRoleRequest) => apiRequest<RemovePermissionsFromRoleResponse>(ops.removePermissionsFromRole, { path: { roleId: id }, body: data }),
 };

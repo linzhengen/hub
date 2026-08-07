@@ -3,6 +3,7 @@ syntax = "proto3";
 package system.resource.v1;
 
 import "google/api/annotations.proto";
+import "hub/annotations/v1/annotations.proto";
 import "system/resource/v1/model.proto";
 
 option go_package = "github.com/linzhengen/hub/v1/server/pb/system/resource/v1";
@@ -10,39 +11,47 @@ option go_package = "github.com/linzhengen/hub/v1/server/pb/system/resource/v1";
 service ResourceService {
   rpc GetResource(GetResourceRequest) returns (GetResourceResponse) {
     option (google.api.http) = {get: "/api/v1/resources/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Get a single resource by id."};
   }
   rpc ListResource(ListResourceRequest) returns (ListResourceResponse) {
     option (google.api.http) = {get: "/api/v1/resources"};
+    option (hub.annotations.v1.method_rule) = {summary: "List resources, optionally filtered by id, name, status or type."};
   }
   rpc CreateResource(CreateResourceRequest) returns (CreateResourceResponse) {
     option (google.api.http) = {
       post: "/api/v1/resources"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Create a resource (an API or menu entry RBAC can guard)."};
   }
   rpc UpdateResource(UpdateResourceRequest) returns (UpdateResourceResponse) {
     option (google.api.http) = {
       put: "/api/v1/resources/{id}"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Update a resource."};
   }
   rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {
     option (google.api.http) = {delete: "/api/v1/resources/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Delete a resource."};
   }
   rpc ListMenuResource(ListMenuResourceRequest) returns (ListMenuResourceResponse) {
     option (google.api.http) = {get: "/api/v1/resources/menus"};
+    option (hub.annotations.v1.method_rule) = {summary: "List menu resources."};
   }
   rpc CreateMenuResource(CreateMenuResourceRequest) returns (CreateMenuResourceResponse) {
     option (google.api.http) = {
       post: "/api/v1/resources/menus"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Create a menu resource."};
   }
   rpc UpdateMenuResource(UpdateMenuResourceRequest) returns (UpdateMenuResourceResponse) {
     option (google.api.http) = {
       put: "/api/v1/resources/{id}/menus"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Update a menu resource."};
   }
 }
 

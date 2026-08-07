@@ -3,6 +3,7 @@ syntax = "proto3";
 package system.role.v1;
 
 import "google/api/annotations.proto";
+import "hub/annotations/v1/annotations.proto";
 import "system/role/v1/model.proto";
 
 option go_package = "github.com/linzhengen/hub/v1/server/pb/system/role/v1";
@@ -10,42 +11,50 @@ option go_package = "github.com/linzhengen/hub/v1/server/pb/system/role/v1";
 service RoleService {
   rpc GetRole(GetRoleRequest) returns (GetRoleResponse) {
     option (google.api.http) = {get: "/api/v1/roles/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Get a single role by id."};
   }
   rpc ListRole(ListRoleRequest) returns (ListRoleResponse) {
     option (google.api.http) = {get: "/api/v1/roles"};
+    option (hub.annotations.v1.method_rule) = {summary: "List roles, optionally filtered by id, name or permission."};
   }
   rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse) {
     option (google.api.http) = {
       post: "/api/v1/roles"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Create a role."};
   }
   rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse) {
     option (google.api.http) = {
       put: "/api/v1/roles/{id}"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Update a role's name or description."};
   }
   rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse) {
     option (google.api.http) = {delete: "/api/v1/roles/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Delete a role."};
   }
   rpc AssignPermission(AssignPermissionRequest) returns (AssignPermissionResponse) {
     option (google.api.http) = {
       post: "/api/v1/roles/{id}/permissions/assign"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Grant a single permission to a role."};
   }
   rpc AddPermissionsToRole(AddPermissionsToRoleRequest) returns (AddPermissionsToRoleResponse) {
     option (google.api.http) = {
       post: "/api/v1/roles/{role_id}/permissions"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Grant permissions to a role, keeping the existing ones."};
   }
   rpc RemovePermissionsFromRole(RemovePermissionsFromRoleRequest) returns (RemovePermissionsFromRoleResponse) {
     option (google.api.http) = {
       post: "/api/v1/roles/{role_id}/permissions/remove"
       body: "*"
     };
+    option (hub.annotations.v1.method_rule) = {summary: "Revoke permissions from a role."};
   }
 }
 

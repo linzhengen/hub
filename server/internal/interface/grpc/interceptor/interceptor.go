@@ -21,6 +21,7 @@ import (
 	"github.com/linzhengen/hub/v1/server/internal/domain/oidc/token"
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/group"
 	"github.com/linzhengen/hub/v1/server/internal/domain/user"
+	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
 	"github.com/linzhengen/hub/v1/server/pkg/logger"
 )
 
@@ -235,80 +236,80 @@ func authzUserLookupError(err error) error {
 }
 
 // UnaryAuthzInterceptor creates a new unary server interceptor for authorization
-func UnaryAuthzInterceptor(authSvc auth.Service, userRepo user.Repository) grpc.UnaryServerInterceptor {
+func UnaryAuthzInterceptor(authSvc auth.Service, userRepo user.Repository, catalog *apicatalog.Catalog) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// Extract user ID from context
-		userID, ok := contextx.GetUserID(ctx)
-		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
-		}
-
-		// Check user status
-		u, err := userRepo.FindOne(ctx, userID)
-		if err != nil {
-			return nil, authzUserLookupError(err)
-		}
-		if u.Status == user.InActive {
-			return nil, status.Errorf(codes.PermissionDenied, "permission denied: user is inactive")
-		}
-
-		// Extract resource and action from method
-		resource, action := extractResourceAndAction(info.FullMethod)
-		if !shouldSkipAuthz(resource, action) {
-			// Check if user has permission
-			allowed, err := authSvc.Enforce(ctx, auth.Request{
-				Subject: userID,
-				Object:  resource,
-				Action:  action,
-			})
-			if err != nil {
-				return nil, status.Errorf(codes.Internal, "authorization error: %v", err)
-			}
-			if !allowed {
-				return nil, status.Errorf(codes.PermissionDenied, "permission denied for %s on %s", action, resource)
-			}
+		if err := authorize(ctx, authSvc, userRepo, catalog, info.FullMethod); err != nil {
+			return nil, err
 		}
 		return handler(ctx, req)
 	}
 }
 
 // StreamAuthzInterceptor creates a new stream server interceptor for authorization
-func StreamAuthzInterceptor(authSvc auth.Service, userRepo user.Repository) grpc.StreamServerInterceptor {
+func StreamAuthzInterceptor(authSvc auth.Service, userRepo user.Repository, catalog *apicatalog.Catalog) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		ctx := stream.Context()
-		// Extract user ID from context
-		userID, ok := contextx.GetUserID(ctx)
-		if !ok {
-			return status.Errorf(codes.Unauthenticated, "user not authenticated")
-		}
-
-		// Check user status
-		u, err := userRepo.FindOne(ctx, userID)
-		if err != nil {
-			return authzUserLookupError(err)
-		}
-		if u.Status == user.InActive {
-			return status.Errorf(codes.PermissionDenied, "permission denied: user is inactive")
-		}
-
-		// Extract resource and action from method
-		resource, action := extractResourceAndAction(info.FullMethod)
-		if !shouldSkipAuthz(resource, action) {
-			// Check if user has permission
-			allowed, err := authSvc.Enforce(ctx, auth.Request{
-				Subject: userID,
-				Object:  resource,
-				Action:  action,
-			})
-			if err != nil {
-				return status.Errorf(codes.Internal, "authorization error: %v", err)
-			}
-			if !allowed {
-				return status.Errorf(codes.PermissionDenied, "permission denied for %s on %s", action, resource)
-			}
+		if err := authorize(stream.Context(), authSvc, userRepo, catalog, info.FullMethod); err != nil {
+			return err
 		}
 		return handler(srv, stream)
 	}
+}
+
+// authorize runs the checks both authz interceptors share: the caller is known,
+// their account is still active, and the rpc's RBAC rule permits the call. It
+// returns a gRPC status error, or nil when the call may proceed.
+func authorize(
+	ctx context.Context,
+	authSvc auth.Service,
+	userRepo user.Repository,
+	catalog *apicatalog.Catalog,
+	fullMethod string,
+) error {
+	userID, ok := contextx.GetUserID(ctx)
+	if !ok {
+		return status.Errorf(codes.Unauthenticated, "user not authenticated")
+	}
+
+	u, err := userRepo.FindOne(ctx, userID)
+	if err != nil {
+		return authzUserLookupError(err)
+	}
+	if u.Status == user.InActive {
+		return status.Errorf(codes.PermissionDenied, "permission denied: user is inactive")
+	}
+
+	resource, action, public := authzTarget(catalog, fullMethod)
+	if public {
+		return nil
+	}
+
+	allowed, err := authSvc.Enforce(ctx, auth.Request{
+		Subject: userID,
+		Object:  resource,
+		Action:  action,
+	})
+	if err != nil {
+		return status.Errorf(codes.Internal, "authorization error: %v", err)
+	}
+	if !allowed {
+		return status.Errorf(codes.PermissionDenied, "permission denied for %s on %s", action, resource)
+	}
+	return nil
+}
+
+// authzTarget resolves what an rpc is enforced against. The answer comes from
+// the rpc's hub.annotations.v1.method_rule option by way of the API catalog, so
+// making an endpoint public is a one-line proto change rather than an edit to
+// this file. Methods outside the catalog - gRPC health checking, say - keep
+// falling back to the naming convention the catalog itself defaults to.
+func authzTarget(catalog *apicatalog.Catalog, fullMethod string) (resource, action string, public bool) {
+	if catalog != nil {
+		if op, ok := catalog.ByFullMethod(fullMethod); ok {
+			return op.Resource, op.Action, op.Public
+		}
+	}
+	resource, action = extractResourceAndAction(fullMethod)
+	return resource, action, false
 }
 
 // extractResourceAndAction extracts the resource and action from the gRPC method
@@ -321,12 +322,5 @@ func extractResourceAndAction(fullMethod string) (string, string) {
 
 	service := parts[1]
 	action := parts[2]
-	return fmt.Sprintf("api.%s", service), action
-}
-
-// shouldSkipAuthz determines if authorization should be skipped for a given resource and action
-func shouldSkipAuthz(resource, action string) bool {
-	// Currently only skipping for UserService.getme
-	// Add more conditions here if needed in the future
-	return resource == "api.user.v1.UserService" && action == "GetMe"
+	return apicatalog.ResourceOf(service), action
 }

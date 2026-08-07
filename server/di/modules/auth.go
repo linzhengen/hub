@@ -3,18 +3,25 @@ package modules
 import (
 	"go.uber.org/dig"
 
+	"github.com/linzhengen/hub/v1/server/config"
 	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
 	authInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/auth"
 	oidcAdminInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/oidc/admin"
 	oidcUserInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/oidc/user"
+	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
 )
 
 // ProvideAuth registers authentication and authorization dependencies.
 func ProvideAuth(c *dig.Container) {
 	// domain
 	must(c.Provide(auth.NewService))
+	// the RBAC rules the authz interceptor enforces, read off the protos
+	must(c.Provide(apicatalog.Default))
 	// infrastructure
-	must(c.Provide(authInfra.NewRepository))
+	must(c.Provide(func(q persistence.Querier, envCfg config.EnvConfig) auth.Repository {
+		return authInfra.NewCachingRepository(authInfra.NewRepository(q), envCfg.AuthzPolicyCacheTTL)
+	}))
 	must(c.Provide(oidcAdminInfra.NewClient))
 	must(c.Provide(oidcUserInfra.NewRepository))
 }

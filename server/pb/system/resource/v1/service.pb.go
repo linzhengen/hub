@@ -7,6 +7,7 @@
 package v1
 
 import (
+	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1082,7 +1083,7 @@ var File_system_resource_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_resource_v1_service_proto_rawDesc = "" +
 	"\n" +
-	" system/resource/v1/service.proto\x12\x12system.resource.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1esystem/resource/v1/model.proto\"$\n" +
+	" system/resource/v1/service.proto\x12\x12system.resource.v1\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1esystem/resource/v1/model.proto\"$\n" +
 	"\x12GetResourceRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"O\n" +
 	"\x13GetResourceResponse\x128\n" +
@@ -1188,16 +1189,16 @@ const file_system_resource_v1_service_proto_rawDesc = "" +
 	"_componentB\x0e\n" +
 	"\f_description\"V\n" +
 	"\x1aUpdateMenuResourceResponse\x128\n" +
-	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource2\xf8\b\n" +
-	"\x0fResourceService\x12~\n" +
-	"\vGetResource\x12&.system.resource.v1.GetResourceRequest\x1a'.system.resource.v1.GetResourceResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/resources/{id}\x12|\n" +
-	"\fListResource\x12'.system.resource.v1.ListResourceRequest\x1a(.system.resource.v1.ListResourceResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/api/v1/resources\x12\x85\x01\n" +
-	"\x0eCreateResource\x12).system.resource.v1.CreateResourceRequest\x1a*.system.resource.v1.CreateResourceResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/v1/resources\x12\x8a\x01\n" +
-	"\x0eUpdateResource\x12).system.resource.v1.UpdateResourceRequest\x1a*.system.resource.v1.UpdateResourceResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\x1a\x16/api/v1/resources/{id}\x12\x87\x01\n" +
-	"\x0eDeleteResource\x12).system.resource.v1.DeleteResourceRequest\x1a*.system.resource.v1.DeleteResourceResponse\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/api/v1/resources/{id}\x12\x8e\x01\n" +
-	"\x10ListMenuResource\x12+.system.resource.v1.ListMenuResourceRequest\x1a,.system.resource.v1.ListMenuResourceResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/resources/menus\x12\x97\x01\n" +
-	"\x12CreateMenuResource\x12-.system.resource.v1.CreateMenuResourceRequest\x1a..system.resource.v1.CreateMenuResourceResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/resources/menus\x12\x9c\x01\n" +
-	"\x12UpdateMenuResource\x12-.system.resource.v1.UpdateMenuResourceRequest\x1a..system.resource.v1.UpdateMenuResourceResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\x1a\x1c/api/v1/resources/{id}/menusB;Z9github.com/linzhengen/hub/v1/server/pb/system/resource/v1b\x06proto3"
+	"\bresource\x18\x01 \x01(\v2\x1c.system.resource.v1.ResourceR\bresource2\xa4\v\n" +
+	"\x0fResourceService\x12\xa0\x01\n" +
+	"\vGetResource\x12&.system.resource.v1.GetResourceRequest\x1a'.system.resource.v1.GetResourceResponse\"@\x8a\xa6\x1d\x1e\"\x1cGet a single resource by id.\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/resources/{id}\x12\xc2\x01\n" +
+	"\fListResource\x12'.system.resource.v1.ListResourceRequest\x1a(.system.resource.v1.ListResourceResponse\"_\x8a\xa6\x1dB\"@List resources, optionally filtered by id, name, status or type.\x82\xd3\xe4\x93\x02\x13\x12\x11/api/v1/resources\x12\xc3\x01\n" +
+	"\x0eCreateResource\x12).system.resource.v1.CreateResourceRequest\x1a*.system.resource.v1.CreateResourceResponse\"Z\x8a\xa6\x1d:\"8Create a resource (an API or menu entry RBAC can guard).\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/v1/resources\x12\xa2\x01\n" +
+	"\x0eUpdateResource\x12).system.resource.v1.UpdateResourceRequest\x1a*.system.resource.v1.UpdateResourceResponse\"9\x8a\xa6\x1d\x14\"\x12Update a resource.\x82\xd3\xe4\x93\x02\x1b:\x01*\x1a\x16/api/v1/resources/{id}\x12\x9f\x01\n" +
+	"\x0eDeleteResource\x12).system.resource.v1.DeleteResourceRequest\x1a*.system.resource.v1.DeleteResourceResponse\"6\x8a\xa6\x1d\x14\"\x12Delete a resource.\x82\xd3\xe4\x93\x02\x18*\x16/api/v1/resources/{id}\x12\xa8\x01\n" +
+	"\x10ListMenuResource\x12+.system.resource.v1.ListMenuResourceRequest\x1a,.system.resource.v1.ListMenuResourceResponse\"9\x8a\xa6\x1d\x16\"\x14List menu resources.\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/resources/menus\x12\xb4\x01\n" +
+	"\x12CreateMenuResource\x12-.system.resource.v1.CreateMenuResourceRequest\x1a..system.resource.v1.CreateMenuResourceResponse\"?\x8a\xa6\x1d\x19\"\x17Create a menu resource.\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/resources/menus\x12\xb9\x01\n" +
+	"\x12UpdateMenuResource\x12-.system.resource.v1.UpdateMenuResourceRequest\x1a..system.resource.v1.UpdateMenuResourceResponse\"D\x8a\xa6\x1d\x19\"\x17Update a menu resource.\x82\xd3\xe4\x93\x02!:\x01*\x1a\x1c/api/v1/resources/{id}/menusB;Z9github.com/linzhengen/hub/v1/server/pb/system/resource/v1b\x06proto3"
 
 var (
 	file_system_resource_v1_service_proto_rawDescOnce sync.Once
