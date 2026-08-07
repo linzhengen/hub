@@ -20,6 +20,7 @@ export type GetMeMenusResponse = components['schemas']['v1GetMeMenusResponse'];
 export type UpdateMeRequest = components['schemas']['v1UpdateMeRequest'];
 export type UpdateMeResponse = components['schemas']['v1UpdateMeResponse'];
 export type GetMeResponse = components['schemas']['v1GetMeResponse'];
+export type SendMeVerifyEmailResponse = components['schemas']['v1SendMeVerifyEmailResponse'];
 
 // Helper type for list users parameters (query)
 export type ListUsersParams = RequestParameters<paths, '/api/v1/users', 'get'>;
@@ -43,6 +44,7 @@ export const userService = {
   getMe: () => fetchApi<GetMeResponse>('/me'),
   getMeMenus: () => fetchApi<GetMeMenusResponse>('/me/menus'),
   updateMe: (data: UpdateMeRequest) => fetchApi<UpdateMeResponse>('/me', { method: 'PUT', body: JSON.stringify(data) }),
+  sendMeVerifyEmail: () => fetchApi<SendMeVerifyEmailResponse>('/me/verify-email', { method: 'POST', body: '{}' }),
 
   listUsers: (params?: ListUsersParams) => {
     const query = params ? buildQueryString(params) : '';

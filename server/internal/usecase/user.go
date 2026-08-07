@@ -28,6 +28,7 @@ type UserUseCase interface {
 	AssignGroup(ctx context.Context, userId, groupId string) (*user.User, error)
 	UnassignGroup(ctx context.Context, userId, groupId string) (*user.User, error)
 	GetMeMenus(ctx context.Context) ([]*menu.Menu, error)
+	SendMeVerifyEmail(ctx context.Context) error
 }
 
 func NewUserUseCase(
@@ -86,6 +87,23 @@ func (uc userUseCase) Me(ctx context.Context) (*user.User, error) {
 		return nil, err
 	}
 	return u, nil
+}
+
+// SendMeVerifyEmail asks the OIDC provider to resend the address-verification
+// email to the caller. The target is always the authenticated user, so no user
+// id is accepted from the request.
+func (uc userUseCase) SendMeVerifyEmail(ctx context.Context) error {
+	userId, ok := contextx.GetUserID(ctx)
+	if !ok {
+		err := fmt.Errorf("user not found in context")
+		logger.Errorf("SendMeVerifyEmail: %v", err)
+		return err
+	}
+	if err := uc.oidcUserRepo.SendVerifyEmail(ctx, userId); err != nil {
+		logger.Errorf("SendMeVerifyEmail: failed to send verify email to user %s: %v", userId, err)
+		return err
+	}
+	return nil
 }
 
 func (uc userUseCase) Get(ctx context.Context, userId string) (*user.User, error) {

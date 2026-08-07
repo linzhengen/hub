@@ -51,6 +51,12 @@ export function My() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const resendVerificationMutation = useMutation({
+    mutationFn: () => userService.sendMeVerifyEmail(),
+    onSuccess: () => toast.success('Verification email sent'),
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   // 編集開始時の処理
   const handleEditStart = () => {
     setIsEditing(true);
@@ -73,8 +79,7 @@ export function My() {
 
   // メール再送信（確認メール）
   const handleResendVerification = () => {
-    // TODO: メール確認再送信APIを実装
-    toast.info('Verification email sent');
+    resendVerificationMutation.mutate();
   };
 
   return (
@@ -162,6 +167,7 @@ export function My() {
                       type="link"
                       size="small"
                       onClick={handleResendVerification}
+                      loading={resendVerificationMutation.isPending}
                       className="ml-2"
                     >
                       Resend Verification

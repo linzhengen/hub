@@ -173,6 +173,14 @@ components:
                 title:
                     type: string
             type: object
+        v1SendMeVerifyEmailRequest:
+            description: |-
+                The verification email is always sent to the authenticated user, so the
+                request carries no target: taking a user id here would let a caller trigger
+                mail to someone else's address.
+            type: object
+        v1SendMeVerifyEmailResponse:
+            type: object
         v1UnassignGroupResponse:
             properties:
                 user:
@@ -285,6 +293,35 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/v1GetMeMenusResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - UserService
+    /api/v1/me/verify-email:
+        post:
+            operationId: UserService_SendMeVerifyEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1SendMeVerifyEmailRequest'
+                description: |-
+                    The verification email is always sent to the authenticated user, so the
+                    request carries no target: taking a user id here would let a caller trigger
+                    mail to someone else's address.
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1SendMeVerifyEmailResponse'
                     description: A successful response.
                 default:
                     content:

@@ -36,6 +36,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["UserService_SendMeVerifyEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users": {
         parameters: {
             query?: never;
@@ -197,6 +213,13 @@ export interface components {
             order?: number;
             title?: string;
         };
+        /**
+         * @description The verification email is always sent to the authenticated user, so the
+         *     request carries no target: taking a user id here would let a caller trigger
+         *     mail to someone else's address.
+         */
+        v1SendMeVerifyEmailRequest: Record<string, never>;
+        v1SendMeVerifyEmailResponse: Record<string, never>;
         v1UnassignGroupResponse: {
             user?: components["schemas"]["v1User"];
         };
@@ -315,6 +338,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["v1GetMeMenusResponse"];
+                };
+            };
+            /** @description An unexpected error response. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["googleRpcStatus"];
+                };
+            };
+        };
+    };
+    UserService_SendMeVerifyEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The verification email is always sent to the authenticated user, so the
+         *     request carries no target: taking a user id here would let a caller trigger
+         *     mail to someone else's address.
+         */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["v1SendMeVerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description A successful response. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["v1SendMeVerifyEmailResponse"];
                 };
             };
             /** @description An unexpected error response. */

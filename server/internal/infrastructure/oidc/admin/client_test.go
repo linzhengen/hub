@@ -46,6 +46,11 @@ func (m *MockGoCloak) UpdateUser(ctx context.Context, token, realm string, user 
 	return args.Error(0)
 }
 
+func (m *MockGoCloak) SendVerifyEmail(ctx context.Context, token, userID, realm string) error {
+	args := m.Called(ctx, token, userID, realm)
+	return args.Error(0)
+}
+
 // Test configuration
 func getTestConfig() config.KeyCloak {
 	return config.KeyCloak{
@@ -581,6 +586,77 @@ func TestUpdateEmail(t *testing.T) {
 			}
 
 			err := c.UpdateEmail(ctx, userID, email)
+
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockGoCloak.AssertExpectations(t)
+		})
+	}
+}
+
+func TestSendVerifyEmail(t *testing.T) {
+	ctx := context.Background()
+	cfg := getTestConfig()
+	userID := "test-user-id"
+
+	tests := []struct {
+		name          string
+		token         string
+		tokenError    error
+		mockSendError error
+		expectError   bool
+	}{
+		{
+			name:          "Success",
+			token:         "test-token",
+			tokenError:    nil,
+			mockSendError: nil,
+			expectError:   false,
+		},
+		{
+			name:          "GetToken fails",
+			token:         "",
+			tokenError:    errors.New("token error"),
+			mockSendError: nil,
+			expectError:   true,
+		},
+		{
+			name:          "SendVerifyEmail fails",
+			token:         "test-token",
+			tokenError:    nil,
+			mockSendError: errors.New("send verify email error"),
+			expectError:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGoCloak := new(MockGoCloak)
+
+			mockJWT := &gocloak.JWT{
+				AccessToken: tt.token,
+				ExpiresIn:   60,
+			}
+			mockGoCloak.On("LoginAdmin", ctx, cfg.AdminUser, cfg.AdminPass, cfg.AdminRealm).
+				Return(mockJWT, tt.tokenError).Maybe()
+
+			c := &MockTokenClient{
+				testClient: *newTestClient(mockGoCloak, cfg),
+				token:      tt.token,
+				err:        tt.tokenError,
+			}
+
+			// Only set up SendVerifyEmail expectation if getToken would succeed
+			if tt.tokenError == nil {
+				mockGoCloak.On("SendVerifyEmail", ctx, tt.token, userID, cfg.Realm).
+					Return(tt.mockSendError).Once()
+			}
+
+			err := c.SendVerifyEmail(ctx, userID)
 
 			if tt.expectError {
 				assert.Error(t, err)

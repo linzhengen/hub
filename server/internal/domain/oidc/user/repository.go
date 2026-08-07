@@ -8,4 +8,5 @@ type Repository interface {
 	UpdateEmail(ctx context.Context, userID string, email string) error
 	CreateUser(ctx context.Context, username, email, password string) (string, error)
 	DeleteUser(ctx context.Context, userID string) error
+	SendVerifyEmail(ctx context.Context, userID string) error
 }

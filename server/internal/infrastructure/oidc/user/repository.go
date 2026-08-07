@@ -37,3 +37,8 @@ func (r *repository) CreateUser(ctx context.Context, username, email, password s
 func (r *repository) DeleteUser(ctx context.Context, userID string) error {
 	return r.adminClient.DeleteUser(ctx, userID)
 }
+
+// SendVerifyEmail sends the address-verification email to the user via Keycloak.
+func (r *repository) SendVerifyEmail(ctx context.Context, userID string) error {
+	return r.adminClient.SendVerifyEmail(ctx, userID)
+}
