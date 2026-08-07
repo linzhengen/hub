@@ -20,54 +20,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/roles/assignRoles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["GroupService_AssignRolesToGroup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/groups/{groupId}/users/add": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["GroupService_AddUsersToGroup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/groups/{groupId}/users/remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["GroupService_RemoveUsersFromGroup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/groups/{id}": {
         parameters: {
             query?: never;
@@ -84,7 +36,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{id}/roles/assign": {
+    "/api/v1/groups/{id}/roles/add": {
         parameters: {
             query?: never;
             header?: never;
@@ -93,7 +45,55 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["GroupService_AssignRole"];
+        post: operations["GroupService_AddRolesToGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{id}/roles/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["GroupService_RemoveRolesFromGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{id}/users/add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["GroupService_AddUsersToGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{id}/users/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["GroupService_RemoveUsersFromGroup"];
         delete?: never;
         options?: never;
         head?: never;
@@ -104,13 +104,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        GroupServiceAddRolesToGroupBody: {
+            roleIds?: string[];
+        };
         GroupServiceAddUsersToGroupBody: {
             userIds?: string[];
         };
-        GroupServiceAssignRoleBody: {
-            roleId?: string;
-        };
-        GroupServiceAssignRolesToGroupBody: {
+        GroupServiceRemoveRolesFromGroupBody: {
             roleIds?: string[];
         };
         GroupServiceRemoveUsersFromGroupBody: {
@@ -132,11 +132,12 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        v1AddUsersToGroupResponse: Record<string, never>;
-        v1AssignRoleResponse: {
+        v1AddRolesToGroupResponse: {
             group?: components["schemas"]["v1Group"];
         };
-        v1AssignRolesToGroupResponse: Record<string, never>;
+        v1AddUsersToGroupResponse: {
+            group?: components["schemas"]["v1Group"];
+        };
         v1CreateGroupRequest: {
             description?: string;
             name?: string;
@@ -170,7 +171,12 @@ export interface components {
             /** Format: int64 */
             total?: string;
         };
-        v1RemoveUsersFromGroupResponse: Record<string, never>;
+        v1RemoveRolesFromGroupResponse: {
+            group?: components["schemas"]["v1Group"];
+        };
+        v1RemoveUsersFromGroupResponse: {
+            group?: components["schemas"]["v1Group"];
+        };
         v1UpdateGroupResponse: {
             group?: components["schemas"]["v1Group"];
         };
@@ -239,111 +245,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["v1CreateGroupResponse"];
-                };
-            };
-            /** @description An unexpected error response. */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["googleRpcStatus"];
-                };
-            };
-        };
-    };
-    GroupService_AssignRolesToGroup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                groupId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GroupServiceAssignRolesToGroupBody"];
-            };
-        };
-        responses: {
-            /** @description A successful response. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["v1AssignRolesToGroupResponse"];
-                };
-            };
-            /** @description An unexpected error response. */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["googleRpcStatus"];
-                };
-            };
-        };
-    };
-    GroupService_AddUsersToGroup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                groupId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GroupServiceAddUsersToGroupBody"];
-            };
-        };
-        responses: {
-            /** @description A successful response. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["v1AddUsersToGroupResponse"];
-                };
-            };
-            /** @description An unexpected error response. */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["googleRpcStatus"];
-                };
-            };
-        };
-    };
-    GroupService_RemoveUsersFromGroup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                groupId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GroupServiceRemoveUsersFromGroupBody"];
-            };
-        };
-        responses: {
-            /** @description A successful response. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["v1RemoveUsersFromGroupResponse"];
                 };
             };
             /** @description An unexpected error response. */
@@ -454,7 +355,7 @@ export interface operations {
             };
         };
     };
-    GroupService_AssignRole: {
+    GroupService_AddRolesToGroup: {
         parameters: {
             query?: never;
             header?: never;
@@ -465,7 +366,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["GroupServiceAssignRoleBody"];
+                "application/json": components["schemas"]["GroupServiceAddRolesToGroupBody"];
             };
         };
         responses: {
@@ -475,7 +376,112 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["v1AssignRoleResponse"];
+                    "application/json": components["schemas"]["v1AddRolesToGroupResponse"];
+                };
+            };
+            /** @description An unexpected error response. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["googleRpcStatus"];
+                };
+            };
+        };
+    };
+    GroupService_RemoveRolesFromGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupServiceRemoveRolesFromGroupBody"];
+            };
+        };
+        responses: {
+            /** @description A successful response. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["v1RemoveRolesFromGroupResponse"];
+                };
+            };
+            /** @description An unexpected error response. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["googleRpcStatus"];
+                };
+            };
+        };
+    };
+    GroupService_AddUsersToGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupServiceAddUsersToGroupBody"];
+            };
+        };
+        responses: {
+            /** @description A successful response. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["v1AddUsersToGroupResponse"];
+                };
+            };
+            /** @description An unexpected error response. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["googleRpcStatus"];
+                };
+            };
+        };
+    };
+    GroupService_RemoveUsersFromGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupServiceRemoveUsersFromGroupBody"];
+            };
+        };
+        responses: {
+            /** @description A successful response. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["v1RemoveUsersFromGroupResponse"];
                 };
             };
             /** @description An unexpected error response. */

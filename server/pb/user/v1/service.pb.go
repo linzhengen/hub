@@ -931,28 +931,28 @@ func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
 	return file_user_v1_service_proto_rawDescGZIP(), []int{17}
 }
 
-type AssignGroupRequest struct {
+type AddGroupsToUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	GroupId       string                 `protobuf:"bytes,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	GroupIds      []string               `protobuf:"bytes,2,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AssignGroupRequest) Reset() {
-	*x = AssignGroupRequest{}
+func (x *AddGroupsToUserRequest) Reset() {
+	*x = AddGroupsToUserRequest{}
 	mi := &file_user_v1_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AssignGroupRequest) String() string {
+func (x *AddGroupsToUserRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AssignGroupRequest) ProtoMessage() {}
+func (*AddGroupsToUserRequest) ProtoMessage() {}
 
-func (x *AssignGroupRequest) ProtoReflect() protoreflect.Message {
+func (x *AddGroupsToUserRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_user_v1_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -964,46 +964,46 @@ func (x *AssignGroupRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AssignGroupRequest.ProtoReflect.Descriptor instead.
-func (*AssignGroupRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddGroupsToUserRequest.ProtoReflect.Descriptor instead.
+func (*AddGroupsToUserRequest) Descriptor() ([]byte, []int) {
 	return file_user_v1_service_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *AssignGroupRequest) GetId() string {
+func (x *AddGroupsToUserRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *AssignGroupRequest) GetGroupId() string {
+func (x *AddGroupsToUserRequest) GetGroupIds() []string {
 	if x != nil {
-		return x.GroupId
+		return x.GroupIds
 	}
-	return ""
+	return nil
 }
 
-type AssignGroupResponse struct {
+type AddGroupsToUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AssignGroupResponse) Reset() {
-	*x = AssignGroupResponse{}
+func (x *AddGroupsToUserResponse) Reset() {
+	*x = AddGroupsToUserResponse{}
 	mi := &file_user_v1_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AssignGroupResponse) String() string {
+func (x *AddGroupsToUserResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AssignGroupResponse) ProtoMessage() {}
+func (*AddGroupsToUserResponse) ProtoMessage() {}
 
-func (x *AssignGroupResponse) ProtoReflect() protoreflect.Message {
+func (x *AddGroupsToUserResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_user_v1_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1015,40 +1015,40 @@ func (x *AssignGroupResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AssignGroupResponse.ProtoReflect.Descriptor instead.
-func (*AssignGroupResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use AddGroupsToUserResponse.ProtoReflect.Descriptor instead.
+func (*AddGroupsToUserResponse) Descriptor() ([]byte, []int) {
 	return file_user_v1_service_proto_rawDescGZIP(), []int{19}
 }
 
-func (x *AssignGroupResponse) GetUser() *User {
+func (x *AddGroupsToUserResponse) GetUser() *User {
 	if x != nil {
 		return x.User
 	}
 	return nil
 }
 
-type UnassignGroupRequest struct {
+type RemoveGroupsFromUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	GroupId       string                 `protobuf:"bytes,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	GroupIds      []string               `protobuf:"bytes,2,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UnassignGroupRequest) Reset() {
-	*x = UnassignGroupRequest{}
+func (x *RemoveGroupsFromUserRequest) Reset() {
+	*x = RemoveGroupsFromUserRequest{}
 	mi := &file_user_v1_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UnassignGroupRequest) String() string {
+func (x *RemoveGroupsFromUserRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UnassignGroupRequest) ProtoMessage() {}
+func (*RemoveGroupsFromUserRequest) ProtoMessage() {}
 
-func (x *UnassignGroupRequest) ProtoReflect() protoreflect.Message {
+func (x *RemoveGroupsFromUserRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_user_v1_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1060,46 +1060,46 @@ func (x *UnassignGroupRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UnassignGroupRequest.ProtoReflect.Descriptor instead.
-func (*UnassignGroupRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use RemoveGroupsFromUserRequest.ProtoReflect.Descriptor instead.
+func (*RemoveGroupsFromUserRequest) Descriptor() ([]byte, []int) {
 	return file_user_v1_service_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *UnassignGroupRequest) GetId() string {
+func (x *RemoveGroupsFromUserRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *UnassignGroupRequest) GetGroupId() string {
+func (x *RemoveGroupsFromUserRequest) GetGroupIds() []string {
 	if x != nil {
-		return x.GroupId
+		return x.GroupIds
 	}
-	return ""
+	return nil
 }
 
-type UnassignGroupResponse struct {
+type RemoveGroupsFromUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UnassignGroupResponse) Reset() {
-	*x = UnassignGroupResponse{}
+func (x *RemoveGroupsFromUserResponse) Reset() {
+	*x = RemoveGroupsFromUserResponse{}
 	mi := &file_user_v1_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UnassignGroupResponse) String() string {
+func (x *RemoveGroupsFromUserResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UnassignGroupResponse) ProtoMessage() {}
+func (*RemoveGroupsFromUserResponse) ProtoMessage() {}
 
-func (x *UnassignGroupResponse) ProtoReflect() protoreflect.Message {
+func (x *RemoveGroupsFromUserResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_user_v1_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1111,12 +1111,12 @@ func (x *UnassignGroupResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UnassignGroupResponse.ProtoReflect.Descriptor instead.
-func (*UnassignGroupResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use RemoveGroupsFromUserResponse.ProtoReflect.Descriptor instead.
+func (*RemoveGroupsFromUserResponse) Descriptor() ([]byte, []int) {
 	return file_user_v1_service_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *UnassignGroupResponse) GetUser() *User {
+func (x *RemoveGroupsFromUserResponse) GetUser() *User {
 	if x != nil {
 		return x.User
 	}
@@ -1179,17 +1179,17 @@ const file_user_v1_service_proto_rawDesc = "" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"#\n" +
 	"\x11DeleteUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeleteUserResponse\"?\n" +
-	"\x12AssignGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\bgroup_id\x18\x02 \x01(\tR\agroupId\"8\n" +
-	"\x13AssignGroupResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"A\n" +
-	"\x14UnassignGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
-	"\bgroup_id\x18\x02 \x01(\tR\agroupId\":\n" +
-	"\x15UnassignGroupResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2\xc1\r\n" +
+	"\x12DeleteUserResponse\"E\n" +
+	"\x16AddGroupsToUserRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tgroup_ids\x18\x02 \x03(\tR\bgroupIds\"<\n" +
+	"\x17AddGroupsToUserResponse\x12!\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"J\n" +
+	"\x1bRemoveGroupsFromUserRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tgroup_ids\x18\x02 \x03(\tR\bgroupIds\"A\n" +
+	"\x1cRemoveGroupsFromUserResponse\x12!\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2\xf5\r\n" +
 	"\vUserService\x12\x87\x01\n" +
 	"\x05GetMe\x12\x15.user.v1.GetMeRequest\x1a\x16.user.v1.GetMeResponse\"O\x8a\xa6\x1d9\b\x01\"5Get the profile and groups of the authenticated user.\x82\xd3\xe4\x93\x02\f\x12\n" +
 	"/api/v1/me\x12\xa1\x01\n" +
@@ -1203,9 +1203,9 @@ const file_user_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"UpdateUser\x12\x1a.user.v1.UpdateUserRequest\x1a\x1b.user.v1.UpdateUserResponse\"i\x8a\xa6\x1dH\"FUpdate a user's username, email, status, password or group membership.\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/api/v1/users/{id}\x12u\n" +
 	"\n" +
-	"DeleteUser\x12\x1a.user.v1.DeleteUserRequest\x1a\x1b.user.v1.DeleteUserResponse\".\x8a\xa6\x1d\x10\"\x0eDelete a user.\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/users/{id}\x12\x98\x01\n" +
-	"\vAssignGroup\x12\x1b.user.v1.AssignGroupRequest\x1a\x1c.user.v1.AssignGroupResponse\"N\x8a\xa6\x1d\x1f\"\x1dAdd a user to a single group.\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/users/{id}/groups/assign\x12\xa5\x01\n" +
-	"\rUnassignGroup\x12\x1d.user.v1.UnassignGroupRequest\x1a\x1e.user.v1.UnassignGroupResponse\"U\x8a\xa6\x1d$\"\"Remove a user from a single group.\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/users/{id}/groups/unassign\x12\x97\x01\n" +
+	"DeleteUser\x12\x1a.user.v1.DeleteUserRequest\x1a\x1b.user.v1.DeleteUserResponse\".\x8a\xa6\x1d\x10\"\x0eDelete a user.\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/users/{id}\x12\xc1\x01\n" +
+	"\x0fAddGroupsToUser\x12\x1f.user.v1.AddGroupsToUserRequest\x1a .user.v1.AddGroupsToUserResponse\"k\x8a\xa6\x1d?\"=Add a user to groups, keeping the groups they are already in.\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/users/{id}/groups/add\x12\xb0\x01\n" +
+	"\x14RemoveGroupsFromUser\x12$.user.v1.RemoveGroupsFromUserRequest\x1a%.user.v1.RemoveGroupsFromUserResponse\"K\x8a\xa6\x1d\x1c\"\x1aRemove a user from groups.\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/users/{id}/groups/remove\x12\x97\x01\n" +
 	"\n" +
 	"CreateUser\x12\x1a.user.v1.CreateUserRequest\x1a\x1b.user.v1.CreateUserResponse\"P\x8a\xa6\x1d4\"2Create a user and optionally place them in groups.\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/usersB0Z.github.com/linzhengen/hub/v1/server/pb/user/v1b\x06proto3"
 
@@ -1223,32 +1223,32 @@ func file_user_v1_service_proto_rawDescGZIP() []byte {
 
 var file_user_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_user_v1_service_proto_goTypes = []any{
-	(*CreateUserRequest)(nil),         // 0: user.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),        // 1: user.v1.CreateUserResponse
-	(*GetMeRequest)(nil),              // 2: user.v1.GetMeRequest
-	(*GetMeResponse)(nil),             // 3: user.v1.GetMeResponse
-	(*GetMeMenusRequest)(nil),         // 4: user.v1.GetMeMenusRequest
-	(*GetMeMenusResponse)(nil),        // 5: user.v1.GetMeMenusResponse
-	(*UpdateMeRequest)(nil),           // 6: user.v1.UpdateMeRequest
-	(*UpdateMeResponse)(nil),          // 7: user.v1.UpdateMeResponse
-	(*SendMeVerifyEmailRequest)(nil),  // 8: user.v1.SendMeVerifyEmailRequest
-	(*SendMeVerifyEmailResponse)(nil), // 9: user.v1.SendMeVerifyEmailResponse
-	(*GetUserRequest)(nil),            // 10: user.v1.GetUserRequest
-	(*GetUserResponse)(nil),           // 11: user.v1.GetUserResponse
-	(*ListUserRequest)(nil),           // 12: user.v1.ListUserRequest
-	(*ListUserResponse)(nil),          // 13: user.v1.ListUserResponse
-	(*UpdateUserRequest)(nil),         // 14: user.v1.UpdateUserRequest
-	(*UpdateUserResponse)(nil),        // 15: user.v1.UpdateUserResponse
-	(*DeleteUserRequest)(nil),         // 16: user.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),        // 17: user.v1.DeleteUserResponse
-	(*AssignGroupRequest)(nil),        // 18: user.v1.AssignGroupRequest
-	(*AssignGroupResponse)(nil),       // 19: user.v1.AssignGroupResponse
-	(*UnassignGroupRequest)(nil),      // 20: user.v1.UnassignGroupRequest
-	(*UnassignGroupResponse)(nil),     // 21: user.v1.UnassignGroupResponse
-	(*User)(nil),                      // 22: user.v1.User
-	(*v1.Group)(nil),                  // 23: system.group.v1.Group
-	(*Menu)(nil),                      // 24: user.v1.Menu
-	(User_Status)(0),                  // 25: user.v1.User.Status
+	(*CreateUserRequest)(nil),            // 0: user.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),           // 1: user.v1.CreateUserResponse
+	(*GetMeRequest)(nil),                 // 2: user.v1.GetMeRequest
+	(*GetMeResponse)(nil),                // 3: user.v1.GetMeResponse
+	(*GetMeMenusRequest)(nil),            // 4: user.v1.GetMeMenusRequest
+	(*GetMeMenusResponse)(nil),           // 5: user.v1.GetMeMenusResponse
+	(*UpdateMeRequest)(nil),              // 6: user.v1.UpdateMeRequest
+	(*UpdateMeResponse)(nil),             // 7: user.v1.UpdateMeResponse
+	(*SendMeVerifyEmailRequest)(nil),     // 8: user.v1.SendMeVerifyEmailRequest
+	(*SendMeVerifyEmailResponse)(nil),    // 9: user.v1.SendMeVerifyEmailResponse
+	(*GetUserRequest)(nil),               // 10: user.v1.GetUserRequest
+	(*GetUserResponse)(nil),              // 11: user.v1.GetUserResponse
+	(*ListUserRequest)(nil),              // 12: user.v1.ListUserRequest
+	(*ListUserResponse)(nil),             // 13: user.v1.ListUserResponse
+	(*UpdateUserRequest)(nil),            // 14: user.v1.UpdateUserRequest
+	(*UpdateUserResponse)(nil),           // 15: user.v1.UpdateUserResponse
+	(*DeleteUserRequest)(nil),            // 16: user.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),           // 17: user.v1.DeleteUserResponse
+	(*AddGroupsToUserRequest)(nil),       // 18: user.v1.AddGroupsToUserRequest
+	(*AddGroupsToUserResponse)(nil),      // 19: user.v1.AddGroupsToUserResponse
+	(*RemoveGroupsFromUserRequest)(nil),  // 20: user.v1.RemoveGroupsFromUserRequest
+	(*RemoveGroupsFromUserResponse)(nil), // 21: user.v1.RemoveGroupsFromUserResponse
+	(*User)(nil),                         // 22: user.v1.User
+	(*v1.Group)(nil),                     // 23: system.group.v1.Group
+	(*Menu)(nil),                         // 24: user.v1.Menu
+	(User_Status)(0),                     // 25: user.v1.User.Status
 }
 var file_user_v1_service_proto_depIdxs = []int32{
 	22, // 0: user.v1.CreateUserResponse.user:type_name -> user.v1.User
@@ -1262,8 +1262,8 @@ var file_user_v1_service_proto_depIdxs = []int32{
 	22, // 8: user.v1.ListUserResponse.users:type_name -> user.v1.User
 	25, // 9: user.v1.UpdateUserRequest.status:type_name -> user.v1.User.Status
 	22, // 10: user.v1.UpdateUserResponse.user:type_name -> user.v1.User
-	22, // 11: user.v1.AssignGroupResponse.user:type_name -> user.v1.User
-	22, // 12: user.v1.UnassignGroupResponse.user:type_name -> user.v1.User
+	22, // 11: user.v1.AddGroupsToUserResponse.user:type_name -> user.v1.User
+	22, // 12: user.v1.RemoveGroupsFromUserResponse.user:type_name -> user.v1.User
 	2,  // 13: user.v1.UserService.GetMe:input_type -> user.v1.GetMeRequest
 	4,  // 14: user.v1.UserService.GetMeMenus:input_type -> user.v1.GetMeMenusRequest
 	6,  // 15: user.v1.UserService.UpdateMe:input_type -> user.v1.UpdateMeRequest
@@ -1272,8 +1272,8 @@ var file_user_v1_service_proto_depIdxs = []int32{
 	12, // 18: user.v1.UserService.ListUser:input_type -> user.v1.ListUserRequest
 	14, // 19: user.v1.UserService.UpdateUser:input_type -> user.v1.UpdateUserRequest
 	16, // 20: user.v1.UserService.DeleteUser:input_type -> user.v1.DeleteUserRequest
-	18, // 21: user.v1.UserService.AssignGroup:input_type -> user.v1.AssignGroupRequest
-	20, // 22: user.v1.UserService.UnassignGroup:input_type -> user.v1.UnassignGroupRequest
+	18, // 21: user.v1.UserService.AddGroupsToUser:input_type -> user.v1.AddGroupsToUserRequest
+	20, // 22: user.v1.UserService.RemoveGroupsFromUser:input_type -> user.v1.RemoveGroupsFromUserRequest
 	0,  // 23: user.v1.UserService.CreateUser:input_type -> user.v1.CreateUserRequest
 	3,  // 24: user.v1.UserService.GetMe:output_type -> user.v1.GetMeResponse
 	5,  // 25: user.v1.UserService.GetMeMenus:output_type -> user.v1.GetMeMenusResponse
@@ -1283,8 +1283,8 @@ var file_user_v1_service_proto_depIdxs = []int32{
 	13, // 29: user.v1.UserService.ListUser:output_type -> user.v1.ListUserResponse
 	15, // 30: user.v1.UserService.UpdateUser:output_type -> user.v1.UpdateUserResponse
 	17, // 31: user.v1.UserService.DeleteUser:output_type -> user.v1.DeleteUserResponse
-	19, // 32: user.v1.UserService.AssignGroup:output_type -> user.v1.AssignGroupResponse
-	21, // 33: user.v1.UserService.UnassignGroup:output_type -> user.v1.UnassignGroupResponse
+	19, // 32: user.v1.UserService.AddGroupsToUser:output_type -> user.v1.AddGroupsToUserResponse
+	21, // 33: user.v1.UserService.RemoveGroupsFromUser:output_type -> user.v1.RemoveGroupsFromUserResponse
 	1,  // 34: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
 	24, // [24:35] is the sub-list for method output_type
 	13, // [13:24] is the sub-list for method input_type

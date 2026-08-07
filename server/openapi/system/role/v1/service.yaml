@@ -7,11 +7,6 @@ components:
                         type: string
                     type: array
             type: object
-        RoleServiceAssignPermissionBody:
-            properties:
-                permissionId:
-                    type: string
-            type: object
         RoleServiceRemovePermissionsFromRoleBody:
             properties:
                 permissionIds:
@@ -45,8 +40,6 @@ components:
                     type: string
             type: object
         v1AddPermissionsToRoleResponse:
-            type: object
-        v1AssignPermissionResponse:
             properties:
                 role:
                     $ref: '#/components/schemas/v1Role'
@@ -81,6 +74,9 @@ components:
                     type: string
             type: object
         v1RemovePermissionsFromRoleResponse:
+            properties:
+                role:
+                    $ref: '#/components/schemas/v1Role'
             type: object
         v1Role:
             properties:
@@ -257,43 +253,12 @@ paths:
                     description: An unexpected error response.
             tags:
                 - RoleService
-    /api/v1/roles/{id}/permissions/assign:
-        post:
-            operationId: RoleService_AssignPermission
-            parameters:
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/RoleServiceAssignPermissionBody'
-                required: true
-                x-originalParamName: body
-            responses:
-                "200":
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1AssignPermissionResponse'
-                    description: A successful response.
-                default:
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/rpcStatus'
-                    description: An unexpected error response.
-            tags:
-                - RoleService
-    /api/v1/roles/{roleId}/permissions:
+    /api/v1/roles/{id}/permissions/add:
         post:
             operationId: RoleService_AddPermissionsToRole
             parameters:
                 - in: path
-                  name: roleId
+                  name: id
                   required: true
                   schema:
                     type: string
@@ -319,12 +284,12 @@ paths:
                     description: An unexpected error response.
             tags:
                 - RoleService
-    /api/v1/roles/{roleId}/permissions/remove:
+    /api/v1/roles/{id}/permissions/remove:
         post:
             operationId: RoleService_RemovePermissionsFromRole
             parameters:
                 - in: path
-                  name: roleId
+                  name: id
                   required: true
                   schema:
                     type: string

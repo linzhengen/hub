@@ -13,44 +13,31 @@ resource identifier. A role granting `*` on `api.*` covers everything.
 
 ## system.group.v1.GroupService
 
+### AddRolesToGroup
+
+Grant roles to a group, keeping the roles it already has.
+
+- command: `hub group add-roles-to-group`
+- endpoint: `POST /api/v1/groups/{id}/roles/add`
+- rbac: `AddRolesToGroup` on `api.system.group.v1.GroupService`
+
+| flag | field | in | type |
+| --- | --- | --- | --- |
+| `--id` | `id` | path | string |
+| `--role-ids` | `roleIds` | body | repeated string |
+
 ### AddUsersToGroup
 
 Add users to a group, keeping the existing members.
 
 - command: `hub group add-users-to-group`
-- endpoint: `POST /api/v1/groups/{group_id}/users/add`
+- endpoint: `POST /api/v1/groups/{id}/users/add`
 - rbac: `AddUsersToGroup` on `api.system.group.v1.GroupService`
 
 | flag | field | in | type |
 | --- | --- | --- | --- |
-| `--group-id` | `groupId` | path | string |
-| `--user-ids` | `userIds` | body | repeated string |
-
-### AssignRole
-
-Grant a single role to a group.
-
-- command: `hub group assign-role`
-- endpoint: `POST /api/v1/groups/{id}/roles/assign`
-- rbac: `AssignRole` on `api.system.group.v1.GroupService`
-
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--role-id` | `roleId` | body | string |
 | `--id` | `id` | path | string |
-
-### AssignRolesToGroup
-
-Replace a group's roles with the given set.
-
-- command: `hub group assign-roles-to-group`
-- endpoint: `POST /api/v1/groups/{group_id}/roles/assignRoles`
-- rbac: `AssignRolesToGroup` on `api.system.group.v1.GroupService`
-
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--group-id` | `groupId` | path | string |
-| `--role-ids` | `roleIds` | body | repeated string |
+| `--user-ids` | `userIds` | body | repeated string |
 
 ### CreateGroup
 
@@ -107,17 +94,30 @@ List groups, optionally filtered by id, name, status or role.
 | `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
 | `--role-ids` | `roleIds` | query | repeated string |
 
+### RemoveRolesFromGroup
+
+Revoke roles from a group.
+
+- command: `hub group remove-roles-from-group`
+- endpoint: `POST /api/v1/groups/{id}/roles/remove`
+- rbac: `RemoveRolesFromGroup` on `api.system.group.v1.GroupService`
+
+| flag | field | in | type |
+| --- | --- | --- | --- |
+| `--id` | `id` | path | string |
+| `--role-ids` | `roleIds` | body | repeated string |
+
 ### RemoveUsersFromGroup
 
 Remove users from a group.
 
 - command: `hub group remove-users-from-group`
-- endpoint: `POST /api/v1/groups/{group_id}/users/remove`
+- endpoint: `POST /api/v1/groups/{id}/users/remove`
 - rbac: `RemoveUsersFromGroup` on `api.system.group.v1.GroupService`
 
 | flag | field | in | type |
 | --- | --- | --- | --- |
-| `--group-id` | `groupId` | path | string |
+| `--id` | `id` | path | string |
 | `--user-ids` | `userIds` | body | repeated string |
 
 ### UpdateGroup
@@ -349,29 +349,16 @@ Update a resource.
 
 ### AddPermissionsToRole
 
-Grant permissions to a role, keeping the existing ones.
+Grant permissions to a role, keeping the ones it already has.
 
 - command: `hub role add-permissions-to-role`
-- endpoint: `POST /api/v1/roles/{role_id}/permissions`
+- endpoint: `POST /api/v1/roles/{id}/permissions/add`
 - rbac: `AddPermissionsToRole` on `api.system.role.v1.RoleService`
 
 | flag | field | in | type |
 | --- | --- | --- | --- |
-| `--role-id` | `roleId` | path | string |
-| `--permission-ids` | `permissionIds` | body | repeated string |
-
-### AssignPermission
-
-Grant a single permission to a role.
-
-- command: `hub role assign-permission`
-- endpoint: `POST /api/v1/roles/{id}/permissions/assign`
-- rbac: `AssignPermission` on `api.system.role.v1.RoleService`
-
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--permission-id` | `permissionId` | body | string |
 | `--id` | `id` | path | string |
+| `--permission-ids` | `permissionIds` | body | repeated string |
 
 ### CreateRole
 
@@ -431,12 +418,12 @@ List roles, optionally filtered by id, name or permission.
 Revoke permissions from a role.
 
 - command: `hub role remove-permissions-from-role`
-- endpoint: `POST /api/v1/roles/{role_id}/permissions/remove`
+- endpoint: `POST /api/v1/roles/{id}/permissions/remove`
 - rbac: `RemovePermissionsFromRole` on `api.system.role.v1.RoleService`
 
 | flag | field | in | type |
 | --- | --- | --- | --- |
-| `--role-id` | `roleId` | path | string |
+| `--id` | `id` | path | string |
 | `--permission-ids` | `permissionIds` | body | repeated string |
 
 ### UpdateRole
@@ -455,18 +442,18 @@ Update a role's name or description.
 
 ## user.v1.UserService
 
-### AssignGroup
+### AddGroupsToUser
 
-Add a user to a single group.
+Add a user to groups, keeping the groups they are already in.
 
-- command: `hub user assign-group`
-- endpoint: `POST /api/v1/users/{id}/groups/assign`
-- rbac: `AssignGroup` on `api.user.v1.UserService`
+- command: `hub user add-groups-to-user`
+- endpoint: `POST /api/v1/users/{id}/groups/add`
+- rbac: `AddGroupsToUser` on `api.user.v1.UserService`
 
 | flag | field | in | type |
 | --- | --- | --- | --- |
 | `--id` | `id` | path | string |
-| `--group-id` | `groupId` | body | string |
+| `--group-ids` | `groupIds` | body | repeated string |
 
 ### CreateUser
 
@@ -545,6 +532,19 @@ List users, optionally filtered by id, email, name, status or group.
 | `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |
 | `--group-ids` | `groupIds` | query | repeated string |
 
+### RemoveGroupsFromUser
+
+Remove a user from groups.
+
+- command: `hub user remove-groups-from-user`
+- endpoint: `POST /api/v1/users/{id}/groups/remove`
+- rbac: `RemoveGroupsFromUser` on `api.user.v1.UserService`
+
+| flag | field | in | type |
+| --- | --- | --- | --- |
+| `--id` | `id` | path | string |
+| `--group-ids` | `groupIds` | body | repeated string |
+
 ### SendMeVerifyEmail
 
 Send a verification email to the authenticated user's address.
@@ -554,19 +554,6 @@ Send a verification email to the authenticated user's address.
 - rbac: `SendMeVerifyEmail` on `api.user.v1.UserService`
 
 Takes no parameters.
-
-### UnassignGroup
-
-Remove a user from a single group.
-
-- command: `hub user unassign-group`
-- endpoint: `POST /api/v1/users/{id}/groups/unassign`
-- rbac: `UnassignGroup` on `api.user.v1.UserService`
-
-| flag | field | in | type |
-| --- | --- | --- | --- |
-| `--id` | `id` | path | string |
-| `--group-id` | `groupId` | body | string |
 
 ### UpdateMe
 

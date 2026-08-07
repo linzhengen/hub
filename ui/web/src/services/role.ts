@@ -11,8 +11,6 @@ export type CreateRoleRequest = components['schemas']['v1CreateRoleRequest'];
 export type CreateRoleResponse = components['schemas']['v1CreateRoleResponse'];
 export type UpdateRoleRequest = components['schemas']['RoleServiceUpdateRoleBody'];
 export type UpdateRoleResponse = components['schemas']['v1UpdateRoleResponse'];
-export type AssignPermissionRequest = components['schemas']['RoleServiceAssignPermissionBody'];
-export type AssignPermissionResponse = components['schemas']['v1AssignPermissionResponse'];
 export type AddPermissionsToRoleRequest = components['schemas']['RoleServiceAddPermissionsToRoleBody'];
 export type AddPermissionsToRoleResponse = components['schemas']['v1AddPermissionsToRoleResponse'];
 export type RemovePermissionsFromRoleRequest = components['schemas']['RoleServiceRemovePermissionsFromRoleBody'];
@@ -29,7 +27,6 @@ export const roleService = {
   updateRole: (id: string, data: UpdateRoleRequest) => apiRequest<UpdateRoleResponse>(ops.updateRole, { path: { id }, body: data }),
   deleteRole: (id: string) => apiRequest<DeleteRoleResponse>(ops.deleteRole, { path: { id } }),
 
-  assignPermission: (id: string, data: AssignPermissionRequest) => apiRequest<AssignPermissionResponse>(ops.assignPermission, { path: { id }, body: data }),
-  addPermissionsToRole: (id: string, data: AddPermissionsToRoleRequest) => apiRequest<AddPermissionsToRoleResponse>(ops.addPermissionsToRole, { path: { roleId: id }, body: data }),
-  removePermissionsFromRole: (id: string, data: RemovePermissionsFromRoleRequest) => apiRequest<RemovePermissionsFromRoleResponse>(ops.removePermissionsFromRole, { path: { roleId: id }, body: data }),
+  addPermissions: (id: string, data: AddPermissionsToRoleRequest) => apiRequest<AddPermissionsToRoleResponse>(ops.addPermissionsToRole, { path: { id }, body: data }),
+  removePermissions: (id: string, data: RemovePermissionsFromRoleRequest) => apiRequest<RemovePermissionsFromRoleResponse>(ops.removePermissionsFromRole, { path: { id }, body: data }),
 };

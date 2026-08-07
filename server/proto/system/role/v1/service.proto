@@ -35,23 +35,16 @@ service RoleService {
     option (google.api.http) = {delete: "/api/v1/roles/{id}"};
     option (hub.annotations.v1.method_rule) = {summary: "Delete a role."};
   }
-  rpc AssignPermission(AssignPermissionRequest) returns (AssignPermissionResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/roles/{id}/permissions/assign"
-      body: "*"
-    };
-    option (hub.annotations.v1.method_rule) = {summary: "Grant a single permission to a role."};
-  }
   rpc AddPermissionsToRole(AddPermissionsToRoleRequest) returns (AddPermissionsToRoleResponse) {
     option (google.api.http) = {
-      post: "/api/v1/roles/{role_id}/permissions"
+      post: "/api/v1/roles/{id}/permissions/add"
       body: "*"
     };
-    option (hub.annotations.v1.method_rule) = {summary: "Grant permissions to a role, keeping the existing ones."};
+    option (hub.annotations.v1.method_rule) = {summary: "Grant permissions to a role, keeping the ones it already has."};
   }
   rpc RemovePermissionsFromRole(RemovePermissionsFromRoleRequest) returns (RemovePermissionsFromRoleResponse) {
     option (google.api.http) = {
-      post: "/api/v1/roles/{role_id}/permissions/remove"
+      post: "/api/v1/roles/{id}/permissions/remove"
       body: "*"
     };
     option (hub.annotations.v1.method_rule) = {summary: "Revoke permissions from a role."};
@@ -104,25 +97,20 @@ message DeleteRoleRequest {
 
 message DeleteRoleResponse {}
 
-message AssignPermissionRequest {
-  string permission_id = 1;
-  string id = 2;
+message AddPermissionsToRoleRequest {
+  string id = 1;
+  repeated string permission_ids = 2;
 }
 
-message AssignPermissionResponse {
+message AddPermissionsToRoleResponse {
   Role role = 1;
 }
 
-message AddPermissionsToRoleRequest {
-  string role_id = 1;
-  repeated string permission_ids = 2;
-}
-
-message AddPermissionsToRoleResponse {}
-
 message RemovePermissionsFromRoleRequest {
-  string role_id = 1;
+  string id = 1;
   repeated string permission_ids = 2;
 }
 
-message RemovePermissionsFromRoleResponse {}
+message RemovePermissionsFromRoleResponse {
+  Role role = 1;
+}

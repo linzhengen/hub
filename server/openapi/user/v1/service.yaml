@@ -1,14 +1,18 @@
 components:
     schemas:
-        UserServiceAssignGroupBody:
+        UserServiceAddGroupsToUserBody:
             properties:
-                groupId:
-                    type: string
+                groupIds:
+                    items:
+                        type: string
+                    type: array
             type: object
-        UserServiceUnassignGroupBody:
+        UserServiceRemoveGroupsFromUserBody:
             properties:
-                groupId:
-                    type: string
+                groupIds:
+                    items:
+                        type: string
+                    type: array
             type: object
         UserServiceUpdateUserBody:
             properties:
@@ -50,7 +54,7 @@ components:
                 - TYPE_MENU
                 - TYPE_API
             type: string
-        v1AssignGroupResponse:
+        v1AddGroupsToUserResponse:
             properties:
                 user:
                     $ref: '#/components/schemas/v1User'
@@ -173,6 +177,11 @@ components:
                 title:
                     type: string
             type: object
+        v1RemoveGroupsFromUserResponse:
+            properties:
+                user:
+                    $ref: '#/components/schemas/v1User'
+            type: object
         v1SendMeVerifyEmailRequest:
             description: |-
                 The verification email is always sent to the authenticated user, so the
@@ -180,11 +189,6 @@ components:
                 mail to someone else's address.
             type: object
         v1SendMeVerifyEmailResponse:
-            type: object
-        v1UnassignGroupResponse:
-            properties:
-                user:
-                    $ref: '#/components/schemas/v1User'
             type: object
         v1UpdateMeRequest:
             properties:
@@ -492,9 +496,9 @@ paths:
                     description: An unexpected error response.
             tags:
                 - UserService
-    /api/v1/users/{id}/groups/assign:
+    /api/v1/users/{id}/groups/add:
         post:
-            operationId: UserService_AssignGroup
+            operationId: UserService_AddGroupsToUser
             parameters:
                 - in: path
                   name: id
@@ -505,7 +509,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UserServiceAssignGroupBody'
+                            $ref: '#/components/schemas/UserServiceAddGroupsToUserBody'
                 required: true
                 x-originalParamName: body
             responses:
@@ -513,7 +517,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/v1AssignGroupResponse'
+                                $ref: '#/components/schemas/v1AddGroupsToUserResponse'
                     description: A successful response.
                 default:
                     content:
@@ -523,9 +527,9 @@ paths:
                     description: An unexpected error response.
             tags:
                 - UserService
-    /api/v1/users/{id}/groups/unassign:
+    /api/v1/users/{id}/groups/remove:
         post:
-            operationId: UserService_UnassignGroup
+            operationId: UserService_RemoveGroupsFromUser
             parameters:
                 - in: path
                   name: id
@@ -536,7 +540,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UserServiceUnassignGroupBody'
+                            $ref: '#/components/schemas/UserServiceRemoveGroupsFromUserBody'
                 required: true
                 x-originalParamName: body
             responses:
@@ -544,7 +548,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/v1UnassignGroupResponse'
+                                $ref: '#/components/schemas/v1RemoveGroupsFromUserResponse'
                     description: A successful response.
                 default:
                     content:

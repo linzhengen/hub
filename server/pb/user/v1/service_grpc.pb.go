@@ -19,17 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_GetMe_FullMethodName             = "/user.v1.UserService/GetMe"
-	UserService_GetMeMenus_FullMethodName        = "/user.v1.UserService/GetMeMenus"
-	UserService_UpdateMe_FullMethodName          = "/user.v1.UserService/UpdateMe"
-	UserService_SendMeVerifyEmail_FullMethodName = "/user.v1.UserService/SendMeVerifyEmail"
-	UserService_GetUser_FullMethodName           = "/user.v1.UserService/GetUser"
-	UserService_ListUser_FullMethodName          = "/user.v1.UserService/ListUser"
-	UserService_UpdateUser_FullMethodName        = "/user.v1.UserService/UpdateUser"
-	UserService_DeleteUser_FullMethodName        = "/user.v1.UserService/DeleteUser"
-	UserService_AssignGroup_FullMethodName       = "/user.v1.UserService/AssignGroup"
-	UserService_UnassignGroup_FullMethodName     = "/user.v1.UserService/UnassignGroup"
-	UserService_CreateUser_FullMethodName        = "/user.v1.UserService/CreateUser"
+	UserService_GetMe_FullMethodName                = "/user.v1.UserService/GetMe"
+	UserService_GetMeMenus_FullMethodName           = "/user.v1.UserService/GetMeMenus"
+	UserService_UpdateMe_FullMethodName             = "/user.v1.UserService/UpdateMe"
+	UserService_SendMeVerifyEmail_FullMethodName    = "/user.v1.UserService/SendMeVerifyEmail"
+	UserService_GetUser_FullMethodName              = "/user.v1.UserService/GetUser"
+	UserService_ListUser_FullMethodName             = "/user.v1.UserService/ListUser"
+	UserService_UpdateUser_FullMethodName           = "/user.v1.UserService/UpdateUser"
+	UserService_DeleteUser_FullMethodName           = "/user.v1.UserService/DeleteUser"
+	UserService_AddGroupsToUser_FullMethodName      = "/user.v1.UserService/AddGroupsToUser"
+	UserService_RemoveGroupsFromUser_FullMethodName = "/user.v1.UserService/RemoveGroupsFromUser"
+	UserService_CreateUser_FullMethodName           = "/user.v1.UserService/CreateUser"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -44,8 +44,8 @@ type UserServiceClient interface {
 	ListUser(ctx context.Context, in *ListUserRequest, opts ...grpc.CallOption) (*ListUserResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
-	AssignGroup(ctx context.Context, in *AssignGroupRequest, opts ...grpc.CallOption) (*AssignGroupResponse, error)
-	UnassignGroup(ctx context.Context, in *UnassignGroupRequest, opts ...grpc.CallOption) (*UnassignGroupResponse, error)
+	AddGroupsToUser(ctx context.Context, in *AddGroupsToUserRequest, opts ...grpc.CallOption) (*AddGroupsToUserResponse, error)
+	RemoveGroupsFromUser(ctx context.Context, in *RemoveGroupsFromUserRequest, opts ...grpc.CallOption) (*RemoveGroupsFromUserResponse, error)
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 }
 
@@ -137,20 +137,20 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, in *DeleteUserReques
 	return out, nil
 }
 
-func (c *userServiceClient) AssignGroup(ctx context.Context, in *AssignGroupRequest, opts ...grpc.CallOption) (*AssignGroupResponse, error) {
+func (c *userServiceClient) AddGroupsToUser(ctx context.Context, in *AddGroupsToUserRequest, opts ...grpc.CallOption) (*AddGroupsToUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AssignGroupResponse)
-	err := c.cc.Invoke(ctx, UserService_AssignGroup_FullMethodName, in, out, cOpts...)
+	out := new(AddGroupsToUserResponse)
+	err := c.cc.Invoke(ctx, UserService_AddGroupsToUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *userServiceClient) UnassignGroup(ctx context.Context, in *UnassignGroupRequest, opts ...grpc.CallOption) (*UnassignGroupResponse, error) {
+func (c *userServiceClient) RemoveGroupsFromUser(ctx context.Context, in *RemoveGroupsFromUserRequest, opts ...grpc.CallOption) (*RemoveGroupsFromUserResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UnassignGroupResponse)
-	err := c.cc.Invoke(ctx, UserService_UnassignGroup_FullMethodName, in, out, cOpts...)
+	out := new(RemoveGroupsFromUserResponse)
+	err := c.cc.Invoke(ctx, UserService_RemoveGroupsFromUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -179,8 +179,8 @@ type UserServiceServer interface {
 	ListUser(context.Context, *ListUserRequest) (*ListUserResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
-	AssignGroup(context.Context, *AssignGroupRequest) (*AssignGroupResponse, error)
-	UnassignGroup(context.Context, *UnassignGroupRequest) (*UnassignGroupResponse, error)
+	AddGroupsToUser(context.Context, *AddGroupsToUserRequest) (*AddGroupsToUserResponse, error)
+	RemoveGroupsFromUser(context.Context, *RemoveGroupsFromUserRequest) (*RemoveGroupsFromUserResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 }
 
@@ -215,11 +215,11 @@ func (UnimplementedUserServiceServer) UpdateUser(context.Context, *UpdateUserReq
 func (UnimplementedUserServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
 }
-func (UnimplementedUserServiceServer) AssignGroup(context.Context, *AssignGroupRequest) (*AssignGroupResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method AssignGroup not implemented")
+func (UnimplementedUserServiceServer) AddGroupsToUser(context.Context, *AddGroupsToUserRequest) (*AddGroupsToUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddGroupsToUser not implemented")
 }
-func (UnimplementedUserServiceServer) UnassignGroup(context.Context, *UnassignGroupRequest) (*UnassignGroupResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method UnassignGroup not implemented")
+func (UnimplementedUserServiceServer) RemoveGroupsFromUser(context.Context, *RemoveGroupsFromUserRequest) (*RemoveGroupsFromUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveGroupsFromUser not implemented")
 }
 func (UnimplementedUserServiceServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateUser not implemented")
@@ -388,38 +388,38 @@ func _UserService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_AssignGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AssignGroupRequest)
+func _UserService_AddGroupsToUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddGroupsToUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).AssignGroup(ctx, in)
+		return srv.(UserServiceServer).AddGroupsToUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_AssignGroup_FullMethodName,
+		FullMethod: UserService_AddGroupsToUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).AssignGroup(ctx, req.(*AssignGroupRequest))
+		return srv.(UserServiceServer).AddGroupsToUser(ctx, req.(*AddGroupsToUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_UnassignGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UnassignGroupRequest)
+func _UserService_RemoveGroupsFromUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveGroupsFromUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).UnassignGroup(ctx, in)
+		return srv.(UserServiceServer).RemoveGroupsFromUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_UnassignGroup_FullMethodName,
+		FullMethod: UserService_RemoveGroupsFromUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).UnassignGroup(ctx, req.(*UnassignGroupRequest))
+		return srv.(UserServiceServer).RemoveGroupsFromUser(ctx, req.(*RemoveGroupsFromUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -482,12 +482,12 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_DeleteUser_Handler,
 		},
 		{
-			MethodName: "AssignGroup",
-			Handler:    _UserService_AssignGroup_Handler,
+			MethodName: "AddGroupsToUser",
+			Handler:    _UserService_AddGroupsToUser_Handler,
 		},
 		{
-			MethodName: "UnassignGroup",
-			Handler:    _UserService_UnassignGroup_Handler,
+			MethodName: "RemoveGroupsFromUser",
+			Handler:    _UserService_RemoveGroupsFromUser_Handler,
 		},
 		{
 			MethodName: "CreateUser",

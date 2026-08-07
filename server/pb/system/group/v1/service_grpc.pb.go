@@ -24,10 +24,10 @@ const (
 	GroupService_CreateGroup_FullMethodName          = "/system.group.v1.GroupService/CreateGroup"
 	GroupService_UpdateGroup_FullMethodName          = "/system.group.v1.GroupService/UpdateGroup"
 	GroupService_DeleteGroup_FullMethodName          = "/system.group.v1.GroupService/DeleteGroup"
-	GroupService_AssignRole_FullMethodName           = "/system.group.v1.GroupService/AssignRole"
+	GroupService_AddRolesToGroup_FullMethodName      = "/system.group.v1.GroupService/AddRolesToGroup"
+	GroupService_RemoveRolesFromGroup_FullMethodName = "/system.group.v1.GroupService/RemoveRolesFromGroup"
 	GroupService_AddUsersToGroup_FullMethodName      = "/system.group.v1.GroupService/AddUsersToGroup"
 	GroupService_RemoveUsersFromGroup_FullMethodName = "/system.group.v1.GroupService/RemoveUsersFromGroup"
-	GroupService_AssignRolesToGroup_FullMethodName   = "/system.group.v1.GroupService/AssignRolesToGroup"
 )
 
 // GroupServiceClient is the client API for GroupService service.
@@ -39,10 +39,10 @@ type GroupServiceClient interface {
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error)
 	UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupResponse, error)
 	DeleteGroup(ctx context.Context, in *DeleteGroupRequest, opts ...grpc.CallOption) (*DeleteGroupResponse, error)
-	AssignRole(ctx context.Context, in *AssignRoleRequest, opts ...grpc.CallOption) (*AssignRoleResponse, error)
+	AddRolesToGroup(ctx context.Context, in *AddRolesToGroupRequest, opts ...grpc.CallOption) (*AddRolesToGroupResponse, error)
+	RemoveRolesFromGroup(ctx context.Context, in *RemoveRolesFromGroupRequest, opts ...grpc.CallOption) (*RemoveRolesFromGroupResponse, error)
 	AddUsersToGroup(ctx context.Context, in *AddUsersToGroupRequest, opts ...grpc.CallOption) (*AddUsersToGroupResponse, error)
 	RemoveUsersFromGroup(ctx context.Context, in *RemoveUsersFromGroupRequest, opts ...grpc.CallOption) (*RemoveUsersFromGroupResponse, error)
-	AssignRolesToGroup(ctx context.Context, in *AssignRolesToGroupRequest, opts ...grpc.CallOption) (*AssignRolesToGroupResponse, error)
 }
 
 type groupServiceClient struct {
@@ -103,10 +103,20 @@ func (c *groupServiceClient) DeleteGroup(ctx context.Context, in *DeleteGroupReq
 	return out, nil
 }
 
-func (c *groupServiceClient) AssignRole(ctx context.Context, in *AssignRoleRequest, opts ...grpc.CallOption) (*AssignRoleResponse, error) {
+func (c *groupServiceClient) AddRolesToGroup(ctx context.Context, in *AddRolesToGroupRequest, opts ...grpc.CallOption) (*AddRolesToGroupResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AssignRoleResponse)
-	err := c.cc.Invoke(ctx, GroupService_AssignRole_FullMethodName, in, out, cOpts...)
+	out := new(AddRolesToGroupResponse)
+	err := c.cc.Invoke(ctx, GroupService_AddRolesToGroup_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *groupServiceClient) RemoveRolesFromGroup(ctx context.Context, in *RemoveRolesFromGroupRequest, opts ...grpc.CallOption) (*RemoveRolesFromGroupResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveRolesFromGroupResponse)
+	err := c.cc.Invoke(ctx, GroupService_RemoveRolesFromGroup_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -133,16 +143,6 @@ func (c *groupServiceClient) RemoveUsersFromGroup(ctx context.Context, in *Remov
 	return out, nil
 }
 
-func (c *groupServiceClient) AssignRolesToGroup(ctx context.Context, in *AssignRolesToGroupRequest, opts ...grpc.CallOption) (*AssignRolesToGroupResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AssignRolesToGroupResponse)
-	err := c.cc.Invoke(ctx, GroupService_AssignRolesToGroup_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GroupServiceServer is the server API for GroupService service.
 // All implementations should embed UnimplementedGroupServiceServer
 // for forward compatibility.
@@ -152,10 +152,10 @@ type GroupServiceServer interface {
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error)
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupResponse, error)
 	DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupResponse, error)
-	AssignRole(context.Context, *AssignRoleRequest) (*AssignRoleResponse, error)
+	AddRolesToGroup(context.Context, *AddRolesToGroupRequest) (*AddRolesToGroupResponse, error)
+	RemoveRolesFromGroup(context.Context, *RemoveRolesFromGroupRequest) (*RemoveRolesFromGroupResponse, error)
 	AddUsersToGroup(context.Context, *AddUsersToGroupRequest) (*AddUsersToGroupResponse, error)
 	RemoveUsersFromGroup(context.Context, *RemoveUsersFromGroupRequest) (*RemoveUsersFromGroupResponse, error)
-	AssignRolesToGroup(context.Context, *AssignRolesToGroupRequest) (*AssignRolesToGroupResponse, error)
 }
 
 // UnimplementedGroupServiceServer should be embedded to have
@@ -180,17 +180,17 @@ func (UnimplementedGroupServiceServer) UpdateGroup(context.Context, *UpdateGroup
 func (UnimplementedGroupServiceServer) DeleteGroup(context.Context, *DeleteGroupRequest) (*DeleteGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteGroup not implemented")
 }
-func (UnimplementedGroupServiceServer) AssignRole(context.Context, *AssignRoleRequest) (*AssignRoleResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method AssignRole not implemented")
+func (UnimplementedGroupServiceServer) AddRolesToGroup(context.Context, *AddRolesToGroupRequest) (*AddRolesToGroupResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddRolesToGroup not implemented")
+}
+func (UnimplementedGroupServiceServer) RemoveRolesFromGroup(context.Context, *RemoveRolesFromGroupRequest) (*RemoveRolesFromGroupResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveRolesFromGroup not implemented")
 }
 func (UnimplementedGroupServiceServer) AddUsersToGroup(context.Context, *AddUsersToGroupRequest) (*AddUsersToGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUsersToGroup not implemented")
 }
 func (UnimplementedGroupServiceServer) RemoveUsersFromGroup(context.Context, *RemoveUsersFromGroupRequest) (*RemoveUsersFromGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveUsersFromGroup not implemented")
-}
-func (UnimplementedGroupServiceServer) AssignRolesToGroup(context.Context, *AssignRolesToGroupRequest) (*AssignRolesToGroupResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method AssignRolesToGroup not implemented")
 }
 func (UnimplementedGroupServiceServer) testEmbeddedByValue() {}
 
@@ -302,20 +302,38 @@ func _GroupService_DeleteGroup_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GroupService_AssignRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AssignRoleRequest)
+func _GroupService_AddRolesToGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddRolesToGroupRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GroupServiceServer).AssignRole(ctx, in)
+		return srv.(GroupServiceServer).AddRolesToGroup(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GroupService_AssignRole_FullMethodName,
+		FullMethod: GroupService_AddRolesToGroup_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GroupServiceServer).AssignRole(ctx, req.(*AssignRoleRequest))
+		return srv.(GroupServiceServer).AddRolesToGroup(ctx, req.(*AddRolesToGroupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GroupService_RemoveRolesFromGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveRolesFromGroupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GroupServiceServer).RemoveRolesFromGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GroupService_RemoveRolesFromGroup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GroupServiceServer).RemoveRolesFromGroup(ctx, req.(*RemoveRolesFromGroupRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -356,24 +374,6 @@ func _GroupService_RemoveUsersFromGroup_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GroupService_AssignRolesToGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AssignRolesToGroupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GroupServiceServer).AssignRolesToGroup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GroupService_AssignRolesToGroup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GroupServiceServer).AssignRolesToGroup(ctx, req.(*AssignRolesToGroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // GroupService_ServiceDesc is the grpc.ServiceDesc for GroupService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -402,8 +402,12 @@ var GroupService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GroupService_DeleteGroup_Handler,
 		},
 		{
-			MethodName: "AssignRole",
-			Handler:    _GroupService_AssignRole_Handler,
+			MethodName: "AddRolesToGroup",
+			Handler:    _GroupService_AddRolesToGroup_Handler,
+		},
+		{
+			MethodName: "RemoveRolesFromGroup",
+			Handler:    _GroupService_RemoveRolesFromGroup_Handler,
 		},
 		{
 			MethodName: "AddUsersToGroup",
@@ -412,10 +416,6 @@ var GroupService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveUsersFromGroup",
 			Handler:    _GroupService_RemoveUsersFromGroup_Handler,
-		},
-		{
-			MethodName: "AssignRolesToGroup",
-			Handler:    _GroupService_AssignRolesToGroup_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

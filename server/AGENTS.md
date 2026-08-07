@@ -25,6 +25,7 @@
    * Give every new rpc a `hub.annotations.v1.method_rule` option with a
      `summary`. It is what the authorization interceptor, the `hub` CLI and the
      generated agent reference all read (see section 11).
+   * Follow the API conventions in section 17.
 4. **Define SQL**
    * Create SQL queries for `sqlc` in `internal/infrastructure/persistence/postgres/query/`.
 5. **Generate Code**
@@ -70,6 +71,7 @@ Subdomains are created to encapsulate a cohesive set of functionalities and data
 -   **When to create a subdomain**: Consider creating a subdomain when a part of your domain has a distinct set of responsibilities, its own set of entities, and a clear boundary that separates it from the rest of the domain. For example, `form` and `submission` are closely related but `submission` has its own lifecycle and specific operations, making it a good candidate for a subdomain.
 -   **Naming**: The main entity within a subdomain should be named after the subdomain itself (e.g., `submission.Submission`). Supporting entities within that subdomain should not repeat the subdomain name (e.g., `submission.History`, `submission.Value`).
 -   **Dependencies**: Subdomains should primarily depend on their parent domain and other shared packages. Dependencies between sibling subdomains should be carefully managed to avoid circular dependencies.
+
 
 ## 4. Dependency Injection (DI)
 
@@ -332,3 +334,43 @@ All development should be done in a feature branch. Please follow the rules belo
 ## 16. MCP Server Integration
 
 All interactions with GitHub, such as fetching issue details and creating pull requests, should be performed through the MCP server. Use the appropriate tools provided by the MCP server for these tasks.
+
+## 17. API Conventions
+
+The CLI's commands, the web client's operation table and the RBAC verbs are all
+generated from these definitions, so an inconsistency in a .proto becomes an
+inconsistency in four places at once. Keep to the following.
+
+### Naming
+
+-   **CRUD** is `Get` / `List` / `Create` / `Update` / `Delete` followed by the
+    entity: `GetUser`, `ListGroup`, `DeleteRole`.
+-   **Many-to-many links** get exactly two rpcs, and no singular variants:
+    -   `Add<Children>To<Parent>` - e.g. `AddRolesToGroup`, `AddUsersToGroup`
+    -   `Remove<Children>From<Parent>` - e.g. `RemoveRolesFromGroup`
+-   Do not add a "replace the whole set" rpc. One used to exist and its only
+    caller used it to emulate a removal, which is what `Remove...` is for.
+
+### Paths
+
+-   `/api/v1/<plural-entity>` and `/api/v1/<plural-entity>/{id}` for CRUD.
+-   `/api/v1/<plural-parent>/{id}/<plural-children>/add` and `.../remove` for
+    links, always `POST`.
+-   **The path parameter naming the entity is always `{id}`**, never
+    `{group_id}` or `{role_id}`. The request field is `id` to match.
+-   Lower case only. No camelCase segments.
+
+### Requests and responses
+
+-   A link request is `{ string id = 1; repeated string <child>_ids = 2; }`.
+-   A mutation returns the entity it changed, so a caller does not have to
+    re-read it. `AddUsersToGroupResponse` carries the updated `Group`.
+-   Number fields from 1 in new messages. Where a number is skipped for
+    compatibility, say so in a comment.
+
+### Renaming an rpc is a data migration
+
+The RBAC verb of an API permission *is* the rpc name. Renaming an rpc orphans
+every permission naming it - the row survives, nothing enforces against it, and
+the roles holding it silently lose the ability. Ship a migration that carries
+the grants across; `000009_rename_api_permission_verbs` is the worked example.

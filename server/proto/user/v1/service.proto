@@ -56,19 +56,19 @@ service UserService {
     option (google.api.http) = {delete: "/api/v1/users/{id}"};
     option (hub.annotations.v1.method_rule) = {summary: "Delete a user."};
   }
-  rpc AssignGroup(AssignGroupRequest) returns (AssignGroupResponse) {
+  rpc AddGroupsToUser(AddGroupsToUserRequest) returns (AddGroupsToUserResponse) {
     option (google.api.http) = {
-      post: "/api/v1/users/{id}/groups/assign"
+      post: "/api/v1/users/{id}/groups/add"
       body: "*"
     };
-    option (hub.annotations.v1.method_rule) = {summary: "Add a user to a single group."};
+    option (hub.annotations.v1.method_rule) = {summary: "Add a user to groups, keeping the groups they are already in."};
   }
-  rpc UnassignGroup(UnassignGroupRequest) returns (UnassignGroupResponse) {
+  rpc RemoveGroupsFromUser(RemoveGroupsFromUserRequest) returns (RemoveGroupsFromUserResponse) {
     option (google.api.http) = {
-      post: "/api/v1/users/{id}/groups/unassign"
+      post: "/api/v1/users/{id}/groups/remove"
       body: "*"
     };
-    option (hub.annotations.v1.method_rule) = {summary: "Remove a user from a single group."};
+    option (hub.annotations.v1.method_rule) = {summary: "Remove a user from groups."};
   }
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
     option (google.api.http) = {
@@ -163,20 +163,20 @@ message DeleteUserRequest {
 
 message DeleteUserResponse {}
 
-message AssignGroupRequest {
+message AddGroupsToUserRequest {
   string id = 1;
-  string group_id = 2;
+  repeated string group_ids = 2;
 }
 
-message AssignGroupResponse {
+message AddGroupsToUserResponse {
   User user = 1;
 }
 
-message UnassignGroupRequest {
+message RemoveGroupsFromUserRequest {
   string id = 1;
-  string group_id = 2;
+  repeated string group_ids = 2;
 }
 
-message UnassignGroupResponse {
+message RemoveGroupsFromUserResponse {
   User user = 1;
 }

@@ -35,33 +35,33 @@ service GroupService {
     option (google.api.http) = {delete: "/api/v1/groups/{id}"};
     option (hub.annotations.v1.method_rule) = {summary: "Delete a group."};
   }
-  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse) {
+  rpc AddRolesToGroup(AddRolesToGroupRequest) returns (AddRolesToGroupResponse) {
     option (google.api.http) = {
-      post: "/api/v1/groups/{id}/roles/assign"
+      post: "/api/v1/groups/{id}/roles/add"
       body: "*"
     };
-    option (hub.annotations.v1.method_rule) = {summary: "Grant a single role to a group."};
+    option (hub.annotations.v1.method_rule) = {summary: "Grant roles to a group, keeping the roles it already has."};
+  }
+  rpc RemoveRolesFromGroup(RemoveRolesFromGroupRequest) returns (RemoveRolesFromGroupResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/groups/{id}/roles/remove"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Revoke roles from a group."};
   }
   rpc AddUsersToGroup(AddUsersToGroupRequest) returns (AddUsersToGroupResponse) {
     option (google.api.http) = {
-      post: "/api/v1/groups/{group_id}/users/add"
+      post: "/api/v1/groups/{id}/users/add"
       body: "*"
     };
     option (hub.annotations.v1.method_rule) = {summary: "Add users to a group, keeping the existing members."};
   }
   rpc RemoveUsersFromGroup(RemoveUsersFromGroupRequest) returns (RemoveUsersFromGroupResponse) {
     option (google.api.http) = {
-      post: "/api/v1/groups/{group_id}/users/remove"
+      post: "/api/v1/groups/{id}/users/remove"
       body: "*"
     };
     option (hub.annotations.v1.method_rule) = {summary: "Remove users from a group."};
-  }
-  rpc AssignRolesToGroup(AssignRolesToGroupRequest) returns (AssignRolesToGroupResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/groups/{group_id}/roles/assignRoles"
-      body: "*"
-    };
-    option (hub.annotations.v1.method_rule) = {summary: "Replace a group's roles with the given set."};
   }
 }
 
@@ -114,32 +114,38 @@ message DeleteGroupRequest {
 
 message DeleteGroupResponse {}
 
-message AssignRoleRequest {
-  string role_id = 1;
-  string id = 2;
+message AddRolesToGroupRequest {
+  string id = 1;
+  repeated string role_ids = 2;
 }
 
-message AssignRoleResponse {
+message AddRolesToGroupResponse {
+  Group group = 1;
+}
+
+message RemoveRolesFromGroupRequest {
+  string id = 1;
+  repeated string role_ids = 2;
+}
+
+message RemoveRolesFromGroupResponse {
   Group group = 1;
 }
 
 message AddUsersToGroupRequest {
-  string group_id = 1;
+  string id = 1;
   repeated string user_ids = 2;
 }
 
-message AddUsersToGroupResponse {}
+message AddUsersToGroupResponse {
+  Group group = 1;
+}
 
 message RemoveUsersFromGroupRequest {
-  string group_id = 1;
+  string id = 1;
   repeated string user_ids = 2;
 }
 
-message RemoveUsersFromGroupResponse {}
-
-message AssignRolesToGroupRequest {
-  string group_id = 1;
-  repeated string role_ids = 2;
+message RemoveUsersFromGroupResponse {
+  Group group = 1;
 }
-
-message AssignRolesToGroupResponse {}

@@ -220,9 +220,9 @@ func local_request_GroupService_DeleteGroup_0(ctx context.Context, marshaler run
 	return msg, metadata, err
 }
 
-func request_GroupService_AssignRole_0(ctx context.Context, marshaler runtime.Marshaler, client GroupServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_GroupService_AddRolesToGroup_0(ctx context.Context, marshaler runtime.Marshaler, client GroupServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq AssignRoleRequest
+		protoReq AddRolesToGroupRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
@@ -240,13 +240,13 @@ func request_GroupService_AssignRole_0(ctx context.Context, marshaler runtime.Ma
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-	msg, err := client.AssignRole(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.AddRolesToGroup(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
 
-func local_request_GroupService_AssignRole_0(ctx context.Context, marshaler runtime.Marshaler, server GroupServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_GroupService_AddRolesToGroup_0(ctx context.Context, marshaler runtime.Marshaler, server GroupServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq AssignRoleRequest
+		protoReq AddRolesToGroupRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
@@ -261,7 +261,52 @@ func local_request_GroupService_AssignRole_0(ctx context.Context, marshaler runt
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-	msg, err := server.AssignRole(ctx, &protoReq)
+	msg, err := server.AddRolesToGroup(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_GroupService_RemoveRolesFromGroup_0(ctx context.Context, marshaler runtime.Marshaler, client GroupServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq RemoveRolesFromGroupRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := client.RemoveRolesFromGroup(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_GroupService_RemoveRolesFromGroup_0(ctx context.Context, marshaler runtime.Marshaler, server GroupServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq RemoveRolesFromGroupRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	val, ok := pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+	msg, err := server.RemoveRolesFromGroup(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -277,13 +322,13 @@ func request_GroupService_AddUsersToGroup_0(ctx context.Context, marshaler runti
 	if req.Body != nil {
 		_, _ = io.Copy(io.Discard, req.Body)
 	}
-	val, ok := pathParams["group_id"]
+	val, ok := pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "group_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	protoReq.GroupId, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 	msg, err := client.AddUsersToGroup(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -298,13 +343,13 @@ func local_request_GroupService_AddUsersToGroup_0(ctx context.Context, marshaler
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	val, ok := pathParams["group_id"]
+	val, ok := pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "group_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	protoReq.GroupId, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 	msg, err := server.AddUsersToGroup(ctx, &protoReq)
 	return msg, metadata, err
@@ -322,13 +367,13 @@ func request_GroupService_RemoveUsersFromGroup_0(ctx context.Context, marshaler 
 	if req.Body != nil {
 		_, _ = io.Copy(io.Discard, req.Body)
 	}
-	val, ok := pathParams["group_id"]
+	val, ok := pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "group_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	protoReq.GroupId, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 	msg, err := client.RemoveUsersFromGroup(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -343,60 +388,15 @@ func local_request_GroupService_RemoveUsersFromGroup_0(ctx context.Context, mars
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	val, ok := pathParams["group_id"]
+	val, ok := pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "group_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
-	protoReq.GroupId, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 	msg, err := server.RemoveUsersFromGroup(ctx, &protoReq)
-	return msg, metadata, err
-}
-
-func request_GroupService_AssignRolesToGroup_0(ctx context.Context, marshaler runtime.Marshaler, client GroupServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq AssignRolesToGroupRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	val, ok := pathParams["group_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "group_id")
-	}
-	protoReq.GroupId, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
-	}
-	msg, err := client.AssignRolesToGroup(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_GroupService_AssignRolesToGroup_0(ctx context.Context, marshaler runtime.Marshaler, server GroupServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq AssignRolesToGroupRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	val, ok := pathParams["group_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "group_id")
-	}
-	protoReq.GroupId, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
-	}
-	msg, err := server.AssignRolesToGroup(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -506,25 +506,45 @@ func RegisterGroupServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		}
 		forward_GroupService_DeleteGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_GroupService_AssignRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_GroupService_AddRolesToGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/system.group.v1.GroupService/AssignRole", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/roles/assign"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/system.group.v1.GroupService/AddRolesToGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/roles/add"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_GroupService_AssignRole_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_GroupService_AddRolesToGroup_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_GroupService_AssignRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_GroupService_AddRolesToGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_GroupService_RemoveRolesFromGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/system.group.v1.GroupService/RemoveRolesFromGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/roles/remove"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_GroupService_RemoveRolesFromGroup_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_GroupService_RemoveRolesFromGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_GroupService_AddUsersToGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -532,7 +552,7 @@ func RegisterGroupServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/system.group.v1.GroupService/AddUsersToGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{group_id}/users/add"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/system.group.v1.GroupService/AddUsersToGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/users/add"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -552,7 +572,7 @@ func RegisterGroupServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/system.group.v1.GroupService/RemoveUsersFromGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{group_id}/users/remove"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/system.group.v1.GroupService/RemoveUsersFromGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/users/remove"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -565,26 +585,6 @@ func RegisterGroupServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 			return
 		}
 		forward_GroupService_RemoveUsersFromGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
-	mux.Handle(http.MethodPost, pattern_GroupService_AssignRolesToGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/system.group.v1.GroupService/AssignRolesToGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{group_id}/roles/assignRoles"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_GroupService_AssignRolesToGroup_0(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_GroupService_AssignRolesToGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -711,28 +711,45 @@ func RegisterGroupServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		}
 		forward_GroupService_DeleteGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_GroupService_AssignRole_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_GroupService_AddRolesToGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/system.group.v1.GroupService/AssignRole", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/roles/assign"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/system.group.v1.GroupService/AddRolesToGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/roles/add"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_GroupService_AssignRole_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_GroupService_AddRolesToGroup_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_GroupService_AssignRole_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_GroupService_AddRolesToGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_GroupService_RemoveRolesFromGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/system.group.v1.GroupService/RemoveRolesFromGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/roles/remove"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_GroupService_RemoveRolesFromGroup_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_GroupService_RemoveRolesFromGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_GroupService_AddUsersToGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/system.group.v1.GroupService/AddUsersToGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{group_id}/users/add"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/system.group.v1.GroupService/AddUsersToGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/users/add"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -749,7 +766,7 @@ func RegisterGroupServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/system.group.v1.GroupService/RemoveUsersFromGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{group_id}/users/remove"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/system.group.v1.GroupService/RemoveUsersFromGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{id}/users/remove"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -762,23 +779,6 @@ func RegisterGroupServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		}
 		forward_GroupService_RemoveUsersFromGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_GroupService_AssignRolesToGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/system.group.v1.GroupService/AssignRolesToGroup", runtime.WithHTTPPathPattern("/api/v1/groups/{group_id}/roles/assignRoles"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_GroupService_AssignRolesToGroup_0(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_GroupService_AssignRolesToGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
 	return nil
 }
 
@@ -788,10 +788,10 @@ var (
 	pattern_GroupService_CreateGroup_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "groups"}, ""))
 	pattern_GroupService_UpdateGroup_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "groups", "id"}, ""))
 	pattern_GroupService_DeleteGroup_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "groups", "id"}, ""))
-	pattern_GroupService_AssignRole_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "groups", "id", "roles", "assign"}, ""))
-	pattern_GroupService_AddUsersToGroup_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "groups", "group_id", "users", "add"}, ""))
-	pattern_GroupService_RemoveUsersFromGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "groups", "group_id", "users", "remove"}, ""))
-	pattern_GroupService_AssignRolesToGroup_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "groups", "group_id", "roles", "assignRoles"}, ""))
+	pattern_GroupService_AddRolesToGroup_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "groups", "id", "roles", "add"}, ""))
+	pattern_GroupService_RemoveRolesFromGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "groups", "id", "roles", "remove"}, ""))
+	pattern_GroupService_AddUsersToGroup_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "groups", "id", "users", "add"}, ""))
+	pattern_GroupService_RemoveUsersFromGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "groups", "id", "users", "remove"}, ""))
 )
 
 var (
@@ -800,8 +800,8 @@ var (
 	forward_GroupService_CreateGroup_0          = runtime.ForwardResponseMessage
 	forward_GroupService_UpdateGroup_0          = runtime.ForwardResponseMessage
 	forward_GroupService_DeleteGroup_0          = runtime.ForwardResponseMessage
-	forward_GroupService_AssignRole_0           = runtime.ForwardResponseMessage
+	forward_GroupService_AddRolesToGroup_0      = runtime.ForwardResponseMessage
+	forward_GroupService_RemoveRolesFromGroup_0 = runtime.ForwardResponseMessage
 	forward_GroupService_AddUsersToGroup_0      = runtime.ForwardResponseMessage
 	forward_GroupService_RemoveUsersFromGroup_0 = runtime.ForwardResponseMessage
-	forward_GroupService_AssignRolesToGroup_0   = runtime.ForwardResponseMessage
 )

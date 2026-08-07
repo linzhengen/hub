@@ -24,10 +24,10 @@ type GroupUseCase interface {
 	Update(ctx context.Context, g *group.Group) (*group.Group, error)
 	Delete(ctx context.Context, groupId string) error
 	List(ctx context.Context, params *ListGroupQueryParams) ([]*group.Group, int64, error)
-	AssignRole(ctx context.Context, groupId, roleId string) (*group.Group, error)
-	AddUsersToGroup(ctx context.Context, groupID string, userIDs []string) (*group.Group, error)
-	RemoveUsersFromGroup(ctx context.Context, groupID string, userIDs []string) (*group.Group, error)
-	AssignRolesToGroup(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error)
+	AddRoles(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error)
+	RemoveRoles(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error)
+	AddUsers(ctx context.Context, groupID string, userIDs []string) (*group.Group, error)
+	RemoveUsers(ctx context.Context, groupID string, userIDs []string) (*group.Group, error)
 }
 
 func NewGroupUseCase(
@@ -242,14 +242,38 @@ func (uc groupUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*grou
 	return items, nil
 }
 
-func (uc groupUseCase) AssignRole(ctx context.Context, groupId, roleId string) (*group.Group, error) {
-	if err := uc.groupRoleRepo.AssignRole(ctx, groupId, roleId); err != nil {
-		return nil, err
-	}
-	return uc.Get(ctx, groupId)
+// AddRoles grants each of roleIDs to the group, keeping the roles it already
+// has. The set is applied in one transaction, so a failure part way through
+// does not leave the group holding some of the roles but not the rest.
+func (uc groupUseCase) AddRoles(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error) {
+	return uc.changeRoles(ctx, groupID, roleIDs, uc.groupRoleRepo.AssignRole)
 }
 
-func (uc groupUseCase) AddUsersToGroup(ctx context.Context, groupID string, userIDs []string) (*group.Group, error) {
+// RemoveRoles revokes each of roleIDs from the group.
+func (uc groupUseCase) RemoveRoles(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error) {
+	return uc.changeRoles(ctx, groupID, roleIDs, uc.groupRoleRepo.UnassignRole)
+}
+
+func (uc groupUseCase) changeRoles(
+	ctx context.Context,
+	groupID string,
+	roleIDs []string,
+	apply func(ctx context.Context, groupID, roleID string) error,
+) (*group.Group, error) {
+	if err := uc.transRepo.ExecTrans(ctx, func(ctx context.Context) error {
+		for _, roleID := range roleIDs {
+			if err := apply(ctx, groupID, roleID); err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return uc.Get(ctx, groupID)
+}
+
+func (uc groupUseCase) AddUsers(ctx context.Context, groupID string, userIDs []string) (*group.Group, error) {
 	if err := uc.transRepo.ExecTrans(ctx, func(ctx context.Context) error {
 		return uc.userGroupRepo.AddUsersToGroup(ctx, groupID, userIDs)
 	}); err != nil {
@@ -258,18 +282,9 @@ func (uc groupUseCase) AddUsersToGroup(ctx context.Context, groupID string, user
 	return uc.Get(ctx, groupID)
 }
 
-func (uc groupUseCase) RemoveUsersFromGroup(ctx context.Context, groupID string, userIDs []string) (*group.Group, error) {
+func (uc groupUseCase) RemoveUsers(ctx context.Context, groupID string, userIDs []string) (*group.Group, error) {
 	if err := uc.transRepo.ExecTrans(ctx, func(ctx context.Context) error {
 		return uc.userGroupRepo.RemoveUsersFromGroup(ctx, groupID, userIDs)
-	}); err != nil {
-		return nil, err
-	}
-	return uc.Get(ctx, groupID)
-}
-
-func (uc groupUseCase) AssignRolesToGroup(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error) {
-	if err := uc.transRepo.ExecTrans(ctx, func(ctx context.Context) error {
-		return uc.groupRoleRepo.Upsert(ctx, groupID, roleIDs)
 	}); err != nil {
 		return nil, err
 	}

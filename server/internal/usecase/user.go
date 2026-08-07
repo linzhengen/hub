@@ -25,8 +25,8 @@ type UserUseCase interface {
 	Delete(ctx context.Context, userId string) error
 	Create(ctx context.Context, username, email, password string, groupIds []string) (*user.User, error)
 	List(ctx context.Context, params *ListUserQueryParams) ([]*user.User, int64, error)
-	AssignGroup(ctx context.Context, userId, groupId string) (*user.User, error)
-	UnassignGroup(ctx context.Context, userId, groupId string) (*user.User, error)
+	AddGroups(ctx context.Context, userId string, groupIds []string) (*user.User, error)
+	RemoveGroups(ctx context.Context, userId string, groupIds []string) (*user.User, error)
 	GetMeMenus(ctx context.Context) ([]*menu.Menu, error)
 	SendMeVerifyEmail(ctx context.Context) error
 }
@@ -388,27 +388,40 @@ func (uc userUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*user.
 	return items, nil
 }
 
-func (uc userUseCase) AssignGroup(ctx context.Context, userId, groupId string) (*user.User, error) {
-	if err := uc.userGroupRepo.AssignGroup(ctx, userId, groupId); err != nil {
-		logger.Errorf("AssignGroup: failed to assign group %s to user %s: %v", groupId, userId, err)
-		return nil, err
-	}
-	u, err := uc.Get(ctx, userId)
-	if err != nil {
-		logger.Errorf("AssignGroup: failed to get user %s after assigning group %s: %v", userId, groupId, err)
-		return nil, err
-	}
-	return u, nil
+// AddGroups puts the user in each of groupIds, leaving the groups they are
+// already in alone. The whole set is applied in one transaction so a partial
+// failure does not leave the user in some of the groups but not the rest.
+func (uc userUseCase) AddGroups(ctx context.Context, userId string, groupIds []string) (*user.User, error) {
+	return uc.changeGroups(ctx, "AddGroups", userId, groupIds, uc.userGroupRepo.AssignGroup)
 }
 
-func (uc userUseCase) UnassignGroup(ctx context.Context, userId, groupId string) (*user.User, error) {
-	if err := uc.userGroupRepo.UnassignGroup(ctx, userId, groupId); err != nil {
-		logger.Errorf("UnassignGroup: failed to unassign group %s from user %s: %v", groupId, userId, err)
+// RemoveGroups takes the user out of each of groupIds.
+func (uc userUseCase) RemoveGroups(ctx context.Context, userId string, groupIds []string) (*user.User, error) {
+	return uc.changeGroups(ctx, "RemoveGroups", userId, groupIds, uc.userGroupRepo.UnassignGroup)
+}
+
+func (uc userUseCase) changeGroups(
+	ctx context.Context,
+	operation string,
+	userId string,
+	groupIds []string,
+	apply func(ctx context.Context, userId, groupId string) error,
+) (*user.User, error) {
+	if err := uc.transRepo.ExecTrans(ctx, func(ctx context.Context) error {
+		for _, groupId := range groupIds {
+			if err := apply(ctx, userId, groupId); err != nil {
+				logger.Errorf("%s: failed for group %s and user %s: %v", operation, groupId, userId, err)
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
+
 	u, err := uc.Get(ctx, userId)
 	if err != nil {
-		logger.Errorf("UnassignGroup: failed to get user %s after unassigning group %s: %v", userId, groupId, err)
+		logger.Errorf("%s: failed to get user %s afterwards: %v", operation, userId, err)
 		return nil, err
 	}
 	return u, nil

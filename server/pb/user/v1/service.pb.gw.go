@@ -289,9 +289,9 @@ func local_request_UserService_DeleteUser_0(ctx context.Context, marshaler runti
 	return msg, metadata, err
 }
 
-func request_UserService_AssignGroup_0(ctx context.Context, marshaler runtime.Marshaler, client UserServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_UserService_AddGroupsToUser_0(ctx context.Context, marshaler runtime.Marshaler, client UserServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq AssignGroupRequest
+		protoReq AddGroupsToUserRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
@@ -309,13 +309,13 @@ func request_UserService_AssignGroup_0(ctx context.Context, marshaler runtime.Ma
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-	msg, err := client.AssignGroup(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.AddGroupsToUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
 
-func local_request_UserService_AssignGroup_0(ctx context.Context, marshaler runtime.Marshaler, server UserServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_UserService_AddGroupsToUser_0(ctx context.Context, marshaler runtime.Marshaler, server UserServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq AssignGroupRequest
+		protoReq AddGroupsToUserRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
@@ -330,13 +330,13 @@ func local_request_UserService_AssignGroup_0(ctx context.Context, marshaler runt
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-	msg, err := server.AssignGroup(ctx, &protoReq)
+	msg, err := server.AddGroupsToUser(ctx, &protoReq)
 	return msg, metadata, err
 }
 
-func request_UserService_UnassignGroup_0(ctx context.Context, marshaler runtime.Marshaler, client UserServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_UserService_RemoveGroupsFromUser_0(ctx context.Context, marshaler runtime.Marshaler, client UserServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq UnassignGroupRequest
+		protoReq RemoveGroupsFromUserRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
@@ -354,13 +354,13 @@ func request_UserService_UnassignGroup_0(ctx context.Context, marshaler runtime.
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-	msg, err := client.UnassignGroup(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.RemoveGroupsFromUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
 
-func local_request_UserService_UnassignGroup_0(ctx context.Context, marshaler runtime.Marshaler, server UserServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_UserService_RemoveGroupsFromUser_0(ctx context.Context, marshaler runtime.Marshaler, server UserServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq UnassignGroupRequest
+		protoReq RemoveGroupsFromUserRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
@@ -375,7 +375,7 @@ func local_request_UserService_UnassignGroup_0(ctx context.Context, marshaler ru
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
-	msg, err := server.UnassignGroup(ctx, &protoReq)
+	msg, err := server.RemoveGroupsFromUser(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -572,45 +572,45 @@ func RegisterUserServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		}
 		forward_UserService_DeleteUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_UserService_AssignGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_UserService_AddGroupsToUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/user.v1.UserService/AssignGroup", runtime.WithHTTPPathPattern("/api/v1/users/{id}/groups/assign"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/user.v1.UserService/AddGroupsToUser", runtime.WithHTTPPathPattern("/api/v1/users/{id}/groups/add"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_UserService_AssignGroup_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_UserService_AddGroupsToUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_UserService_AssignGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UserService_AddGroupsToUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_UserService_UnassignGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_UserService_RemoveGroupsFromUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/user.v1.UserService/UnassignGroup", runtime.WithHTTPPathPattern("/api/v1/users/{id}/groups/unassign"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/user.v1.UserService/RemoveGroupsFromUser", runtime.WithHTTPPathPattern("/api/v1/users/{id}/groups/remove"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_UserService_UnassignGroup_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_UserService_RemoveGroupsFromUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_UserService_UnassignGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UserService_RemoveGroupsFromUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_UserService_CreateUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -808,39 +808,39 @@ func RegisterUserServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		}
 		forward_UserService_DeleteUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_UserService_AssignGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_UserService_AddGroupsToUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/user.v1.UserService/AssignGroup", runtime.WithHTTPPathPattern("/api/v1/users/{id}/groups/assign"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/user.v1.UserService/AddGroupsToUser", runtime.WithHTTPPathPattern("/api/v1/users/{id}/groups/add"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_UserService_AssignGroup_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_UserService_AddGroupsToUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_UserService_AssignGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UserService_AddGroupsToUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_UserService_UnassignGroup_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_UserService_RemoveGroupsFromUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/user.v1.UserService/UnassignGroup", runtime.WithHTTPPathPattern("/api/v1/users/{id}/groups/unassign"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/user.v1.UserService/RemoveGroupsFromUser", runtime.WithHTTPPathPattern("/api/v1/users/{id}/groups/remove"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_UserService_UnassignGroup_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_UserService_RemoveGroupsFromUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_UserService_UnassignGroup_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UserService_RemoveGroupsFromUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_UserService_CreateUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -863,29 +863,29 @@ func RegisterUserServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 }
 
 var (
-	pattern_UserService_GetMe_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "me"}, ""))
-	pattern_UserService_GetMeMenus_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "me", "menus"}, ""))
-	pattern_UserService_UpdateMe_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "me"}, ""))
-	pattern_UserService_SendMeVerifyEmail_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "me", "verify-email"}, ""))
-	pattern_UserService_GetUser_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "users", "id"}, ""))
-	pattern_UserService_ListUser_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "users"}, ""))
-	pattern_UserService_UpdateUser_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "users", "id"}, ""))
-	pattern_UserService_DeleteUser_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "users", "id"}, ""))
-	pattern_UserService_AssignGroup_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "users", "id", "groups", "assign"}, ""))
-	pattern_UserService_UnassignGroup_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "users", "id", "groups", "unassign"}, ""))
-	pattern_UserService_CreateUser_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "users"}, ""))
+	pattern_UserService_GetMe_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "me"}, ""))
+	pattern_UserService_GetMeMenus_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "me", "menus"}, ""))
+	pattern_UserService_UpdateMe_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "me"}, ""))
+	pattern_UserService_SendMeVerifyEmail_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "me", "verify-email"}, ""))
+	pattern_UserService_GetUser_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "users", "id"}, ""))
+	pattern_UserService_ListUser_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "users"}, ""))
+	pattern_UserService_UpdateUser_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "users", "id"}, ""))
+	pattern_UserService_DeleteUser_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "users", "id"}, ""))
+	pattern_UserService_AddGroupsToUser_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "users", "id", "groups", "add"}, ""))
+	pattern_UserService_RemoveGroupsFromUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 2, 5}, []string{"api", "v1", "users", "id", "groups", "remove"}, ""))
+	pattern_UserService_CreateUser_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "users"}, ""))
 )
 
 var (
-	forward_UserService_GetMe_0             = runtime.ForwardResponseMessage
-	forward_UserService_GetMeMenus_0        = runtime.ForwardResponseMessage
-	forward_UserService_UpdateMe_0          = runtime.ForwardResponseMessage
-	forward_UserService_SendMeVerifyEmail_0 = runtime.ForwardResponseMessage
-	forward_UserService_GetUser_0           = runtime.ForwardResponseMessage
-	forward_UserService_ListUser_0          = runtime.ForwardResponseMessage
-	forward_UserService_UpdateUser_0        = runtime.ForwardResponseMessage
-	forward_UserService_DeleteUser_0        = runtime.ForwardResponseMessage
-	forward_UserService_AssignGroup_0       = runtime.ForwardResponseMessage
-	forward_UserService_UnassignGroup_0     = runtime.ForwardResponseMessage
-	forward_UserService_CreateUser_0        = runtime.ForwardResponseMessage
+	forward_UserService_GetMe_0                = runtime.ForwardResponseMessage
+	forward_UserService_GetMeMenus_0           = runtime.ForwardResponseMessage
+	forward_UserService_UpdateMe_0             = runtime.ForwardResponseMessage
+	forward_UserService_SendMeVerifyEmail_0    = runtime.ForwardResponseMessage
+	forward_UserService_GetUser_0              = runtime.ForwardResponseMessage
+	forward_UserService_ListUser_0             = runtime.ForwardResponseMessage
+	forward_UserService_UpdateUser_0           = runtime.ForwardResponseMessage
+	forward_UserService_DeleteUser_0           = runtime.ForwardResponseMessage
+	forward_UserService_AddGroupsToUser_0      = runtime.ForwardResponseMessage
+	forward_UserService_RemoveGroupsFromUser_0 = runtime.ForwardResponseMessage
+	forward_UserService_CreateUser_0           = runtime.ForwardResponseMessage
 )

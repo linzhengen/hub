@@ -85,34 +85,34 @@ func (h groupHandler) UpdateGroup(ctx context.Context, request *pbv1.UpdateGroup
 	return &pbv1.UpdateGroupResponse{Group: groupDomainToPb(g)}, nil
 }
 
-func (h groupHandler) AssignRole(ctx context.Context, request *pbv1.AssignRoleRequest) (*pbv1.AssignRoleResponse, error) {
-	g, err := h.groupUseCase.AssignRole(ctx, request.Id, request.RoleId)
+func (h groupHandler) AddRolesToGroup(ctx context.Context, request *pbv1.AddRolesToGroupRequest) (*pbv1.AddRolesToGroupResponse, error) {
+	g, err := h.groupUseCase.AddRoles(ctx, request.Id, request.RoleIds)
 	if err != nil {
 		return nil, err
 	}
-	return &pbv1.AssignRoleResponse{Group: groupDomainToPb(g)}, nil
+	return &pbv1.AddRolesToGroupResponse{Group: groupDomainToPb(g)}, nil
+}
+
+func (h groupHandler) RemoveRolesFromGroup(ctx context.Context, request *pbv1.RemoveRolesFromGroupRequest) (*pbv1.RemoveRolesFromGroupResponse, error) {
+	g, err := h.groupUseCase.RemoveRoles(ctx, request.Id, request.RoleIds)
+	if err != nil {
+		return nil, err
+	}
+	return &pbv1.RemoveRolesFromGroupResponse{Group: groupDomainToPb(g)}, nil
 }
 
 func (h groupHandler) AddUsersToGroup(ctx context.Context, request *pbv1.AddUsersToGroupRequest) (*pbv1.AddUsersToGroupResponse, error) {
-	_, err := h.groupUseCase.AddUsersToGroup(ctx, request.GroupId, request.UserIds)
+	g, err := h.groupUseCase.AddUsers(ctx, request.Id, request.UserIds)
 	if err != nil {
 		return nil, err
 	}
-	return &pbv1.AddUsersToGroupResponse{}, nil
+	return &pbv1.AddUsersToGroupResponse{Group: groupDomainToPb(g)}, nil
 }
 
 func (h groupHandler) RemoveUsersFromGroup(ctx context.Context, request *pbv1.RemoveUsersFromGroupRequest) (*pbv1.RemoveUsersFromGroupResponse, error) {
-	_, err := h.groupUseCase.RemoveUsersFromGroup(ctx, request.GroupId, request.UserIds)
+	g, err := h.groupUseCase.RemoveUsers(ctx, request.Id, request.UserIds)
 	if err != nil {
 		return nil, err
 	}
-	return &pbv1.RemoveUsersFromGroupResponse{}, nil
-}
-
-func (h groupHandler) AssignRolesToGroup(ctx context.Context, request *pbv1.AssignRolesToGroupRequest) (*pbv1.AssignRolesToGroupResponse, error) {
-	_, err := h.groupUseCase.AssignRolesToGroup(ctx, request.GroupId, request.RoleIds)
-	if err != nil {
-		return nil, err
-	}
-	return &pbv1.AssignRolesToGroupResponse{}, nil
+	return &pbv1.RemoveUsersFromGroupResponse{Group: groupDomainToPb(g)}, nil
 }

@@ -79,7 +79,7 @@ export function Users() {
 
   const assignGroupMutation = useMutation({
     mutationFn: ({ userId, groupId }: { userId: string; groupId: string }) =>
-      userService.assignGroup(userId, groupId),
+      userService.addGroups(userId, [groupId]),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       // Update the managingGroupsUser state to reflect the change immediately
@@ -96,7 +96,7 @@ export function Users() {
 
   const unassignGroupMutation = useMutation({
     mutationFn: ({ userId, groupId }: { userId: string; groupId: string }) =>
-      userService.unassignGroup(userId, groupId),
+      userService.removeGroups(userId, [groupId]),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       // Update the managingGroupsUser state to reflect the change immediately

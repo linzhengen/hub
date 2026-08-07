@@ -15,8 +15,8 @@ export type CreateUserResponse = components['schemas']['v1CreateUserResponse'];
 export type UpdateUserRequest = components['schemas']['UserServiceUpdateUserBody'];
 export type UpdateUserResponse = components['schemas']['v1UpdateUserResponse'];
 export type DeleteUserResponse = components['schemas']['v1DeleteUserResponse'];
-export type AssignGroupResponse = components['schemas']['v1AssignGroupResponse'];
-export type UnassignGroupResponse = components['schemas']['v1UnassignGroupResponse'];
+export type AddGroupsToUserResponse = components['schemas']['v1AddGroupsToUserResponse'];
+export type RemoveGroupsFromUserResponse = components['schemas']['v1RemoveGroupsFromUserResponse'];
 export type GetMeMenusResponse = components['schemas']['v1GetMeMenusResponse'];
 export type UpdateMeRequest = components['schemas']['v1UpdateMeRequest'];
 export type UpdateMeResponse = components['schemas']['v1UpdateMeResponse'];
@@ -38,6 +38,6 @@ export const userService = {
   updateUser: (id: string, data: UpdateUserRequest) => apiRequest<UpdateUserResponse>(ops.updateUser, { path: { id }, body: data }),
   deleteUser: (id: string) => apiRequest<DeleteUserResponse>(ops.deleteUser, { path: { id } }),
 
-  assignGroup: (id: string, groupId: string) => apiRequest<AssignGroupResponse>(ops.assignGroup, { path: { id }, body: { groupId } }),
-  unassignGroup: (id: string, groupId: string) => apiRequest<UnassignGroupResponse>(ops.unassignGroup, { path: { id }, body: { groupId } }),
+  addGroups: (id: string, groupIds: string[]) => apiRequest<AddGroupsToUserResponse>(ops.addGroupsToUser, { path: { id }, body: { groupIds } }),
+  removeGroups: (id: string, groupIds: string[]) => apiRequest<RemoveGroupsFromUserResponse>(ops.removeGroupsFromUser, { path: { id }, body: { groupIds } }),
 };

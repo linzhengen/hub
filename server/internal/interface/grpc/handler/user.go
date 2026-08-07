@@ -191,20 +191,20 @@ func (h userHandler) DeleteUser(ctx context.Context, request *pbv1.DeleteUserReq
 	return &pbv1.DeleteUserResponse{}, nil
 }
 
-func (h userHandler) AssignGroup(ctx context.Context, request *pbv1.AssignGroupRequest) (*pbv1.AssignGroupResponse, error) {
-	u, err := h.userUseCase.AssignGroup(ctx, request.Id, request.GroupId)
+func (h userHandler) AddGroupsToUser(ctx context.Context, request *pbv1.AddGroupsToUserRequest) (*pbv1.AddGroupsToUserResponse, error) {
+	u, err := h.userUseCase.AddGroups(ctx, request.Id, request.GroupIds)
 	if err != nil {
 		return nil, err
 	}
-	return &pbv1.AssignGroupResponse{User: userDomainToPb(u)}, nil
+	return &pbv1.AddGroupsToUserResponse{User: userDomainToPb(u)}, nil
 }
 
-func (h userHandler) UnassignGroup(ctx context.Context, request *pbv1.UnassignGroupRequest) (*pbv1.UnassignGroupResponse, error) {
-	u, err := h.userUseCase.UnassignGroup(ctx, request.Id, request.GroupId)
+func (h userHandler) RemoveGroupsFromUser(ctx context.Context, request *pbv1.RemoveGroupsFromUserRequest) (*pbv1.RemoveGroupsFromUserResponse, error) {
+	u, err := h.userUseCase.RemoveGroups(ctx, request.Id, request.GroupIds)
 	if err != nil {
 		return nil, err
 	}
-	return &pbv1.UnassignGroupResponse{User: userDomainToPb(u)}, nil
+	return &pbv1.RemoveGroupsFromUserResponse{User: userDomainToPb(u)}, nil
 }
 
 func (h userHandler) CreateUser(ctx context.Context, request *pbv1.CreateUserRequest) (*pbv1.CreateUserResponse, error) {

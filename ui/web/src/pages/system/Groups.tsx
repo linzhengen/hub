@@ -69,7 +69,7 @@ export function Groups() {
   });
 
   const assignRoleMutation = useMutation({
-    mutationFn: ({ id, roleId }: { id: string; roleId: string }) => groupService.assignRole(id, { roleId }),
+    mutationFn: ({ id, roleId }: { id: string; roleId: string }) => groupService.addRoles(id, { roleIds: [roleId] }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       // Update managingRolesGroup state immediately
@@ -85,8 +85,8 @@ export function Groups() {
   });
 
   const unassignRoleMutation = useMutation({
-    mutationFn: ({ id, roleId, currentRoleIds }: { id: string; roleId: string; currentRoleIds: string[] }) =>
-      groupService.assignRolesToGroup(id, { roleIds: currentRoleIds.filter(rId => rId !== roleId) }),
+    mutationFn: ({ id, roleId }: { id: string; roleId: string }) =>
+      groupService.removeRoles(id, { roleIds: [roleId] }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       // Update managingRolesGroup state immediately
@@ -102,7 +102,7 @@ export function Groups() {
   });
 
   const addUsersToGroupMutation = useMutation({
-    mutationFn: ({ id, userIds }: { id: string; userIds: string[] }) => groupService.addUsersToGroup(id, { userIds }),
+    mutationFn: ({ id, userIds }: { id: string; userIds: string[] }) => groupService.addUsers(id, { userIds }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       // Update managingUsersGroup state immediately
@@ -536,11 +536,7 @@ export function Groups() {
                                 content: `Are you sure you want to remove ${role.name} from this group?`,
                                 okText: 'Remove',
                               },
-                              () => unassignRoleMutation.mutate({
-                                id: groupId,
-                                roleId: targetRoleId,
-                                currentRoleIds: managingRolesGroup.roleIds ?? []
-                              }),
+                              () => unassignRoleMutation.mutate({ id: groupId, roleId: targetRoleId }),
                             );
                           }}
                           loading={unassignRoleMutation.isPending && unassignRoleMutation.variables?.id === managingRolesGroup.id && unassignRoleMutation.variables?.roleId === role.id}

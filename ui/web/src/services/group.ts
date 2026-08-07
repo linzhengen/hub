@@ -12,10 +12,10 @@ export type CreateGroupRequest = components['schemas']['v1CreateGroupRequest'];
 export type CreateGroupResponse = components['schemas']['v1CreateGroupResponse'];
 export type UpdateGroupRequest = components['schemas']['GroupServiceUpdateGroupBody'];
 export type UpdateGroupResponse = components['schemas']['v1UpdateGroupResponse'];
-export type AssignRoleRequest = components['schemas']['GroupServiceAssignRoleBody'];
-export type AssignRoleResponse = components['schemas']['v1AssignRoleResponse'];
-export type AssignRolesToGroupRequest = components['schemas']['GroupServiceAssignRolesToGroupBody'];
-export type AssignRolesToGroupResponse = components['schemas']['v1AssignRolesToGroupResponse'];
+export type AddRolesToGroupRequest = components['schemas']['GroupServiceAddRolesToGroupBody'];
+export type AddRolesToGroupResponse = components['schemas']['v1AddRolesToGroupResponse'];
+export type RemoveRolesFromGroupRequest = components['schemas']['GroupServiceRemoveRolesFromGroupBody'];
+export type RemoveRolesFromGroupResponse = components['schemas']['v1RemoveRolesFromGroupResponse'];
 export type AddUsersToGroupRequest = components['schemas']['GroupServiceAddUsersToGroupBody'];
 export type AddUsersToGroupResponse = components['schemas']['v1AddUsersToGroupResponse'];
 export type RemoveUsersFromGroupRequest = components['schemas']['GroupServiceRemoveUsersFromGroupBody'];
@@ -32,8 +32,8 @@ export const groupService = {
   updateGroup: (id: string, data: UpdateGroupRequest) => apiRequest<UpdateGroupResponse>(ops.updateGroup, { path: { id }, body: data }),
   deleteGroup: (id: string) => apiRequest<DeleteGroupResponse>(ops.deleteGroup, { path: { id } }),
 
-  assignRole: (id: string, data: AssignRoleRequest) => apiRequest<AssignRoleResponse>(ops.assignRole, { path: { id }, body: data }),
-  assignRolesToGroup: (id: string, data: AssignRolesToGroupRequest) => apiRequest<AssignRolesToGroupResponse>(ops.assignRolesToGroup, { path: { groupId: id }, body: data }),
-  addUsersToGroup: (id: string, data: AddUsersToGroupRequest) => apiRequest<AddUsersToGroupResponse>(ops.addUsersToGroup, { path: { groupId: id }, body: data }),
-  removeUsersFromGroup: (id: string, data: RemoveUsersFromGroupRequest) => apiRequest<RemoveUsersFromGroupResponse>(ops.removeUsersFromGroup, { path: { groupId: id }, body: data }),
+  addRoles: (id: string, data: AddRolesToGroupRequest) => apiRequest<AddRolesToGroupResponse>(ops.addRolesToGroup, { path: { id }, body: data }),
+  removeRoles: (id: string, data: RemoveRolesFromGroupRequest) => apiRequest<RemoveRolesFromGroupResponse>(ops.removeRolesFromGroup, { path: { id }, body: data }),
+  addUsers: (id: string, data: AddUsersToGroupRequest) => apiRequest<AddUsersToGroupResponse>(ops.addUsersToGroup, { path: { id }, body: data }),
+  removeUsers: (id: string, data: RemoveUsersFromGroupRequest) => apiRequest<RemoveUsersFromGroupResponse>(ops.removeUsersFromGroup, { path: { id }, body: data }),
 };

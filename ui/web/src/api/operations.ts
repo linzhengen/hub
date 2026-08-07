@@ -10,12 +10,10 @@ export interface ApiOperation {
 
 /** Operations of system.group.v1.GroupService. */
 export const groupServiceOperations = {
+  /** Grant roles to a group, keeping the roles it already has. */
+  addRolesToGroup: { method: 'POST', path: '/groups/{id}/roles/add', pathParams: ['id'] },
   /** Add users to a group, keeping the existing members. */
-  addUsersToGroup: { method: 'POST', path: '/groups/{groupId}/users/add', pathParams: ['groupId'] },
-  /** Grant a single role to a group. */
-  assignRole: { method: 'POST', path: '/groups/{id}/roles/assign', pathParams: ['id'] },
-  /** Replace a group's roles with the given set. */
-  assignRolesToGroup: { method: 'POST', path: '/groups/{groupId}/roles/assignRoles', pathParams: ['groupId'] },
+  addUsersToGroup: { method: 'POST', path: '/groups/{id}/users/add', pathParams: ['id'] },
   /** Create a group. */
   createGroup: { method: 'POST', path: '/groups', pathParams: [] },
   /** Delete a group. */
@@ -24,8 +22,10 @@ export const groupServiceOperations = {
   getGroup: { method: 'GET', path: '/groups/{id}', pathParams: ['id'] },
   /** List groups, optionally filtered by id, name, status or role. */
   listGroup: { method: 'GET', path: '/groups', pathParams: [] },
+  /** Revoke roles from a group. */
+  removeRolesFromGroup: { method: 'POST', path: '/groups/{id}/roles/remove', pathParams: ['id'] },
   /** Remove users from a group. */
-  removeUsersFromGroup: { method: 'POST', path: '/groups/{groupId}/users/remove', pathParams: ['groupId'] },
+  removeUsersFromGroup: { method: 'POST', path: '/groups/{id}/users/remove', pathParams: ['id'] },
   /** Update a group's name, status or description. */
   updateGroup: { method: 'PUT', path: '/groups/{id}', pathParams: ['id'] },
 } as const satisfies Record<string, ApiOperation>;
@@ -66,10 +66,8 @@ export const resourceServiceOperations = {
 
 /** Operations of system.role.v1.RoleService. */
 export const roleServiceOperations = {
-  /** Grant permissions to a role, keeping the existing ones. */
-  addPermissionsToRole: { method: 'POST', path: '/roles/{roleId}/permissions', pathParams: ['roleId'] },
-  /** Grant a single permission to a role. */
-  assignPermission: { method: 'POST', path: '/roles/{id}/permissions/assign', pathParams: ['id'] },
+  /** Grant permissions to a role, keeping the ones it already has. */
+  addPermissionsToRole: { method: 'POST', path: '/roles/{id}/permissions/add', pathParams: ['id'] },
   /** Create a role. */
   createRole: { method: 'POST', path: '/roles', pathParams: [] },
   /** Delete a role. */
@@ -79,15 +77,15 @@ export const roleServiceOperations = {
   /** List roles, optionally filtered by id, name or permission. */
   listRole: { method: 'GET', path: '/roles', pathParams: [] },
   /** Revoke permissions from a role. */
-  removePermissionsFromRole: { method: 'POST', path: '/roles/{roleId}/permissions/remove', pathParams: ['roleId'] },
+  removePermissionsFromRole: { method: 'POST', path: '/roles/{id}/permissions/remove', pathParams: ['id'] },
   /** Update a role's name or description. */
   updateRole: { method: 'PUT', path: '/roles/{id}', pathParams: ['id'] },
 } as const satisfies Record<string, ApiOperation>;
 
 /** Operations of user.v1.UserService. */
 export const userServiceOperations = {
-  /** Add a user to a single group. */
-  assignGroup: { method: 'POST', path: '/users/{id}/groups/assign', pathParams: ['id'] },
+  /** Add a user to groups, keeping the groups they are already in. */
+  addGroupsToUser: { method: 'POST', path: '/users/{id}/groups/add', pathParams: ['id'] },
   /** Create a user and optionally place them in groups. */
   createUser: { method: 'POST', path: '/users', pathParams: [] },
   /** Delete a user. */
@@ -100,10 +98,10 @@ export const userServiceOperations = {
   getUser: { method: 'GET', path: '/users/{id}', pathParams: ['id'] },
   /** List users, optionally filtered by id, email, name, status or group. */
   listUser: { method: 'GET', path: '/users', pathParams: [] },
+  /** Remove a user from groups. */
+  removeGroupsFromUser: { method: 'POST', path: '/users/{id}/groups/remove', pathParams: ['id'] },
   /** Send a verification email to the authenticated user's address. */
   sendMeVerifyEmail: { method: 'POST', path: '/me/verify-email', pathParams: [] },
-  /** Remove a user from a single group. */
-  unassignGroup: { method: 'POST', path: '/users/{id}/groups/unassign', pathParams: ['id'] },
   /** Update the authenticated user's own username, email or password. */
   updateMe: { method: 'PUT', path: '/me', pathParams: [] },
   /** Update a user's username, email, status, password or group membership. */
