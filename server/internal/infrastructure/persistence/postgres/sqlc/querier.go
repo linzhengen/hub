@@ -37,6 +37,7 @@ type Querier interface {
 	SelectPermissionById(ctx context.Context, id string) (*Permission, error)
 	SelectPermissionByResourceId(ctx context.Context, resourceID string) ([]*Permission, error)
 	SelectPermissionForUpdate(ctx context.Context, id string) (*Permission, error)
+	SelectRbacRevision(ctx context.Context) (int64, error)
 	SelectResourceById(ctx context.Context, id string) (*Resource, error)
 	SelectResourceByIdentifier(ctx context.Context, identifier string) (*Resource, error)
 	SelectResourceForUpdate(ctx context.Context, id string) (*Resource, error)

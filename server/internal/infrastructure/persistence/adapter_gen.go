@@ -39,6 +39,13 @@ type PermissionModel struct {
 	UpdatedAt   time.Time
 }
 
+// RbacRevisionModel represents a RbacRevision in the database
+type RbacRevisionModel struct {
+	ID        int16
+	Revision  int64
+	UpdatedAt time.Time
+}
+
 // ResourceModel represents a Resource in the database
 type ResourceModel struct {
 	ID           string
@@ -130,6 +137,7 @@ type Querier interface {
 	SelectPermissionById(ctx context.Context, id string) (*PermissionModel, error)
 	SelectPermissionByResourceId(ctx context.Context, resourceID string) ([]*PermissionModel, error)
 	SelectPermissionForUpdate(ctx context.Context, id string) (*PermissionModel, error)
+	SelectRbacRevision(ctx context.Context) (int64, error)
 	SelectResourceById(ctx context.Context, id string) (*ResourceModel, error)
 	SelectResourceByIdentifier(ctx context.Context, identifier string) (*ResourceModel, error)
 	SelectResourceForUpdate(ctx context.Context, id string) (*ResourceModel, error)
@@ -435,6 +443,15 @@ func (p *PostgreSQLQuerier) SelectPermissionForUpdate(ctx context.Context, id st
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
 	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectRbacRevision(ctx context.Context) (int64, error) {
+	row, err := p.q.SelectRbacRevision(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return row, nil
 
 }
 

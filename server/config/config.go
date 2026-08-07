@@ -93,10 +93,17 @@ type Auth struct {
 	DisableAuth bool `env:"DISABLE_AUTH,default=false"`
 	// AuthzPolicyCacheTTL keeps a user's effective RBAC policies in memory for
 	// this long, so a burst of requests runs the permission join once instead
-	// of once per call. The cost is staleness: a grant or revocation takes up
-	// to this long to reach a user who is already making requests. Zero, the
-	// default, disables the cache and re-reads the policies every time.
-	AuthzPolicyCacheTTL time.Duration `env:"AUTHZ_POLICY_CACHE_TTL,default=0s"`
+	// of once per call.
+	//
+	// This does not decide how stale a decision can be. The cache is keyed on
+	// the database's RBAC revision counter and drops everything the moment an
+	// administrator edits the graph, so a grant or revocation lands within a
+	// second whatever this is set to. The TTL only bounds how long an entry
+	// nobody has invalidated is kept, which is a memory question.
+	//
+	// Set it to zero to disable caching entirely and re-read the policies on
+	// every request.
+	AuthzPolicyCacheTTL time.Duration `env:"AUTHZ_POLICY_CACHE_TTL,default=5m"`
 }
 
 type KeyCloak struct {
