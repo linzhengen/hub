@@ -1,12 +1,28 @@
 .PHONY: install build dev tunnel migrate generate pre-commit-install lint test
 
+# Code-generation tools are pinned: with @latest, `make gen` produced different
+# output depending on when `make init` last ran, and a one-line proto change
+# could rewrite the whole of server/pb.
+# Keep these in step with server/go.mod - PROTOC_GEN_GO_VERSION with
+# google.golang.org/protobuf, and the gateway plugins with
+# github.com/grpc-ecosystem/grpc-gateway/v2 - and re-run `make gen` when you
+# move one.
+#
+# protoc-gen-go comes from google.golang.org/protobuf: github.com/golang/protobuf
+# is the retired pre-modules repository.
+SQLC_VERSION ?= v1.30.0
+MIGRATE_VERSION ?= v4.19.1
+GRPC_GATEWAY_VERSION ?= v2.29.0
+PROTOC_GEN_GO_VERSION ?= v1.36.11
+PROTOC_GEN_GO_GRPC_VERSION ?= v1.6.1
+
 init: pre-commit-install
-	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
-	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-	go install github.com/golang/protobuf/protoc-gen-go@latest
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@$(SQLC_VERSION)
+	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@$(MIGRATE_VERSION)
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@$(GRPC_GATEWAY_VERSION)
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@$(GRPC_GATEWAY_VERSION)
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_GEN_GO_GRPC_VERSION)
 
 dev:
 	docker compose up -d

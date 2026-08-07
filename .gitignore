@@ -104,3 +104,7 @@ ui/web/test-results/
 ui/web/playwright-report/
 ui/web/blob-report/
 ui/web/.playwright/
+
+# protoc-gen-openapiv2 intermediates; cmd/openapi223 converts these into the
+# committed openapi/**/service.yaml
+server/openapi/**/*.swagger.json
