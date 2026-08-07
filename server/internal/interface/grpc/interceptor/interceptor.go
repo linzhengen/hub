@@ -157,26 +157,36 @@ func UnaryAuthInterceptor(tokenOpe token.Operator, userSvc user.Service) grpc.Un
 		if err != nil {
 			return ctx, status.Errorf(codes.Unauthenticated, "unauthenticated: %v", err)
 		}
-		if err := userSvc.CreateIfNotExists(ctx, userFactory(t)); err != nil {
+		u, err := userSvc.CreateIfNotExists(ctx, userFactory(t))
+		if err != nil {
 			return ctx, status.Errorf(codes.PermissionDenied, "permission denied: %v", err)
 		}
 
-		return handler(contextx.WithUserID(ctx, t.UserId), req)
+		return handler(authenticated(ctx, t.UserId, u), req)
 	}
 }
 
 func StreamAuthInterceptor(tokenOpe token.Operator, userSvc user.Service) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		ctx := stream.Context()
-		t, err := tokenOpe.ExtractToken(ctx)
+		t, err := tokenOpe.ExtractToken(stream.Context())
 		if err != nil {
 			return status.Errorf(codes.Unauthenticated, "unauthenticated: %v", err)
 		}
-		if err := userSvc.CreateIfNotExists(ctx, userFactory(t)); err != nil {
+		u, err := userSvc.CreateIfNotExists(stream.Context(), userFactory(t))
+		if err != nil {
 			return status.Errorf(codes.PermissionDenied, "permission denied: %v", err)
 		}
-		return handler(srv, &authServerStream{ctx, t.UserId, stream})
+		return handler(srv, &authServerStream{
+			ctx:          authenticated(stream.Context(), t.UserId, u),
+			ServerStream: stream,
+		})
 	}
+}
+
+// authenticated records who the caller is, and the row proving they still
+// exist, for the rest of the request to read.
+func authenticated(ctx context.Context, userID string, u *user.User) context.Context {
+	return user.NewContext(contextx.WithUserID(ctx, userID), u)
 }
 
 func userFactory(t *token.Token) *user.User {
@@ -201,9 +211,16 @@ func userFactory(t *token.Token) *user.User {
 	}
 }
 
+// authServerStream replaces a stream's context with the authenticated one, so
+// that the interceptors and handlers downstream see the caller.
+//
+// It used to hand on the unauthenticated context and only add the user id
+// after the first SendMsg, which is backwards: the authorization interceptor
+// runs before any message is sent, so it saw no user id and rejected every
+// streaming call as unauthenticated. Nothing streams today, so the fault was
+// never reached.
 type authServerStream struct {
-	ctx    context.Context
-	userId string
+	ctx context.Context
 	grpc.ServerStream
 }
 
@@ -211,17 +228,19 @@ func (a *authServerStream) Context() context.Context {
 	return a.ctx
 }
 
-func (a *authServerStream) RecvMsg(m interface{}) error {
-	return a.ServerStream.RecvMsg(m)
-}
-
-func (a *authServerStream) SendMsg(m interface{}) error {
-	err := a.ServerStream.SendMsg(m)
-	if err != nil {
-		return err
+// authenticatedUser returns the caller's row, preferring the one the
+// authentication interceptor already read. The fallback query is for callers
+// that reach authorization without having gone through it - a direct unit
+// test, or a future interceptor chain that puts them in a different order.
+func authenticatedUser(ctx context.Context, userRepo user.Repository, userID string) (*user.User, error) {
+	if u, ok := user.FromContext(ctx); ok {
+		return u, nil
 	}
-	a.ctx = contextx.WithUserID(a.ctx, a.userId)
-	return nil
+	u, err := userRepo.FindOne(ctx, userID)
+	if err != nil {
+		return nil, authzUserLookupError(err)
+	}
+	return u, nil
 }
 
 // authzUserLookupError maps a userRepo.FindOne error to a gRPC status: a
@@ -270,9 +289,9 @@ func authorize(
 		return status.Errorf(codes.Unauthenticated, "user not authenticated")
 	}
 
-	u, err := userRepo.FindOne(ctx, userID)
+	u, err := authenticatedUser(ctx, userRepo, userID)
 	if err != nil {
-		return authzUserLookupError(err)
+		return err
 	}
 	if u.Status == user.InActive {
 		return status.Errorf(codes.PermissionDenied, "permission denied: user is inactive")

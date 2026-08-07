@@ -202,7 +202,7 @@ func (uc userUseCase) Create(ctx context.Context, username, email, password stri
 		Status:   user.Active,
 		GroupIds: groupIds,
 	}
-	if err := uc.userSvc.CreateIfNotExists(ctx, u); err != nil {
+	if _, err := uc.userSvc.CreateIfNotExists(ctx, u); err != nil {
 		logger.Errorf("Create: failed to create user %s in DB (Keycloak ID: %s): %v", username, keycloakUserId, err)
 		// Compensation logic: delete the Keycloak user if DB creation fails
 		deleteErr := uc.oidcUserRepo.DeleteUser(ctx, keycloakUserId)

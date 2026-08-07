@@ -157,12 +157,16 @@ func TestUserService_CreateIfNotExists(t *testing.T) {
 			tt.setupMocks(transRepo, userRepo, userGroupRepo)
 
 			service := NewService(transRepo, userRepo, userGroupRepo)
-			err := service.CreateIfNotExists(ctx, testUser)
+			u, err := service.CreateIfNotExists(ctx, testUser)
 
 			if tt.expectedError != nil {
 				assert.EqualError(t, err, tt.expectedError.Error())
+				assert.Nil(t, u)
 			} else {
 				assert.NoError(t, err)
+				// 呼び出し側はこの戻り値をそのまま使うため、必ず返ること。
+				assert.NotNil(t, u)
+				assert.Equal(t, testUser.Id, u.Id)
 			}
 
 			transRepo.AssertExpectations(t)
