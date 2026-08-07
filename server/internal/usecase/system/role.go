@@ -8,7 +8,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/role"
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/role/rolepermission"
 	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
 	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
 	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
@@ -22,33 +21,29 @@ type RoleUseCase interface {
 	Update(ctx context.Context, r *role.Role) (*role.Role, error)
 	Delete(ctx context.Context, roleId string) error
 	List(ctx context.Context, params *ListRoleQueryParams) ([]*role.Role, int64, error)
-	AssignPermission(ctx context.Context, roleId, permissionId string) (*role.Role, error)
-	AddPermissionsToRole(ctx context.Context, roleId string, permissionIds []string) (*role.Role, error)
-	RemovePermissionsFromRole(ctx context.Context, roleId string, permissionIds []string) (*role.Role, error)
+	AddPermissions(ctx context.Context, roleId string, permissionIds []string) (*role.Role, error)
+	RemovePermissions(ctx context.Context, roleId string, permissionIds []string) (*role.Role, error)
 }
 
 func NewRoleUseCase(
 	db *sql.DB,
 	transRepo trans.Repository,
 	roleRepo role.Repository,
-	rolePermissionRepo rolepermission.Repository,
 	dialectWrapper persistence.DialectWrapper,
 ) RoleUseCase {
 	return &roleUseCase{
-		db:                 db,
-		transRepo:          transRepo,
-		roleRepo:           roleRepo,
-		rolePermissionRepo: rolePermissionRepo,
-		dialectWrapper:     dialectWrapper,
+		db:             db,
+		transRepo:      transRepo,
+		roleRepo:       roleRepo,
+		dialectWrapper: dialectWrapper,
 	}
 }
 
 type roleUseCase struct {
-	db                 *sql.DB
-	transRepo          trans.Repository
-	roleRepo           role.Repository
-	rolePermissionRepo rolepermission.Repository
-	dialectWrapper     persistence.DialectWrapper
+	db             *sql.DB
+	transRepo      trans.Repository
+	roleRepo       role.Repository
+	dialectWrapper persistence.DialectWrapper
 }
 
 type ListRoleQueryParams struct {
@@ -221,14 +216,7 @@ func (uc roleUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*role.
 	return items, nil
 }
 
-func (uc roleUseCase) AssignPermission(ctx context.Context, roleId, permissionId string) (*role.Role, error) {
-	if err := uc.rolePermissionRepo.AssignPermission(ctx, roleId, permissionId); err != nil {
-		return nil, err
-	}
-	return uc.Get(ctx, roleId)
-}
-
-func (uc roleUseCase) AddPermissionsToRole(ctx context.Context, roleId string, permissionIds []string) (*role.Role, error) {
+func (uc roleUseCase) AddPermissions(ctx context.Context, roleId string, permissionIds []string) (*role.Role, error) {
 	if err := uc.transRepo.ExecTrans(ctx, func(ctx context.Context) error {
 		return uc.roleRepo.AddPermissionsToRole(ctx, roleId, permissionIds)
 	}); err != nil {
@@ -237,7 +225,7 @@ func (uc roleUseCase) AddPermissionsToRole(ctx context.Context, roleId string, p
 	return uc.Get(ctx, roleId)
 }
 
-func (uc roleUseCase) RemovePermissionsFromRole(ctx context.Context, roleId string, permissionIds []string) (*role.Role, error) {
+func (uc roleUseCase) RemovePermissions(ctx context.Context, roleId string, permissionIds []string) (*role.Role, error) {
 	if err := uc.transRepo.ExecTrans(ctx, func(ctx context.Context) error {
 		return uc.roleRepo.RemovePermissionsFromRole(ctx, roleId, permissionIds)
 	}); err != nil {

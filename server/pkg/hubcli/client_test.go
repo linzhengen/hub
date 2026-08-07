@@ -38,7 +38,7 @@ func TestBuildRequestRoutesFieldsByTheirHttpRule(t *testing.T) {
 
 	t.Run("path parameter and body", func(t *testing.T) {
 		req, err := client.BuildRequest(operation(t, "AddUsersToGroup"), map[string]any{
-			"group_id": "g1",
+			"id":       "g1",
 			"user_ids": []string{"u1"},
 		})
 		require.NoError(t, err)
@@ -49,9 +49,10 @@ func TestBuildRequestRoutesFieldsByTheirHttpRule(t *testing.T) {
 	})
 
 	t.Run("fields are addressable by their JSON name too", func(t *testing.T) {
-		req, err := client.BuildRequest(operation(t, "AddUsersToGroup"), map[string]any{"groupId": "g1"})
+		req, err := client.BuildRequest(operation(t, "AddPermissionsToRole"), map[string]any{"permissionIds": []string{"p1"}, "id": "r1"})
 		require.NoError(t, err)
-		assert.Equal(t, "http://hub.test/api/v1/groups/g1/users/add", req.URL)
+		assert.Equal(t, "http://hub.test/api/v1/roles/r1/permissions/add", req.URL)
+		assert.JSONEq(t, `{"permissionIds":["p1"]}`, string(req.Body))
 	})
 }
 

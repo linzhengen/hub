@@ -60,7 +60,7 @@ export function Roles() {
       });
 
       if (role?.id && values.permissionIds.length > 0) {
-        await roleService.addPermissionsToRole(role.id, {
+        await roleService.addPermissions(role.id, {
           permissionIds: values.permissionIds,
         });
       }
@@ -87,10 +87,10 @@ export function Roles() {
       const toRemove = currentPermissionIds.filter(id => !selectedIds.includes(id));
 
       if (toAdd.length > 0) {
-        await roleService.addPermissionsToRole(id, { permissionIds: toAdd });
+        await roleService.addPermissions(id, { permissionIds: toAdd });
       }
       if (toRemove.length > 0) {
-        await roleService.removePermissionsFromRole(id, { permissionIds: toRemove });
+        await roleService.removePermissions(id, { permissionIds: toRemove });
       }
     },
     onSuccess: () => {

@@ -1,5 +1,12 @@
 components:
     schemas:
+        GroupServiceAddRolesToGroupBody:
+            properties:
+                roleIds:
+                    items:
+                        type: string
+                    type: array
+            type: object
         GroupServiceAddUsersToGroupBody:
             properties:
                 userIds:
@@ -7,12 +14,7 @@ components:
                         type: string
                     type: array
             type: object
-        GroupServiceAssignRoleBody:
-            properties:
-                roleId:
-                    type: string
-            type: object
-        GroupServiceAssignRolesToGroupBody:
+        GroupServiceRemoveRolesFromGroupBody:
             properties:
                 roleIds:
                     items:
@@ -53,14 +55,15 @@ components:
                 '@type':
                     type: string
             type: object
-        v1AddUsersToGroupResponse:
-            type: object
-        v1AssignRoleResponse:
+        v1AddRolesToGroupResponse:
             properties:
                 group:
                     $ref: '#/components/schemas/v1Group'
             type: object
-        v1AssignRolesToGroupResponse:
+        v1AddUsersToGroupResponse:
+            properties:
+                group:
+                    $ref: '#/components/schemas/v1Group'
             type: object
         v1CreateGroupRequest:
             properties:
@@ -121,7 +124,15 @@ components:
                     format: int64
                     type: string
             type: object
+        v1RemoveRolesFromGroupResponse:
+            properties:
+                group:
+                    $ref: '#/components/schemas/v1Group'
+            type: object
         v1RemoveUsersFromGroupResponse:
+            properties:
+                group:
+                    $ref: '#/components/schemas/v1Group'
             type: object
         v1UpdateGroupResponse:
             properties:
@@ -211,99 +222,6 @@ paths:
                     description: An unexpected error response.
             tags:
                 - GroupService
-    /api/v1/groups/{groupId}/roles/assignRoles:
-        post:
-            operationId: GroupService_AssignRolesToGroup
-            parameters:
-                - in: path
-                  name: groupId
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/GroupServiceAssignRolesToGroupBody'
-                required: true
-                x-originalParamName: body
-            responses:
-                "200":
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1AssignRolesToGroupResponse'
-                    description: A successful response.
-                default:
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/googleRpcStatus'
-                    description: An unexpected error response.
-            tags:
-                - GroupService
-    /api/v1/groups/{groupId}/users/add:
-        post:
-            operationId: GroupService_AddUsersToGroup
-            parameters:
-                - in: path
-                  name: groupId
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/GroupServiceAddUsersToGroupBody'
-                required: true
-                x-originalParamName: body
-            responses:
-                "200":
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1AddUsersToGroupResponse'
-                    description: A successful response.
-                default:
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/googleRpcStatus'
-                    description: An unexpected error response.
-            tags:
-                - GroupService
-    /api/v1/groups/{groupId}/users/remove:
-        post:
-            operationId: GroupService_RemoveUsersFromGroup
-            parameters:
-                - in: path
-                  name: groupId
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/GroupServiceRemoveUsersFromGroupBody'
-                required: true
-                x-originalParamName: body
-            responses:
-                "200":
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/v1RemoveUsersFromGroupResponse'
-                    description: A successful response.
-                default:
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/googleRpcStatus'
-                    description: An unexpected error response.
-            tags:
-                - GroupService
     /api/v1/groups/{id}:
         delete:
             operationId: GroupService_DeleteGroup
@@ -381,9 +299,9 @@ paths:
                     description: An unexpected error response.
             tags:
                 - GroupService
-    /api/v1/groups/{id}/roles/assign:
+    /api/v1/groups/{id}/roles/add:
         post:
-            operationId: GroupService_AssignRole
+            operationId: GroupService_AddRolesToGroup
             parameters:
                 - in: path
                   name: id
@@ -394,7 +312,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/GroupServiceAssignRoleBody'
+                            $ref: '#/components/schemas/GroupServiceAddRolesToGroupBody'
                 required: true
                 x-originalParamName: body
             responses:
@@ -402,7 +320,100 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/v1AssignRoleResponse'
+                                $ref: '#/components/schemas/v1AddRolesToGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+    /api/v1/groups/{id}/roles/remove:
+        post:
+            operationId: GroupService_RemoveRolesFromGroup
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GroupServiceRemoveRolesFromGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1RemoveRolesFromGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+    /api/v1/groups/{id}/users/add:
+        post:
+            operationId: GroupService_AddUsersToGroup
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GroupServiceAddUsersToGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1AddUsersToGroupResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/googleRpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - GroupService
+    /api/v1/groups/{id}/users/remove:
+        post:
+            operationId: GroupService_RemoveUsersFromGroup
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GroupServiceRemoveUsersFromGroupBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1RemoveUsersFromGroupResponse'
                     description: A successful response.
                 default:
                     content:

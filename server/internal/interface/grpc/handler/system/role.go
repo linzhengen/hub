@@ -85,26 +85,18 @@ func (h roleHandler) UpdateRole(ctx context.Context, request *pbv1.UpdateRoleReq
 	return &pbv1.UpdateRoleResponse{Role: roleDomainToPb(r)}, nil
 }
 
-func (h roleHandler) AssignPermission(ctx context.Context, request *pbv1.AssignPermissionRequest) (*pbv1.AssignPermissionResponse, error) {
-	r, err := h.roleUseCase.AssignPermission(ctx, request.Id, request.PermissionId)
-	if err != nil {
-		return nil, err
-	}
-	return &pbv1.AssignPermissionResponse{Role: roleDomainToPb(r)}, nil
-}
-
 func (h roleHandler) AddPermissionsToRole(ctx context.Context, request *pbv1.AddPermissionsToRoleRequest) (*pbv1.AddPermissionsToRoleResponse, error) {
-	_, err := h.roleUseCase.AddPermissionsToRole(ctx, request.RoleId, request.PermissionIds)
+	r, err := h.roleUseCase.AddPermissions(ctx, request.Id, request.PermissionIds)
 	if err != nil {
 		return nil, err
 	}
-	return &pbv1.AddPermissionsToRoleResponse{}, nil
+	return &pbv1.AddPermissionsToRoleResponse{Role: roleDomainToPb(r)}, nil
 }
 
 func (h roleHandler) RemovePermissionsFromRole(ctx context.Context, request *pbv1.RemovePermissionsFromRoleRequest) (*pbv1.RemovePermissionsFromRoleResponse, error) {
-	_, err := h.roleUseCase.RemovePermissionsFromRole(ctx, request.RoleId, request.PermissionIds)
+	r, err := h.roleUseCase.RemovePermissions(ctx, request.Id, request.PermissionIds)
 	if err != nil {
 		return nil, err
 	}
-	return &pbv1.RemovePermissionsFromRoleResponse{}, nil
+	return &pbv1.RemovePermissionsFromRoleResponse{Role: roleDomainToPb(r)}, nil
 }

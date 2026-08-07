@@ -3,6 +3,7 @@ package system
 import (
 	"context"
 	"database/sql/driver"
+	"errors"
 	"testing"
 	"time"
 
@@ -139,7 +140,7 @@ func TestGroupUseCase_AddUsersToGroup(t *testing.T) {
 	mockUserGroupRepo.On("AddUsersToGroup", ctx, groupID, userIDs).Return(nil)
 	mockGroupRepo.On("FindOne", ctx, groupID).Return(&group.Group{Id: groupID}, nil)
 
-	_, err := uc.AddUsersToGroup(ctx, groupID, userIDs)
+	_, err := uc.AddUsers(ctx, groupID, userIDs)
 
 	assert.NoError(t, err)
 	mockUserGroupRepo.AssertExpectations(t)
@@ -164,11 +165,87 @@ func TestGroupUseCase_RemoveUsersFromGroup(t *testing.T) {
 	mockUserGroupRepo.On("RemoveUsersFromGroup", ctx, groupID, userIDs).Return(nil)
 	mockGroupRepo.On("FindOne", ctx, groupID).Return(&group.Group{Id: groupID}, nil)
 
-	_, err := uc.RemoveUsersFromGroup(ctx, groupID, userIDs)
+	_, err := uc.RemoveUsers(ctx, groupID, userIDs)
 
 	assert.NoError(t, err)
 	mockUserGroupRepo.AssertExpectations(t)
 	mockGroupRepo.AssertExpectations(t)
+}
+
+// Roles are added one at a time inside a single transaction, so a failure
+// part way through cannot leave the group holding only some of them.
+func TestGroupUseCase_AddRoles(t *testing.T) {
+	ctx := context.Background()
+	groupID := "test-group-id"
+
+	mockGroupRepo := new(MockGroupRepository)
+	mockGroupRoleRepo := new(MockGroupRoleRepository)
+	mockTransRepo := new(MockTransRepository)
+
+	uc := &groupUseCase{
+		groupRepo:     mockGroupRepo,
+		groupRoleRepo: mockGroupRoleRepo,
+		transRepo:     mockTransRepo,
+	}
+
+	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role1").Return(nil).Once()
+	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role2").Return(nil).Once()
+	mockGroupRepo.On("FindOne", ctx, groupID).Return(&group.Group{Id: groupID}, nil)
+
+	_, err := uc.AddRoles(ctx, groupID, []string{"role1", "role2"})
+
+	assert.NoError(t, err)
+	mockGroupRoleRepo.AssertExpectations(t)
+	mockGroupRepo.AssertExpectations(t)
+}
+
+func TestGroupUseCase_RemoveRoles(t *testing.T) {
+	ctx := context.Background()
+	groupID := "test-group-id"
+
+	mockGroupRepo := new(MockGroupRepository)
+	mockGroupRoleRepo := new(MockGroupRoleRepository)
+	mockTransRepo := new(MockTransRepository)
+
+	uc := &groupUseCase{
+		groupRepo:     mockGroupRepo,
+		groupRoleRepo: mockGroupRoleRepo,
+		transRepo:     mockTransRepo,
+	}
+
+	mockGroupRoleRepo.On("UnassignRole", ctx, groupID, "role1").Return(nil).Once()
+	mockGroupRepo.On("FindOne", ctx, groupID).Return(&group.Group{Id: groupID}, nil)
+
+	_, err := uc.RemoveRoles(ctx, groupID, []string{"role1"})
+
+	assert.NoError(t, err)
+	mockGroupRoleRepo.AssertExpectations(t)
+	mockGroupRepo.AssertExpectations(t)
+}
+
+// The first failure aborts the batch: the caller must not be told the whole
+// set was applied when it was not.
+func TestGroupUseCase_AddRolesStopsAtTheFirstFailure(t *testing.T) {
+	ctx := context.Background()
+	groupID := "test-group-id"
+
+	mockGroupRepo := new(MockGroupRepository)
+	mockGroupRoleRepo := new(MockGroupRoleRepository)
+	mockTransRepo := new(MockTransRepository)
+
+	uc := &groupUseCase{
+		groupRepo:     mockGroupRepo,
+		groupRoleRepo: mockGroupRoleRepo,
+		transRepo:     mockTransRepo,
+	}
+
+	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role1").Return(errors.New("assign failed")).Once()
+
+	_, err := uc.AddRoles(ctx, groupID, []string{"role1", "role2"})
+
+	assert.Error(t, err)
+	mockGroupRoleRepo.AssertNotCalled(t, "AssignRole", ctx, groupID, "role2")
+	mockGroupRepo.AssertNotCalled(t, "FindOne", ctx, groupID)
 }
 
 func TestGroupUseCase_List_WithPagination(t *testing.T) {

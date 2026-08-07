@@ -36,23 +36,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/roles/{id}/permissions/assign": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["RoleService_AssignPermission"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/roles/{roleId}/permissions": {
+    "/api/v1/roles/{id}/permissions/add": {
         parameters: {
             query?: never;
             header?: never;
@@ -68,7 +52,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/roles/{roleId}/permissions/remove": {
+    "/api/v1/roles/{id}/permissions/remove": {
         parameters: {
             query?: never;
             header?: never;
@@ -91,9 +75,6 @@ export interface components {
         RoleServiceAddPermissionsToRoleBody: {
             permissionIds?: string[];
         };
-        RoleServiceAssignPermissionBody: {
-            permissionId?: string;
-        };
         RoleServiceRemovePermissionsFromRoleBody: {
             permissionIds?: string[];
         };
@@ -112,8 +93,7 @@ export interface components {
             details?: components["schemas"]["protobufAny"][];
             message?: string;
         };
-        v1AddPermissionsToRoleResponse: Record<string, never>;
-        v1AssignPermissionResponse: {
+        v1AddPermissionsToRoleResponse: {
             role?: components["schemas"]["v1Role"];
         };
         v1CreateRoleRequest: {
@@ -132,7 +112,9 @@ export interface components {
             /** Format: int64 */
             total?: string;
         };
-        v1RemovePermissionsFromRoleResponse: Record<string, never>;
+        v1RemovePermissionsFromRoleResponse: {
+            role?: components["schemas"]["v1Role"];
+        };
         v1Role: {
             /** Format: date-time */
             createdAt?: string;
@@ -320,47 +302,12 @@ export interface operations {
             };
         };
     };
-    RoleService_AssignPermission: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RoleServiceAssignPermissionBody"];
-            };
-        };
-        responses: {
-            /** @description A successful response. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["v1AssignPermissionResponse"];
-                };
-            };
-            /** @description An unexpected error response. */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["rpcStatus"];
-                };
-            };
-        };
-    };
     RoleService_AddPermissionsToRole: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                roleId: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -395,7 +342,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                roleId: string;
+                id: string;
             };
             cookie?: never;
         };

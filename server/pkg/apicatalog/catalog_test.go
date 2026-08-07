@@ -64,7 +64,7 @@ func TestFieldsAreSplitBetweenPathQueryAndBody(t *testing.T) {
 
 	add, ok := catalog.ByFullMethod("/system.group.v1.GroupService/AddUsersToGroup")
 	require.True(t, ok)
-	assert.Equal(t, []string{"group_id"}, add.PathParams())
+	assert.Equal(t, []string{"id"}, add.PathParams(), "every path parameter naming the parent is called id")
 	body, ok := add.Field("user_ids")
 	require.True(t, ok)
 	assert.Equal(t, apicatalog.InBody, body.In, `body: "*" puts every non-path field in the body`)

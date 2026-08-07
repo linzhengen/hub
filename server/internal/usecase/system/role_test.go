@@ -8,33 +8,10 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/role/rolepermission"
 	"github.com/stretchr/testify/require"
 )
 
 // mockRolePermissionRepo is a mock implementation of rolepermission.Repository
-// that returns empty results for all methods
-type mockRolePermissionRepo struct{}
-
-func (m *mockRolePermissionRepo) FindByRoleId(ctx context.Context, roleId string) (rolepermission.RolePermissions, error) {
-	return rolepermission.RolePermissions{}, nil
-}
-
-func (m *mockRolePermissionRepo) AssignPermission(ctx context.Context, roleId, permissionId string) error {
-	return nil
-}
-
-func (m *mockRolePermissionRepo) UnassignPermission(ctx context.Context, roleId, permissionId string) error {
-	return nil
-}
-
-func (m *mockRolePermissionRepo) Upsert(ctx context.Context, roleId string, permissionId []string) error {
-	return nil
-}
-
-func (m *mockRolePermissionRepo) IsPermissionInRole(ctx context.Context, roleId string, permissionId string) (bool, error) {
-	return false, nil
-}
 
 func TestRoleUseCase_List_WithPagination(t *testing.T) {
 	ctx := context.Background()
@@ -50,9 +27,8 @@ func TestRoleUseCase_List_WithPagination(t *testing.T) {
 	dialect := goqu.Dialect("postgres")
 
 	uc := &roleUseCase{
-		db:                 db,
-		dialectWrapper:     dialect,
-		rolePermissionRepo: &mockRolePermissionRepo{},
+		db:             db,
+		dialectWrapper: dialect,
 	}
 
 	// Test with limit > 0
@@ -122,9 +98,8 @@ func TestRoleUseCase_List_WithoutPagination(t *testing.T) {
 	dialect := goqu.Dialect("postgres")
 
 	uc := &roleUseCase{
-		db:                 db,
-		dialectWrapper:     dialect,
-		rolePermissionRepo: &mockRolePermissionRepo{},
+		db:             db,
+		dialectWrapper: dialect,
 	}
 
 	// Test with limit = 0 (no pagination)

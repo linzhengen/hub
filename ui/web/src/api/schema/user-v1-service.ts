@@ -84,7 +84,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/{id}/groups/assign": {
+    "/api/v1/users/{id}/groups/add": {
         parameters: {
             query?: never;
             header?: never;
@@ -93,14 +93,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["UserService_AssignGroup"];
+        post: operations["UserService_AddGroupsToUser"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/users/{id}/groups/unassign": {
+    "/api/v1/users/{id}/groups/remove": {
         parameters: {
             query?: never;
             header?: never;
@@ -109,7 +109,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["UserService_UnassignGroup"];
+        post: operations["UserService_RemoveGroupsFromUser"];
         delete?: never;
         options?: never;
         head?: never;
@@ -120,11 +120,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        UserServiceAssignGroupBody: {
-            groupId?: string;
+        UserServiceAddGroupsToUserBody: {
+            groupIds?: string[];
         };
-        UserServiceUnassignGroupBody: {
-            groupId?: string;
+        UserServiceRemoveGroupsFromUserBody: {
+            groupIds?: string[];
         };
         UserServiceUpdateUserBody: {
             email?: string;
@@ -149,7 +149,7 @@ export interface components {
          * @enum {string}
          */
         resourceV1Type: "TYPE_UNSPECIFIED" | "TYPE_MENU" | "TYPE_API";
-        v1AssignGroupResponse: {
+        v1AddGroupsToUserResponse: {
             user?: components["schemas"]["v1User"];
         };
         v1CreateUserRequest: {
@@ -213,6 +213,9 @@ export interface components {
             order?: number;
             title?: string;
         };
+        v1RemoveGroupsFromUserResponse: {
+            user?: components["schemas"]["v1User"];
+        };
         /**
          * @description The verification email is always sent to the authenticated user, so the
          *     request carries no target: taking a user id here would let a caller trigger
@@ -220,9 +223,6 @@ export interface components {
          */
         v1SendMeVerifyEmailRequest: Record<string, never>;
         v1SendMeVerifyEmailResponse: Record<string, never>;
-        v1UnassignGroupResponse: {
-            user?: components["schemas"]["v1User"];
-        };
         v1UpdateMeRequest: {
             email?: string;
             password?: string;
@@ -556,7 +556,7 @@ export interface operations {
             };
         };
     };
-    UserService_AssignGroup: {
+    UserService_AddGroupsToUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -567,7 +567,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UserServiceAssignGroupBody"];
+                "application/json": components["schemas"]["UserServiceAddGroupsToUserBody"];
             };
         };
         responses: {
@@ -577,7 +577,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["v1AssignGroupResponse"];
+                    "application/json": components["schemas"]["v1AddGroupsToUserResponse"];
                 };
             };
             /** @description An unexpected error response. */
@@ -591,7 +591,7 @@ export interface operations {
             };
         };
     };
-    UserService_UnassignGroup: {
+    UserService_RemoveGroupsFromUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -602,7 +602,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UserServiceUnassignGroupBody"];
+                "application/json": components["schemas"]["UserServiceRemoveGroupsFromUserBody"];
             };
         };
         responses: {
@@ -612,7 +612,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["v1UnassignGroupResponse"];
+                    "application/json": components["schemas"]["v1RemoveGroupsFromUserResponse"];
                 };
             };
             /** @description An unexpected error response. */
