@@ -31,6 +31,17 @@ export interface KeycloakSessionHandlers {
   onLoggedOut: () => void;
 }
 
+// keycloak.init() は 1 インスタンスにつき一度しか呼べず、二度目は必ず throw する。
+// StrictMode は開発ビルドで effect を二重に実行するため、素直に呼ぶと二度目が
+// 失敗して未認証と判定され、ログイン画面へのリダイレクトループになる。
+// 実行中/完了済みの初期化を使い回して、init 自体は一度だけにする。
+let initialization: Promise<boolean> | undefined;
+
+// ハンドラは常に最新の呼び出し元のものを使う。初期化を共有する都合上、
+// 先行する呼び出しのクロージャを掴んだままにすると、破棄済みの effect に
+// 通知してしまい状態が反映されない。
+let currentHandlers: KeycloakSessionHandlers | undefined;
+
 /**
  * Keycloak のセッションを初期化し、トークン保存のイベント配線を行う。
  *
@@ -38,7 +49,19 @@ export interface KeycloakSessionHandlers {
  * React の管理外にある外部システムへの副作用なので、コンポーネント本体ではなく
  * ここで行う（React Compiler の immutability ルール）。
  */
-export const initializeKeycloak = async (handlers: KeycloakSessionHandlers): Promise<boolean> => {
+export const initializeKeycloak = (handlers: KeycloakSessionHandlers): Promise<boolean> => {
+  currentHandlers = handlers;
+  initialization ??= startInitialization();
+  return initialization;
+};
+
+/** テスト用: モジュール状態を初期化前に戻す */
+export const resetKeycloakInitializationForTests = () => {
+  initialization = undefined;
+  currentHandlers = undefined;
+};
+
+const startInitialization = async (): Promise<boolean> => {
   console.log('Initializing Keycloak...');
 
   keycloak.onAuthSuccess = () => {
@@ -54,7 +77,7 @@ export const initializeKeycloak = async (handlers: KeycloakSessionHandlers): Pro
   keycloak.onAuthLogout = () => {
     console.log('Logout detected');
     clearTokens();
-    handlers.onLoggedOut();
+    currentHandlers?.onLoggedOut();
   };
 
   keycloak.onTokenExpired = () => {
@@ -78,7 +101,7 @@ export const initializeKeycloak = async (handlers: KeycloakSessionHandlers): Pro
     persistCurrentToken();
 
     if (keycloak.tokenParsed) {
-      handlers.onAuthenticated(keycloak.tokenParsed);
+      currentHandlers?.onAuthenticated(keycloak.tokenParsed);
     }
   }
 

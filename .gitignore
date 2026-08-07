@@ -98,3 +98,9 @@ temp/
 *.cer
 *.p12
 *.pfx
+
+# Playwright
+ui/web/test-results/
+ui/web/playwright-report/
+ui/web/blob-report/
+ui/web/.playwright/

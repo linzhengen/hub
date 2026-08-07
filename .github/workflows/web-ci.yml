@@ -13,6 +13,12 @@ on:
       - '.github/workflows/web-ci.yml'
   workflow_dispatch:
 
+# Both jobs only check out the repo and run the test suites, so a read-only
+# token is enough. Without this the workflow inherits the repository default,
+# which may be read/write.
+permissions:
+  contents: read
+
 jobs:
   build-and-lint:
     name: Web Build & Lint
@@ -52,3 +58,45 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  e2e:
+    name: Web E2E
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui/web
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: latest
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 25
+          cache: 'pnpm'
+          cache-dependency-path: ui/web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --dangerously-allow-all-builds
+
+      # Keycloak と API はテスト側でスタブするため、ブラウザだけあればよい
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E
+        run: pnpm test:e2e
+
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: ui/web/playwright-report/
+          retention-days: 7
