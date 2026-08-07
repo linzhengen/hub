@@ -4,6 +4,28 @@
 - **Structure**: Base and Overlays (layered manifests)
 - **Deployment Strategy**: GitOps ready (can be applied via `kubectl apply -k`)
 
+## Environment Scope
+
+`base/` is currently written for the **dev/minikube** overlays only — the two
+overlays that exist in `overlays/`. Both are disposable, single-operator
+clusters reached over a port-forward, so `base/remote-charts/` deliberately
+trades hardening for convenience. Treat `base/` as dev-only until an overlay
+for a shared or production-like environment exists.
+
+Before reusing `base/` in any other environment, an overlay must patch at least
+the following (each is also flagged in a comment at the relevant line):
+
+| Setting | Where | Why it must change outside dev |
+| --- | --- | --- |
+| `KC_HTTP_ENABLED: "true"` | `base/remote-charts/keycloak-values.yaml` | Tokens and admin credentials would travel in plaintext. Terminate TLS in front of Keycloak and drop this. |
+| `KC_HOSTNAME_STRICT: "false"` | `base/remote-charts/keycloak-values.yaml` | Disables hostname validation, allowing Host-header-driven redirect/issuer values. Set `KC_HOSTNAME` to the public URL and flip this to `"true"`. |
+| `primary.persistence.enabled: false` | `base/remote-charts/postgres-values.yaml` | All data — including the `keycloak` database and its realm/user records — is lost on every Pod restart or reschedule. Enable persistence with an explicit `storageClass`/`size`. |
+| `global.security.allowInsecureImages: true` | both `*-values.yaml` | Bypasses the Bitnami chart's image check. It is set because this project ships its own rebuilds of those images; keep it only as long as that stays true, and pin digests where possible. |
+| `*-secret.env.sample` | `base/` | Sample secrets are committed as templates. Real environments must supply values from a secret store — see "Secret Management" below. |
+
+The in-cluster Terraform Job carries a similar caveat; see "In-Cluster Terraform
+Jobs" at the end of this document.
+
 ## Directory Structure
 
 - `base/`: Common manifests shared across all environments.

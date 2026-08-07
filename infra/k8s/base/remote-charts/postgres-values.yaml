@@ -1,5 +1,11 @@
+# DEV/MINIKUBE ONLY. This base targets the disposable dev and minikube
+# overlays; it is not hardened for a shared or production-like cluster.
+# See "Environment Scope" in infra/k8s/AGENTS.md before reusing it elsewhere.
 global:
   security:
+    # The Bitnami chart refuses non-Bitnami images unless this is set. The image
+    # below is this project's own rebuild of the upstream PostgreSQL image, so
+    # the check is bypassed knowingly.
     allowInsecureImages: true
 image:
   registry: ghcr.io
@@ -13,6 +19,12 @@ auth:
     adminPasswordKey: "POSTGRES_PASSWORD"
 primary:
   persistence:
+    # DEV/MINIKUBE ONLY: the database is intentionally ephemeral so a cluster can
+    # be torn down and recreated without leaving PVCs behind. Every Pod restart
+    # or reschedule wipes all data, including the `keycloak` database created by
+    # the initdb script below and any realm/user data Keycloak stored in it —
+    # the initdb scripts then re-run from scratch on the empty volume.
+    # A non-dev overlay MUST enable persistence (and set a storageClass/size).
     enabled: false
   networkPolicy:
     # The chart enables a NetworkPolicy by default, but with allowExternal:true

@@ -1,5 +1,11 @@
+# DEV/MINIKUBE ONLY. This base targets the disposable dev and minikube
+# overlays; it is not hardened for a shared or production-like cluster.
+# See "Environment Scope" in infra/k8s/AGENTS.md before reusing it elsewhere.
 global:
   security:
+    # The Bitnami chart refuses non-Bitnami images unless this is set. The image
+    # below is this project's own rebuild of the upstream Keycloak image
+    # (bundled themes), so the check is bypassed knowingly.
     allowInsecureImages: true
 image:
   registry: ghcr.io
@@ -45,6 +51,12 @@ extraEnvVars:
       secretKeyRef:
         name: keycloak-secret
         key: POSTGRES_PASSWORD
+  # DEV/MINIKUBE ONLY: Keycloak is reached over plain HTTP through a port-forward
+  # or a NodePort with no stable hostname, so hostname validation is off and the
+  # HTTP listener is on. A non-dev overlay MUST override both: terminate TLS in
+  # front of Keycloak, set KC_HOSTNAME to the public URL with
+  # KC_HOSTNAME_STRICT: "true", and drop KC_HTTP_ENABLED so tokens and admin
+  # credentials never travel unencrypted.
   - name: KC_HOSTNAME_STRICT
     value: "false"
   - name: KC_HTTP_ENABLED
