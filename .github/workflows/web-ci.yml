@@ -47,5 +47,8 @@ jobs:
       - name: Lint (ESLint)
         run: pnpm lint:eslint
 
+      - name: Test
+        run: pnpm test
+
       - name: Build
         run: pnpm build

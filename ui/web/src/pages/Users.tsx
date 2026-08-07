@@ -8,6 +8,7 @@ import { FolderKanban } from 'lucide-react';
 
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 
 const { Option } = Select;
 
@@ -21,6 +22,7 @@ interface UserFormValues {
 
 export function Users() {
   const queryClient = useQueryClient();
+  const confirmDanger = useDangerConfirm();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [managingGroupsUser, setManagingGroupsUser] = useState<User | null>(null);
@@ -200,9 +202,15 @@ export function Users() {
             type="text"
             icon={<DeleteOutlined />}
             onClick={() => {
-              if (record.id && confirm('Are you sure you want to delete this user?')) {
-                deleteMutation.mutate(record.id);
-              }
+              const id = record.id;
+              if (!id) return;
+              confirmDanger(
+                {
+                  title: 'Delete user',
+                  content: 'Are you sure you want to delete this user?',
+                },
+                () => deleteMutation.mutate(id),
+              );
             }}
             className="p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           />
@@ -514,12 +522,17 @@ export function Users() {
                           type="text"
                           danger
                           onClick={() => {
-                            if (managingGroupsUser.id && confirm(`Are you sure you want to remove ${group.name} from this user?`)) {
-                              unassignGroupMutation.mutate({
-                                userId: managingGroupsUser.id,
-                                groupId: group.id!
-                              });
-                            }
+                            const userId = managingGroupsUser.id;
+                            const targetGroupId = group.id;
+                            if (!userId || !targetGroupId) return;
+                            confirmDanger(
+                              {
+                                title: 'Remove group',
+                                content: `Are you sure you want to remove ${group.name} from this user?`,
+                                okText: 'Remove',
+                              },
+                              () => unassignGroupMutation.mutate({ userId, groupId: targetGroupId }),
+                            );
                           }}
                           loading={unassignGroupMutation.isPending && unassignGroupMutation.variables?.groupId === group.id}
                         >

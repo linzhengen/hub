@@ -8,12 +8,14 @@ import { Button, Modal, Input, Table, Form, Select, Space, Card } from 'antd';
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, UserOutlined, SearchOutlined, FolderOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 import { Users, Shield, TrendingUp } from 'lucide-react';
 
 type GroupFormValues = CreateGroupRequest;
 
 export function Groups() {
   const queryClient = useQueryClient();
+  const confirmDanger = useDangerConfirm();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [managingRolesGroup, setManagingRolesGroup] = useState<Group | null>(null);
@@ -255,9 +257,15 @@ export function Groups() {
             type="text"
             icon={<DeleteOutlined />}
             onClick={() => {
-              if (record.id && confirm('Are you sure you want to delete this group?')) {
-                deleteMutation.mutate(record.id);
-              }
+              const id = record.id;
+              if (!id) return;
+              confirmDanger(
+                {
+                  title: 'Delete group',
+                  content: 'Are you sure you want to delete this group?',
+                },
+                () => deleteMutation.mutate(id),
+              );
             }}
             className="p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             title="Delete Group"
@@ -519,13 +527,21 @@ export function Groups() {
                           type="text"
                           danger
                           onClick={() => {
-                            if (managingRolesGroup.id && confirm(`Are you sure you want to remove ${role.name} from this group?`)) {
-                              unassignRoleMutation.mutate({
-                                id: managingRolesGroup.id,
-                                roleId: role.id!,
+                            const groupId = managingRolesGroup.id;
+                            const targetRoleId = role.id;
+                            if (!groupId || !targetRoleId) return;
+                            confirmDanger(
+                              {
+                                title: 'Remove role',
+                                content: `Are you sure you want to remove ${role.name} from this group?`,
+                                okText: 'Remove',
+                              },
+                              () => unassignRoleMutation.mutate({
+                                id: groupId,
+                                roleId: targetRoleId,
                                 currentRoleIds: managingRolesGroup.roleIds ?? []
-                              });
-                            }
+                              }),
+                            );
                           }}
                           loading={unassignRoleMutation.isPending && unassignRoleMutation.variables?.id === managingRolesGroup.id && unassignRoleMutation.variables?.roleId === role.id}
                         >

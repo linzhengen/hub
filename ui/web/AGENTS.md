@@ -41,6 +41,30 @@
 ## Testing & Quality
 
 - Run `pnpm lint` (which runs `tsc --noEmit`) to check for type errors.
-- Run `pnpm lint:eslint` to check for ESLint issues (`eslint.config.js`). Both are run in CI (`web-ci.yml`).
+- Run `pnpm lint:eslint` to check for ESLint issues (`eslint.config.js`).
+- Run `pnpm test` (Vitest, single run) or `pnpm test:watch` while developing.
+  All three are run in CI (`web-ci.yml`).
 - Follow the project-wide TDD and strong typing practices.
 - Ensure all new components are responsive and accessible.
+
+### Unit Tests
+
+- **Runner**: Vitest with the `jsdom` environment, configured in the `test`
+  block of `vite.config.ts` (which imports `defineConfig` from `vitest/config`).
+- **Location**: co-located with the code under test as `*.test.ts` / `*.test.tsx`
+  under `src/`. The `@/` alias resolves in tests as it does in the app.
+- **Components/hooks**: use `@testing-library/react`. Query by role/label rather
+  than by class name so the tests keep tracking accessibility.
+- Prefer testing observable behaviour (returned values, dispatched events,
+  rendered roles) over implementation details.
+
+### Dialogs
+
+- Never use the native `window.confirm` / `window.alert`. They do not follow the
+  app's Ant Design theme and behave differently for focus trapping and keyboard
+  navigation.
+- For destructive confirmations use `useDangerConfirm` (`src/hooks/useDangerConfirm.ts`).
+- For other modals, take `modal` / `message` / `notification` from
+  `App.useApp()` rather than the static `Modal.*` methods: the app is wrapped in
+  antd's `<App>` (`src/App.tsx`), and only the hook-based API inherits the
+  `ConfigProvider` theme (light/dark).

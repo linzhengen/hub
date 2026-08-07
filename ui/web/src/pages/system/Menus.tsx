@@ -6,6 +6,7 @@ import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card, InputNumbe
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 
 interface ResourceTreeNode extends Resource {
   children?: ResourceTreeNode[];
@@ -13,6 +14,7 @@ interface ResourceTreeNode extends Resource {
 
 export function Menus() {
   const queryClient = useQueryClient();
+  const confirmDanger = useDangerConfirm();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [createForm] = Form.useForm();
@@ -160,9 +162,15 @@ export function Menus() {
             type="text"
             icon={<DeleteOutlined />}
             onClick={() => {
-              if (record.id && confirm('Are you sure you want to delete this resource?')) {
-                deleteMutation.mutate(record.id);
-              }
+              const id = record.id;
+              if (!id) return;
+              confirmDanger(
+                {
+                  title: 'Delete resource',
+                  content: 'Are you sure you want to delete this resource?',
+                },
+                () => deleteMutation.mutate(id),
+              );
             }}
             className="text-red-600"
           />
