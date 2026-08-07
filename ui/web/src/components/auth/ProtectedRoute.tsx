@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useRef } from 'react';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/providers/auth';
 
 interface ProtectedRouteProps {
   children: ReactNode;

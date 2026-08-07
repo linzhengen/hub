@@ -30,6 +30,9 @@
 
 ### Component Guidelines
 - Use Shadcn UI primitives from `src/components/ui` whenever possible.
+- To add a new Shadcn component, run the CLI on demand — `npx shadcn@latest add <component>`
+  (it reads `components.json`). The CLI is deliberately not a project dependency:
+  it pulls in a large server-side tree that only added vulnerability alerts.
 - Prefer Tailwind CSS for styling.
 - Keep components small, focused, and reusable.
 - Ensure proper TypeScript typing for all props and state.

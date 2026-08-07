@@ -15,7 +15,7 @@ vi.mock('@/services/user', () => ({
 }));
 
 const mockUseAuth = vi.hoisted(() => vi.fn());
-vi.mock('@/providers/AuthProvider', () => ({ useAuth: mockUseAuth }));
+vi.mock('@/providers/auth', () => ({ useAuth: mockUseAuth }));
 
 const toastSuccess = vi.hoisted(() => vi.fn());
 const toastError = vi.hoisted(() => vi.fn());

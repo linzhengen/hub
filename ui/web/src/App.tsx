@@ -5,7 +5,7 @@ import AppLayout from "@/layout/AppLayout";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AuthErrorHandler } from "@/components/auth/AuthErrorHandler";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme } from "@/context/theme";
 
 // ページは遅延読み込みする。まとめて import すると全画面のコードが初回表示で
 // ダウンロードされ、チャートライブラリを含む Dashboard まで常に含まれてしまう。

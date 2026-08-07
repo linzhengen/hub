@@ -1,42 +1,21 @@
-"use client";
-
 import type React from "react";
-import { createContext, useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { ThemeContext, type Theme } from "@/context/theme";
 
-type Theme = "light" | "dark";
-
-type ThemeContextType = {
-  theme: Theme;
-  toggleTheme: () => void;
-};
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+// 初期テーマは lazy initializer で読む。以前は effect 内で localStorage を読んで
+// setState していたため、初回描画が必ず light になり保存済みテーマへ切り替わる
+// までちらついていた（react-hooks/set-state-in-effect）。
+const readStoredTheme = (): Theme => (localStorage.getItem("theme") as Theme | null) ?? "light";
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [theme, setTheme] = useState<Theme>("light");
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [theme, setTheme] = useState<Theme>(readStoredTheme);
 
   useEffect(() => {
-    // This code will only run on the client side
-    const savedTheme = localStorage.getItem("theme") as Theme | null;
-    const initialTheme = savedTheme || "light"; // Default to light theme
-
-    setTheme(initialTheme);
-    setIsInitialized(true);
-  }, []);
-
-  useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem("theme", theme);
-      if (theme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
-  }, [theme, isInitialized]);
+    localStorage.setItem("theme", theme);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
   const toggleTheme = () => {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
@@ -47,12 +26,4 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
     </ThemeContext.Provider>
   );
-};
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
 };

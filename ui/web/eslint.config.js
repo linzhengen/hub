@@ -18,25 +18,16 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
     },
     rules: {
+      // The recommended preset bundles the React Compiler-oriented rules
+      // (immutability/purity/set-state-in-effect/etc.) as errors. They were
+      // all downgraded to warnings while the codebase still violated them;
+      // the violations are gone, so the preset's levels now apply as-is.
       ...reactHooks.configs.recommended.rules,
-      // The recommended preset bundles the newer React Compiler-oriented
-      // rules (immutability/purity/set-state-in-effect/etc.) as errors.
-      // This codebase predates React Compiler adoption and has existing
-      // violations (e.g. Keycloak SDK event-handler wiring in
-      // AuthProvider.tsx); keep them visible as warnings rather than
-      // blocking lint on a larger refactor that's out of scope here.
-      'react-hooks/immutability': 'warn',
-      'react-hooks/purity': 'warn',
+      // The one exception: AppSidebar derives its open submenu from the
+      // current route inside an effect. Rewriting that means deciding how a
+      // manual toggle should interact with navigation, which is a behaviour
+      // change rather than a refactor. Tracked in #67.
       'react-hooks/set-state-in-effect': 'warn',
-      'react-hooks/set-state-in-render': 'warn',
-      'react-hooks/refs': 'warn',
-      'react-hooks/globals': 'warn',
-      'react-hooks/static-components': 'warn',
-      'react-hooks/use-memo': 'warn',
-      'react-hooks/preserve-manual-memoization': 'warn',
-      'react-hooks/error-boundaries': 'warn',
-      'react-hooks/config': 'warn',
-      'react-hooks/gating': 'warn',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

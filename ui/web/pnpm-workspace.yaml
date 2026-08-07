@@ -1,0 +1,24 @@
+# pnpm settings for ui/web. Created by pnpm when vite was pinned to a release
+# newer than the default minimumReleaseAge window.
+minimumReleaseAgeExclude:
+  - vite@8.2.1
+
+# esbuild's postinstall fetches its platform binary, so its build script has to
+# run. CI already installs with --dangerously-allow-all-builds; this makes the
+# same thing true for a plain local `pnpm install`.
+allowBuilds:
+  esbuild: true
+
+# Transitive advisories whose direct parents are already on their latest
+# release, so there is nothing to bump at the top level. Each pin stays inside
+# the installed major, and each is build/lint tooling rather than shipped code.
+#   brace-expansion  eslint > minimatch                GHSA DoS x3
+#   js-yaml          vite-plugin-svgr > cosmiconfig    quadratic-CPU DoS x3
+#   esbuild          vite (nested, older copy)         dev-server file read
+#   @babel/core      eslint-plugin-react-hooks, svgr   sourceMappingURL file read
+# Drop an entry once its parent ships a release that resolves the fix on its own.
+overrides:
+  brace-expansion: ^5.0.9
+  js-yaml: ^4.3.1
+  esbuild: ^0.28.1
+  "@babel/core": ^7.29.7

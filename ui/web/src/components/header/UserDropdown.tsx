@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/auth";
 import { useMe } from "@/hooks/useMe";
 
 export default function UserDropdown() {
