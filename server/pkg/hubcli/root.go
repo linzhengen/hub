@@ -37,10 +37,14 @@ type CLI struct {
 	flags      Settings
 	outputFlag string
 	dryRun     bool
+	all        bool
 
 	settings Settings
 	format   Format
 	client   *Client
+	// tokenOverridden records that the token came from --token or HUB_TOKEN
+	// rather than the profile, which makes it not ours to refresh or rewrite.
+	tokenOverridden bool
 }
 
 // NewRootCommand builds the `hub` command tree.
@@ -75,6 +79,7 @@ HUB_TOKEN and friends, then the flags below.`,
 	flags.StringVar(&c.flags.Token, "token", "", "bearer token (env HUB_TOKEN)")
 	flags.StringVarP(&c.outputFlag, "output", "o", string(FormatJSON), "output format: json, yaml or table")
 	flags.BoolVar(&c.dryRun, "dry-run", false, "print the request that would be sent instead of sending it")
+	flags.BoolVar(&c.all, "all", false, "follow pagination and return every page of a list operation")
 
 	root.AddCommand(
 		c.newAPICommand(),
@@ -114,6 +119,7 @@ func (c *CLI) prepare(cmd *cobra.Command, _ []string) error {
 	}
 
 	c.settings = Resolve(cfg.Profile(c.profile), c.flags)
+	c.tokenOverridden = c.flags.Token != "" || os.Getenv("HUB_TOKEN") != ""
 	c.client = NewClient(c.settings)
 	cmd.SilenceUsage = true
 	return nil
@@ -170,14 +176,27 @@ func (c *CLI) newOperationCommand(op apicatalog.Operation) *cobra.Command {
 
 // send performs the call, or prints it when --dry-run is set.
 func (c *CLI) send(cmd *cobra.Command, op apicatalog.Operation, values map[string]any) error {
-	req, err := c.client.BuildRequest(op, values)
-	if err != nil {
-		return err
-	}
 	if c.dryRun {
+		req, err := c.client.BuildRequest(op, values)
+		if err != nil {
+			return err
+		}
 		return Render(cmd.OutOrStdout(), c.format, req)
 	}
-	response, err := c.client.Do(cmd.Context(), req)
+
+	if err := c.ensureFreshToken(cmd.Context()); err != nil {
+		return err
+	}
+
+	if c.all {
+		response, err := c.collectAllPages(cmd.Context(), op, values)
+		if err != nil {
+			return err
+		}
+		return Render(cmd.OutOrStdout(), c.format, response)
+	}
+
+	response, err := c.client.Call(cmd.Context(), op, values)
 	if err != nil {
 		return err
 	}

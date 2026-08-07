@@ -149,6 +149,70 @@ func TestUnknownOutputFormatIsRejected(t *testing.T) {
 	assert.ErrorContains(t, err, "unknown output format")
 }
 
+// `config set` is additive: a command that sets one field must not blank the
+// others already in the profile.
+func TestConfigSetChangesOnlyTheFlagsGiven(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	t.Setenv("HUB_CONFIG", path)
+
+	require.NoError(t, SaveConfig(path, Config{}.WithProfile("default", Profile{
+		Endpoint:     "http://hub.test",
+		Token:        "t0ken",
+		RefreshToken: "r3fresh",
+		OIDC:         OIDC{Issuer: "http://issuer", ClientID: "hub", ClientSecret: "shh"},
+	})))
+
+	root := NewRootCommand(Options{})
+	root.SetOut(&bytes.Buffer{})
+	root.SetErr(&bytes.Buffer{})
+	root.SetArgs([]string{"config", "set", "--endpoint", "http://other.test"})
+	require.NoError(t, root.Execute())
+
+	saved, err := LoadConfig(path)
+	require.NoError(t, err)
+	profile := saved.Profile("default")
+	assert.Equal(t, "http://other.test", profile.Endpoint)
+	assert.Equal(t, "t0ken", profile.Token, "the token is untouched")
+	assert.Equal(t, "r3fresh", profile.RefreshToken)
+	assert.Equal(t, "hub", profile.OIDC.ClientID)
+	assert.Equal(t, "shh", profile.OIDC.ClientSecret)
+}
+
+// The secrets are redacted unless asked for, so the output is safe to paste
+// into an issue.
+func TestConfigShowRedactsSecrets(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.yaml")
+	t.Setenv("HUB_CONFIG", path)
+	require.NoError(t, SaveConfig(path, Config{}.WithProfile("default", Profile{
+		Token: "t0ken",
+		OIDC:  OIDC{ClientSecret: "shh"},
+	})))
+
+	// Not via run(): that helper points HUB_CONFIG at its own empty file.
+	out := &bytes.Buffer{}
+	root := NewRootCommand(Options{})
+	root.SetOut(out)
+	root.SetErr(&bytes.Buffer{})
+	root.SetArgs([]string{"config", "show"})
+	require.NoError(t, root.Execute())
+
+	assert.NotContains(t, out.String(), "t0ken")
+	assert.NotContains(t, out.String(), "shh")
+	assert.Contains(t, out.String(), "***")
+
+	t.Run("--reveal-token prints them in full", func(t *testing.T) {
+		revealed := &bytes.Buffer{}
+		root := NewRootCommand(Options{})
+		root.SetOut(revealed)
+		root.SetErr(&bytes.Buffer{})
+		root.SetArgs([]string{"config", "show", "--reveal-token"})
+		require.NoError(t, root.Execute())
+
+		assert.Contains(t, revealed.String(), "t0ken")
+		assert.Contains(t, revealed.String(), "shh")
+	})
+}
+
 func TestEndToEndAgainstAStubGateway(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/api/v1/users", r.URL.Path)

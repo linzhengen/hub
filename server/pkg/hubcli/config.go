@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -19,6 +20,13 @@ type Profile struct {
 	Endpoint string `yaml:"endpoint,omitempty"`
 	// Token is a bearer token. `hub auth login` writes one here.
 	Token string `yaml:"token,omitempty"`
+	// RefreshToken renews Token without asking for credentials again. Keycloak
+	// access tokens last minutes, so without this the CLI would need a fresh
+	// `hub auth login` several times an hour.
+	RefreshToken string `yaml:"refresh_token,omitempty"`
+	// ExpiresAt is when Token stops being accepted. The zero time means
+	// unknown, in which case the CLI refreshes only after a call is refused.
+	ExpiresAt time.Time `yaml:"expires_at,omitempty"`
 	// OIDC describes where `hub auth login` gets a token from.
 	OIDC OIDC `yaml:"oidc,omitempty"`
 }
@@ -119,9 +127,11 @@ func (c Config) WithProfile(name string, profile Profile) Config {
 // Settings is the connection configuration actually used for a command, after
 // flags, environment variables and the config file have been combined.
 type Settings struct {
-	Endpoint string
-	Token    string
-	OIDC     OIDC
+	Endpoint     string
+	Token        string
+	RefreshToken string
+	ExpiresAt    time.Time
+	OIDC         OIDC
 }
 
 // Resolve layers the sources in order of increasing precedence: the config
@@ -135,6 +145,7 @@ func Resolve(profile Profile, flags Settings) Settings {
 
 	override(&s.Endpoint, os.Getenv("HUB_ENDPOINT"), flags.Endpoint)
 	override(&s.Token, os.Getenv("HUB_TOKEN"), flags.Token)
+	override(&s.RefreshToken, os.Getenv("HUB_REFRESH_TOKEN"), flags.RefreshToken)
 	override(&s.OIDC.Issuer, os.Getenv("HUB_OIDC_ISSUER"), flags.OIDC.Issuer)
 	override(&s.OIDC.ClientID, os.Getenv("HUB_OIDC_CLIENT_ID"), flags.OIDC.ClientID)
 	override(&s.OIDC.ClientSecret, os.Getenv("HUB_OIDC_CLIENT_SECRET"), flags.OIDC.ClientSecret)

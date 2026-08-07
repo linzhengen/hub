@@ -27,6 +27,7 @@ require (
 	github.com/zeromicro/zero-contrib/logx/zapx v0.0.0-20251020121907-c2e4c4911576
 	go.uber.org/dig v1.19.0
 	golang.org/x/sync v0.20.0
+	golang.org/x/term v0.43.0
 	golang.org/x/tools v0.44.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260427160629-7cedc36a6bc4
 	google.golang.org/grpc v1.82.1
