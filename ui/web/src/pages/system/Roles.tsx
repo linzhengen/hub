@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { roleService, Role } from '@/services/role.ts';
 import { permissionService, Permission } from '@/services/permission.ts';
 import { resourceService } from '@/services/resource.ts';
 import { Button, Modal, Input, Table, Form, Space, Card, TreeSelect, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+import { MAX_PAGE_SIZE, useServerPagination } from '@/hooks/useServerPagination';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 
 interface RoleFormValues {
@@ -23,19 +25,24 @@ export function Roles() {
   const [editForm] = Form.useForm();
   const [searchText, setSearchText] = useState('');
 
+  const search = useDebouncedValue(searchText);
+  const pagination = useServerPagination(search);
+
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['roles'],
-    queryFn: () => roleService.listRoles(),
+    queryKey: ['roles', pagination.params, search],
+    queryFn: () => roleService.listRoles({ ...pagination.params, roleName: search || undefined }),
+    placeholderData: keepPreviousData,
   });
 
   const { data: permissionsData } = useQuery({
-    queryKey: ['permissions'],
-    queryFn: () => permissionService.listPermissions(),
+    queryKey: ['permissions', 'all'],
+    queryFn: () => permissionService.listPermissions({ limit: MAX_PAGE_SIZE }),
   });
 
   const { data: resourcesData } = useQuery({
-    queryKey: ['resources'],
-    queryFn: () => resourceService.listResources(),
+    queryKey: ['resources', 'all'],
+    queryFn: () => resourceService.listResources({ limit: MAX_PAGE_SIZE }),
   });
 
   const resourceMap = React.useMemo(() => {
@@ -236,11 +243,6 @@ export function Roles() {
   ];
 
   // 検索フィルター
-  const filteredRoles = data?.roles?.filter(role =>
-    !searchText ||
-    (role.name ?? '').toLowerCase().includes(searchText.toLowerCase()) ||
-    (role.description && role.description.toLowerCase().includes(searchText.toLowerCase()))
-  );
 
   return (
     <div className="space-y-6">
@@ -252,7 +254,7 @@ export function Roles() {
         </div>
         <div className="flex items-center gap-3">
           <Input
-            placeholder="Search roles..."
+            placeholder="Search by name..."
             prefix={<SearchOutlined className="text-gray-400 dark:text-gray-500" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -274,18 +276,13 @@ export function Roles() {
       <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <Table
           columns={columns}
-          dataSource={filteredRoles}
+          dataSource={data?.roles}
           loading={isLoading}
           rowKey="id"
           locale={{
             emptyText: error ? 'Failed to load roles' : 'No roles found'
           }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} roles`,
-          }}
+          pagination={pagination.tableProps(Number(data?.total ?? 0), 'roles')}
         />
       </Card>
 

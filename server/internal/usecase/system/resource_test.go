@@ -9,6 +9,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/stretchr/testify/require"
+
+	"github.com/linzhengen/hub/v1/server/internal/usecase/pagination"
 )
 
 func TestResourceUseCase_List_WithPagination(t *testing.T) {
@@ -66,7 +68,7 @@ func TestResourceUseCase_List_WithPagination(t *testing.T) {
 	require.Equal(t, "resource1", resources[0].Id)
 }
 
-func TestResourceUseCase_List_WithoutPagination(t *testing.T) {
+func TestResourceUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 	ctx := context.Background()
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	require.NoError(t, err)
@@ -99,7 +101,7 @@ func TestResourceUseCase_List_WithoutPagination(t *testing.T) {
 
 	countQuery, countArgs, _ := dialect.From("resources").Select(goqu.COUNT("*")).Prepared(true).ToSQL()
 	// No limit or offset should be applied
-	query, args, _ := dialect.From("resources").Select("*").Order(goqu.C("display_order").Asc()).Prepared(true).ToSQL()
+	query, args, _ := dialect.From("resources").Select("*").Order(goqu.C("display_order").Asc()).Limit(uint(pagination.DefaultLimit)).Offset(0).Prepared(true).ToSQL()
 
 	// convert []interface{} to []driver.Value
 	countDriverArgs := make([]driver.Value, len(countArgs))

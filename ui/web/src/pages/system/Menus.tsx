@@ -6,6 +6,7 @@ import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card, InputNumbe
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { toast } from 'sonner';
+import { MAX_PAGE_SIZE } from '@/hooks/useServerPagination';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 
 interface ResourceTreeNode extends Resource {
@@ -23,7 +24,9 @@ export function Menus() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['menu-resources'],
-    queryFn: () => resourceService.listMenuResources(),
+    // The table is a tree, so it needs the whole hierarchy rather than a page
+    // of it. That caps the number of menus a workspace can display.
+    queryFn: () => resourceService.listMenuResources({ limit: MAX_PAGE_SIZE }),
   });
 
   const createMutation = useMutation({

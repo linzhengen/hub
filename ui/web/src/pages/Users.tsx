@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { userService, User, UpdateUserRequest } from '@/services/user';
 import { groupService, ListGroupsResponse } from '@/services/group';
 import { Button, Modal, Input, Table, Form, Select, Space, Card } from 'antd';
@@ -7,6 +7,8 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from '@ant-d
 import { FolderKanban } from 'lucide-react';
 
 import { toast } from 'sonner';
+import { MAX_PAGE_SIZE, useServerPagination } from '@/hooks/useServerPagination';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { cn } from '@/lib/utils';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 
@@ -30,14 +32,21 @@ export function Users() {
   const [editForm] = Form.useForm();
   const [searchText, setSearchText] = useState('');
 
+  const search = useDebouncedValue(searchText);
+  const pagination = useServerPagination(search);
+
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => userService.listUsers(),
+    queryKey: ['users', pagination.params, search],
+    queryFn: () => userService.listUsers({ ...pagination.params, userName: search || undefined }),
+    placeholderData: keepPreviousData,
   });
 
+  // The group names shown against each user, and the group pickers, need the
+  // whole list rather than a page of it.
   const { data: groupsData } = useQuery<ListGroupsResponse>({
-    queryKey: ['groups'],
-    queryFn: () => groupService.listGroups(),
+    queryKey: ['groups', 'all'],
+    queryFn: () => groupService.listGroups({ limit: MAX_PAGE_SIZE }),
   });
 
   // Helper function to get group names from group IDs
@@ -247,11 +256,6 @@ export function Users() {
   };
 
   // 検索フィルター
-  const filteredUsers = data?.users?.filter(user =>
-    !searchText ||
-    (user.username ?? '').toLowerCase().includes(searchText.toLowerCase()) ||
-    (user.email ?? '').toLowerCase().includes(searchText.toLowerCase())
-  );
 
   return (
     <div className="space-y-6">
@@ -263,7 +267,7 @@ export function Users() {
         </div>
         <div className="flex items-center gap-3">
           <Input
-            placeholder="Search users..."
+            placeholder="Search by username..."
             prefix={<UserOutlined className="text-gray-400 dark:text-gray-500" />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -342,18 +346,13 @@ export function Users() {
       <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <Table
           columns={columns}
-          dataSource={filteredUsers}
+          dataSource={data?.users}
           loading={isLoading}
           rowKey="id"
           locale={{
             emptyText: error ? 'Failed to load users' : 'No users found'
           }}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
-          }}
+          pagination={pagination.tableProps(Number(data?.total ?? 0), 'users')}
         />
       </Card>
 
