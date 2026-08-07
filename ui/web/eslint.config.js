@@ -41,8 +41,7 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // TODO(#25): tighten to "error" once existing `any` usages are typed.
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
