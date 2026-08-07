@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/auth";
 import { userService } from "@/services/user";
 import type { GetMeResponse } from "@/services/user";
 

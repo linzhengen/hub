@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { App } from 'antd';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/providers/auth';
 
 /**
  * 401エラー（セッション切れ）を検知してモーダルを表示するコンポーネント

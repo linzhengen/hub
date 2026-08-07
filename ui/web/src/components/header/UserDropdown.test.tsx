@@ -11,7 +11,7 @@ vi.mock('@/services/user', () => ({
 }));
 
 const mockUseAuth = vi.hoisted(() => vi.fn());
-vi.mock('@/providers/AuthProvider', () => ({ useAuth: mockUseAuth }));
+vi.mock('@/providers/auth', () => ({ useAuth: mockUseAuth }));
 
 /** Keycloak トークン由来の値。プロフィール更新後も古いまま残る */
 const staleTokenUser = {

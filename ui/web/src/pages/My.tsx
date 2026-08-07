@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/providers/auth';
 import { ME_QUERY_KEY, useMe } from '@/hooks/useMe';
 import { Card, Descriptions, Tag, Button, Form, Input, Modal, Divider, Spin } from 'antd';
 import { UserOutlined, MailOutlined, SafetyOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';

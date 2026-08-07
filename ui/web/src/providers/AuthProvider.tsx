@@ -1,141 +1,69 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import type { KeycloakTokenParsed, KeycloakLogoutOptions } from 'keycloak-js';
-import keycloak from '@/lib/keycloak';
-import { saveToken, clearTokens } from '@/lib/auth-token';
-
-interface AppUser {
-  id?: string;
-  name?: string;
-  email?: string;
-  emailVerified: boolean;
-  roles: string[];
-}
-
-interface AuthContextType {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  user: AppUser | null;
-  login: () => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import keycloak, { initializeKeycloak } from '@/lib/keycloak';
+import { clearTokens } from '@/lib/auth-token';
+import { AuthContext, type AppUser } from '@/providers/auth';
 
 interface AuthProviderProps {
   children: ReactNode;
 }
+
+// 表示名の構築: given_name + family_name があれば結合、なければ既存の name または preferred_username
+const toAppUser = (tokenParsed: KeycloakTokenParsed): AppUser => {
+  let displayName = tokenParsed.name || tokenParsed.preferred_username;
+  if (tokenParsed.given_name && tokenParsed.family_name) {
+    displayName = `${tokenParsed.given_name} ${tokenParsed.family_name}`;
+  } else if (tokenParsed.given_name) {
+    displayName = tokenParsed.given_name;
+  } else if (tokenParsed.family_name) {
+    displayName = tokenParsed.family_name;
+  }
+
+  return {
+    id: tokenParsed.sub,
+    name: displayName,
+    email: tokenParsed.email,
+    emailVerified: tokenParsed.email_verified || false,
+    roles: tokenParsed?.realm_access?.roles || [],
+  };
+};
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<AppUser | null>(null);
 
-  // Keycloak初期化関数
-  const initializeKeycloak = async () => {
-    try {
-      console.log('Initializing Keycloak...');
+  useEffect(() => {
+    let cancelled = false;
 
-      // トークン更新時のコールバックを設定
-      keycloak.onAuthSuccess = () => {
-        console.log('Authentication successful');
-        if (keycloak.token) {
-          saveToken(
-            keycloak.token,
-            keycloak.refreshToken,
-            keycloak.tokenParsed?.exp ? keycloak.tokenParsed.exp - Math.floor(Date.now() / 1000) : undefined
-          );
-        }
-      };
-
-      keycloak.onAuthRefreshSuccess = () => {
-        console.log('Token refresh successful');
-        if (keycloak.token) {
-          saveToken(
-            keycloak.token,
-            keycloak.refreshToken,
-            keycloak.tokenParsed?.exp ? keycloak.tokenParsed.exp - Math.floor(Date.now() / 1000) : undefined
-          );
-        }
-      };
-
-      keycloak.onAuthLogout = () => {
-        console.log('Logout detected');
-        clearTokens();
+    initializeKeycloak({
+      onAuthenticated: (tokenParsed) => {
+        if (cancelled) return;
+        setUser(toAppUser(tokenParsed));
+      },
+      onLoggedOut: () => {
+        if (cancelled) return;
         setIsAuthenticated(false);
         setUser(null);
-      };
-
-      // トークン更新の設定
-      keycloak.onTokenExpired = () => {
-        console.log('Token expired, attempting refresh');
-        keycloak.updateToken(30).catch((error) => {
-          console.error('Token refresh failed:', error);
-          keycloak.login();
-        });
-      };
-
-      // login-requiredモードで初期化
-      const authenticated = await keycloak.init({
-        onLoad: 'login-required',
-        checkLoginIframe: false,
-        pkceMethod: 'S256',
+      },
+    })
+      .then((authenticated) => {
+        if (cancelled) return;
+        setIsAuthenticated(authenticated);
+      })
+      .catch((error) => {
+        console.error('Keycloak initialization failed:', error);
+        if (cancelled) return;
+        setIsAuthenticated(false);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setIsLoading(false);
       });
 
-      if (authenticated && keycloak.token) {
-        saveToken(
-          keycloak.token,
-          keycloak.refreshToken,
-          keycloak.tokenParsed?.exp ? keycloak.tokenParsed.exp - Math.floor(Date.now() / 1000) : undefined
-        );
-
-        // ユーザー情報を設定
-        if (keycloak.tokenParsed) {
-          setUserFromTokenPayload(keycloak.tokenParsed);
-        }
-
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
-
-      return authenticated;
-    } catch (error) {
-      console.error('Keycloak initialization failed:', error);
-      setIsAuthenticated(false);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // トークンペイロードからユーザー情報を設定するヘルパー関数
-  const setUserFromTokenPayload = (tokenParsed: KeycloakTokenParsed) => {
-    if (!tokenParsed) return;
-
-    // 表示名の構築: given_name + family_name があれば結合、なければ既存の name または preferred_username
-    let displayName = tokenParsed.name || tokenParsed.preferred_username;
-    if (tokenParsed.given_name && tokenParsed.family_name) {
-      displayName = `${tokenParsed.given_name} ${tokenParsed.family_name}`;
-    } else if (tokenParsed.given_name) {
-      displayName = tokenParsed.given_name;
-    } else if (tokenParsed.family_name) {
-      displayName = tokenParsed.family_name;
-    }
-
-    setUser({
-      id: tokenParsed.sub,
-      name: displayName,
-      email: tokenParsed.email,
-      emailVerified: tokenParsed.email_verified || false,
-      roles: tokenParsed?.realm_access?.roles || [],
-    });
-  };
-
-  useEffect(() => {
-    // トークンはメモリにのみ保持されページリロードで失われるため、
-    // 毎回 Keycloak を初期化する。有効な SSO セッション（Cookie）が
-    // あれば login-required はリダイレクトなしでサイレントに再認証される。
-    initializeKeycloak();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = async () => {
@@ -196,12 +124,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

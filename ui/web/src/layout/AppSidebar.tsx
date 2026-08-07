@@ -12,7 +12,7 @@ import {
   FolderIcon,
 } from "@/icons";
 import { Key } from "lucide-react";
-import { useSidebar } from "@/context/SidebarContext";
+import { useSidebar } from "@/context/sidebar";
 
 type NavItem = {
   name: string;
