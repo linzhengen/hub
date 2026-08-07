@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router";
 import { App as AntdApp, ConfigProvider, Spin, theme as antTheme } from "antd";
 import AppLayout from "@/layout/AppLayout";
 import { AuthProvider } from "@/providers/AuthProvider";

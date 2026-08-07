@@ -9,16 +9,13 @@ minimumReleaseAgeExclude:
 allowBuilds:
   esbuild: true
 
-# Transitive advisories whose direct parents are already on their latest
-# release, so there is nothing to bump at the top level. Each pin stays inside
-# the installed major, and each is build/lint tooling rather than shipped code.
-#   brace-expansion  eslint > minimatch                GHSA DoS x3
-#   js-yaml          vite-plugin-svgr > cosmiconfig    quadratic-CPU DoS x3
-#   esbuild          vite (nested, older copy)         dev-server file read
-#   @babel/core      eslint-plugin-react-hooks, svgr   sourceMappingURL file read
-# Drop an entry once its parent ships a release that resolves the fix on its own.
+# esbuild reaches us through tsx, which still resolves an 0.27 copy carrying
+# GHSA "arbitrary file read when running the development server". The pin stays
+# inside the installed major and vite already depends on ^0.28.1 itself.
+# Drop this once tsx ships a release that resolves 0.28 on its own.
+#
+# The brace-expansion / js-yaml / @babel/core pins that used to live here are
+# gone: removing the unused template packages (#74) and moving to
+# react-router v8 (#76) took their vulnerable paths out of the tree.
 overrides:
-  brace-expansion: ^5.0.9
-  js-yaml: ^4.3.1
   esbuild: ^0.28.1
-  "@babel/core": ^7.29.7
