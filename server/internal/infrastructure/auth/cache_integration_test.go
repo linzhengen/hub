@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres/sqlc"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres/sqlc"
 )
 
 // The cache's correctness rests on database triggers bumping a counter, which

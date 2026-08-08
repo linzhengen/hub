@@ -3,9 +3,9 @@ package resource
 import (
 	"context"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/server/internal/domain/contextx"
+	"github.com/linzhengen/hub/server/internal/domain/system/resource"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 )
 
 func New(q persistence.Querier) resource.Repository {

@@ -11,13 +11,13 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/linzhengen/hub/v1/server/internal/usecase/pagination"
+	"github.com/linzhengen/hub/server/internal/usecase/pagination"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/group"
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/group/grouprole"
-	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
+	"github.com/linzhengen/hub/server/internal/domain/system/group"
+	"github.com/linzhengen/hub/server/internal/domain/system/group/grouprole"
+	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
 )
 
 // MockTransRepository is a mock of trans.Repository.

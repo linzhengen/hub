@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/linzhengen/hub/v1/server/internal/usecase/pagination"
+	"github.com/linzhengen/hub/server/internal/usecase/pagination"
 )
 
 func TestNew(t *testing.T) {

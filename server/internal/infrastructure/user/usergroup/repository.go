@@ -3,8 +3,8 @@ package usergroup
 import (
 	"context"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/user/usergroup"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 )
 
 func New(q persistence.Querier) usergroup.Repository {

@@ -24,16 +24,16 @@ import (
 
 	validate "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 
-	hubv1 "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
+	hubv1 "github.com/linzhengen/hub/server/pb/hub/annotations/v1"
 
 	// Importing the generated packages registers their descriptors with
 	// protoregistry.GlobalFiles, which is what the catalog is built from. They
 	// are blank imports because only the registration side effect is wanted.
-	_ "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
-	_ "github.com/linzhengen/hub/v1/server/pb/system/permission/v1"
-	_ "github.com/linzhengen/hub/v1/server/pb/system/resource/v1"
-	_ "github.com/linzhengen/hub/v1/server/pb/system/role/v1"
-	_ "github.com/linzhengen/hub/v1/server/pb/user/v1"
+	_ "github.com/linzhengen/hub/server/pb/system/group/v1"
+	_ "github.com/linzhengen/hub/server/pb/system/permission/v1"
+	_ "github.com/linzhengen/hub/server/pb/system/resource/v1"
+	_ "github.com/linzhengen/hub/server/pb/system/role/v1"
+	_ "github.com/linzhengen/hub/server/pb/user/v1"
 )
 
 // Location says where a request field travels in the REST mapping.

@@ -137,7 +137,7 @@ const file_hub_annotations_v1_annotations_proto_rawDesc = "" +
 	"\x06action\x18\x03 \x01(\tR\x06action\x12\x18\n" +
 	"\asummary\x18\x04 \x01(\tR\asummary:a\n" +
 	"\vmethod_rule\x12\x1e.google.protobuf.MethodOptions\x18\xe1\xd4\x03 \x01(\v2\x1e.hub.annotations.v1.MethodRuleR\n" +
-	"methodRuleB;Z9github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1b\x06proto3"
+	"methodRuleB8Z6github.com/linzhengen/hub/server/pb/hub/annotations/v1b\x06proto3"
 
 var (
 	file_hub_annotations_v1_annotations_proto_rawDescOnce sync.Once

@@ -9,7 +9,7 @@ import (
 
 	envconfig "github.com/sethvargo/go-envconfig"
 
-	"github.com/linzhengen/hub/v1/server/pkg/logger"
+	"github.com/linzhengen/hub/server/pkg/logger"
 )
 
 type EnvConfig struct {

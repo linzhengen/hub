@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/linzhengen/hub/v1/server/pkg/logger"
-	"github.com/linzhengen/hub/v1/ui/web"
+	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/ui/web"
 )
 
 // spaHandler implements a http.Handler that serves the SPA (Single Page Application)

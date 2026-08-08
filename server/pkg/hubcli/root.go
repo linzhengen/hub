@@ -15,7 +15,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
+	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
 // Options configures a CLI instance.

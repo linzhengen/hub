@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
+	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
 // RenderReference writes the Markdown API reference bundled with the agent

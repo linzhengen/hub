@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/permission"
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource"
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/api"
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/menu"
+	"github.com/linzhengen/hub/server/internal/domain/system/permission"
+	"github.com/linzhengen/hub/server/internal/domain/system/resource"
+	"github.com/linzhengen/hub/server/internal/domain/system/resource/api"
+	"github.com/linzhengen/hub/server/internal/domain/system/resource/menu"
 )
 
 // MockApiRepository is a mock of api.Repository.

@@ -181,7 +181,7 @@ const file_system_group_v1_model_proto_rawDesc = "" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rSTATUS_ACTIVE\x10\x01\x12\x13\n" +
-	"\x0fSTATUS_INACTIVE\x10\x02B8Z6github.com/linzhengen/hub/v1/server/pb/system/group/v1b\x06proto3"
+	"\x0fSTATUS_INACTIVE\x10\x02B5Z3github.com/linzhengen/hub/server/pb/system/group/v1b\x06proto3"
 
 var (
 	file_system_group_v1_model_proto_rawDescOnce sync.Once

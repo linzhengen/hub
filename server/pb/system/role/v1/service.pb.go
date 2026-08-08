@@ -8,7 +8,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
+	_ "github.com/linzhengen/hub/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -766,7 +766,7 @@ const file_system_role_v1_service_proto_rawDesc = "" +
 	"\n" +
 	"DeleteRole\x12!.system.role.v1.DeleteRoleRequest\x1a\".system.role.v1.DeleteRoleResponse\".\x8a\xa6\x1d\x10\"\x0eDelete a role.\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/roles/{id}\x12\xe3\x01\n" +
 	"\x14AddPermissionsToRole\x12+.system.role.v1.AddPermissionsToRoleRequest\x1a,.system.role.v1.AddPermissionsToRoleResponse\"p\x8a\xa6\x1d?\"=Grant permissions to a role, keeping the ones it already has.\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/roles/{id}/permissions/add\x12\xd7\x01\n" +
-	"\x19RemovePermissionsFromRole\x120.system.role.v1.RemovePermissionsFromRoleRequest\x1a1.system.role.v1.RemovePermissionsFromRoleResponse\"U\x8a\xa6\x1d!\"\x1fRevoke permissions from a role.\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/roles/{id}/permissions/removeB7Z5github.com/linzhengen/hub/v1/server/pb/system/role/v1b\x06proto3"
+	"\x19RemovePermissionsFromRole\x120.system.role.v1.RemovePermissionsFromRoleRequest\x1a1.system.role.v1.RemovePermissionsFromRoleResponse\"U\x8a\xa6\x1d!\"\x1fRevoke permissions from a role.\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/roles/{id}/permissions/removeB4Z2github.com/linzhengen/hub/server/pb/system/role/v1b\x06proto3"
 
 var (
 	file_system_role_v1_service_proto_rawDescOnce sync.Once

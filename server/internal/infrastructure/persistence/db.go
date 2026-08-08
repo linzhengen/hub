@@ -6,10 +6,10 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"github.com/linzhengen/hub/v1/server/config"
-	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
-	"github.com/linzhengen/hub/v1/server/pkg/logger"
+	"github.com/linzhengen/hub/server/config"
+	"github.com/linzhengen/hub/server/internal/domain/contextx"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres"
+	"github.com/linzhengen/hub/server/pkg/logger"
 )
 
 // DialectWrapper is a type alias for goqu.DialectWrapper

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
+	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
 // maxPagesFollowed stops --all from looping forever if a server keeps

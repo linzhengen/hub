@@ -8,7 +8,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
+	_ "github.com/linzhengen/hub/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -565,7 +565,7 @@ const file_system_permission_v1_service_proto_rawDesc = "" +
 	"\x0eListPermission\x12+.system.permission.v1.ListPermissionRequest\x1a,.system.permission.v1.ListPermissionResponse\"U\x8a\xa6\x1d6\"4List permissions, optionally filtered by id or name.\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/permissions\x12\xc8\x01\n" +
 	"\x10CreatePermission\x12-.system.permission.v1.CreatePermissionRequest\x1a..system.permission.v1.CreatePermissionResponse\"U\x8a\xa6\x1d3\"1Create a permission binding a verb to a resource.\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/permissions\x12\xc6\x01\n" +
 	"\x10UpdatePermission\x12-.system.permission.v1.UpdatePermissionRequest\x1a..system.permission.v1.UpdatePermissionResponse\"S\x8a\xa6\x1d,\"*Update a permission's verb or description.\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/permissions/{id}\x12\xad\x01\n" +
-	"\x10DeletePermission\x12-.system.permission.v1.DeletePermissionRequest\x1a..system.permission.v1.DeletePermissionResponse\":\x8a\xa6\x1d\x16\"\x14Delete a permission.\x82\xd3\xe4\x93\x02\x1a*\x18/api/v1/permissions/{id}B=Z;github.com/linzhengen/hub/v1/server/pb/system/permission/v1b\x06proto3"
+	"\x10DeletePermission\x12-.system.permission.v1.DeletePermissionRequest\x1a..system.permission.v1.DeletePermissionResponse\":\x8a\xa6\x1d\x16\"\x14Delete a permission.\x82\xd3\xe4\x93\x02\x1a*\x18/api/v1/permissions/{id}B:Z8github.com/linzhengen/hub/server/pb/system/permission/v1b\x06proto3"
 
 var (
 	file_system_permission_v1_service_proto_rawDescOnce sync.Once

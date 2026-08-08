@@ -10,7 +10,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/stretchr/testify/require"
 
-	"github.com/linzhengen/hub/v1/server/internal/usecase/pagination"
+	"github.com/linzhengen/hub/server/internal/usecase/pagination"
 )
 
 func TestResourceUseCase_List_WithPagination(t *testing.T) {

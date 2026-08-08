@@ -353,7 +353,7 @@ const file_system_resource_v1_model_proto_rawDesc = "" +
 	"\x04Type\x12\x14\n" +
 	"\x10TYPE_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tTYPE_MENU\x10\x01\x12\f\n" +
-	"\bTYPE_API\x10\x02B;Z9github.com/linzhengen/hub/v1/server/pb/system/resource/v1b\x06proto3"
+	"\bTYPE_API\x10\x02B8Z6github.com/linzhengen/hub/server/pb/system/resource/v1b\x06proto3"
 
 var (
 	file_system_resource_v1_model_proto_rawDescOnce sync.Once

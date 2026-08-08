@@ -3,11 +3,11 @@ package modules
 import (
 	"go.uber.org/dig"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/user"
-	userInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/user"
-	usergroupInfra "github.com/linzhengen/hub/v1/server/internal/infrastructure/user/usergroup"
-	"github.com/linzhengen/hub/v1/server/internal/interface/grpc/handler"
-	"github.com/linzhengen/hub/v1/server/internal/usecase"
+	"github.com/linzhengen/hub/server/internal/domain/user"
+	userInfra "github.com/linzhengen/hub/server/internal/infrastructure/user"
+	usergroupInfra "github.com/linzhengen/hub/server/internal/infrastructure/user/usergroup"
+	"github.com/linzhengen/hub/server/internal/interface/grpc/handler"
+	"github.com/linzhengen/hub/server/internal/usecase"
 )
 
 // ProvideUser registers user-related dependencies.

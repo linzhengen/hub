@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
+	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
 func operation(t *testing.T, ref string) apicatalog.Operation {

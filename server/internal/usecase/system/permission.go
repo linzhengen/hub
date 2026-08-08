@@ -7,14 +7,14 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/permission"
-	"github.com/linzhengen/hub/v1/server/internal/domain/trans"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres/sqlc"
-	"github.com/linzhengen/hub/v1/server/internal/usecase/pagination"
+	"github.com/linzhengen/hub/server/internal/domain/system/permission"
+	"github.com/linzhengen/hub/server/internal/domain/trans"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres/sqlc"
+	"github.com/linzhengen/hub/server/internal/usecase/pagination"
 
-	"github.com/linzhengen/hub/v1/server/pkg/logger"
+	"github.com/linzhengen/hub/server/pkg/logger"
 )
 
 type PermissionUseCase interface {

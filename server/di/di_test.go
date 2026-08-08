@@ -6,10 +6,10 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/linzhengen/hub/v1/server/config"
-	"github.com/linzhengen/hub/v1/server/di"
-	cmdregister "github.com/linzhengen/hub/v1/server/internal/interface/cmd/register"
-	grpcregister "github.com/linzhengen/hub/v1/server/internal/interface/grpc/register"
+	"github.com/linzhengen/hub/server/config"
+	"github.com/linzhengen/hub/server/di"
+	cmdregister "github.com/linzhengen/hub/server/internal/interface/cmd/register"
+	grpcregister "github.com/linzhengen/hub/server/internal/interface/grpc/register"
 )
 
 // The container resolves lazily, so a constructor whose dependencies are not

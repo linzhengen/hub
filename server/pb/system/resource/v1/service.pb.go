@@ -8,7 +8,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
+	_ "github.com/linzhengen/hub/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1207,7 +1207,7 @@ const file_system_resource_v1_service_proto_rawDesc = "" +
 	"\x0eDeleteResource\x12).system.resource.v1.DeleteResourceRequest\x1a*.system.resource.v1.DeleteResourceResponse\"6\x8a\xa6\x1d\x14\"\x12Delete a resource.\x82\xd3\xe4\x93\x02\x18*\x16/api/v1/resources/{id}\x12\xa8\x01\n" +
 	"\x10ListMenuResource\x12+.system.resource.v1.ListMenuResourceRequest\x1a,.system.resource.v1.ListMenuResourceResponse\"9\x8a\xa6\x1d\x16\"\x14List menu resources.\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/resources/menus\x12\xb4\x01\n" +
 	"\x12CreateMenuResource\x12-.system.resource.v1.CreateMenuResourceRequest\x1a..system.resource.v1.CreateMenuResourceResponse\"?\x8a\xa6\x1d\x19\"\x17Create a menu resource.\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/resources/menus\x12\xb9\x01\n" +
-	"\x12UpdateMenuResource\x12-.system.resource.v1.UpdateMenuResourceRequest\x1a..system.resource.v1.UpdateMenuResourceResponse\"D\x8a\xa6\x1d\x19\"\x17Update a menu resource.\x82\xd3\xe4\x93\x02!:\x01*\x1a\x1c/api/v1/resources/{id}/menusB;Z9github.com/linzhengen/hub/v1/server/pb/system/resource/v1b\x06proto3"
+	"\x12UpdateMenuResource\x12-.system.resource.v1.UpdateMenuResourceRequest\x1a..system.resource.v1.UpdateMenuResourceResponse\"D\x8a\xa6\x1d\x19\"\x17Update a menu resource.\x82\xd3\xe4\x93\x02!:\x01*\x1a\x1c/api/v1/resources/{id}/menusB8Z6github.com/linzhengen/hub/server/pb/system/resource/v1b\x06proto3"
 
 var (
 	file_system_resource_v1_service_proto_rawDescOnce sync.Once

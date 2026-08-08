@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
+	"github.com/linzhengen/hub/server/internal/domain/auth"
 )
 
 type countingRepository struct {

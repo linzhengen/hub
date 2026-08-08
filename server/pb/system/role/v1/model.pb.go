@@ -119,7 +119,7 @@ const file_system_role_v1_model_proto_rawDesc = "" +
 	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12%\n" +
-	"\x0epermission_ids\x18\x06 \x03(\tR\rpermissionIdsB7Z5github.com/linzhengen/hub/v1/server/pb/system/role/v1b\x06proto3"
+	"\x0epermission_ids\x18\x06 \x03(\tR\rpermissionIdsB4Z2github.com/linzhengen/hub/server/pb/system/role/v1b\x06proto3"
 
 var (
 	file_system_role_v1_model_proto_rawDescOnce sync.Once

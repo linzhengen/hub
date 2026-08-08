@@ -8,8 +8,8 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
-	v1 "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
+	_ "github.com/linzhengen/hub/server/pb/hub/annotations/v1"
+	v1 "github.com/linzhengen/hub/server/pb/system/group/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1214,7 +1214,7 @@ const file_user_v1_service_proto_rawDesc = "" +
 	"\x0fAddGroupsToUser\x12\x1f.user.v1.AddGroupsToUserRequest\x1a .user.v1.AddGroupsToUserResponse\"k\x8a\xa6\x1d?\"=Add a user to groups, keeping the groups they are already in.\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/users/{id}/groups/add\x12\xb0\x01\n" +
 	"\x14RemoveGroupsFromUser\x12$.user.v1.RemoveGroupsFromUserRequest\x1a%.user.v1.RemoveGroupsFromUserResponse\"K\x8a\xa6\x1d\x1c\"\x1aRemove a user from groups.\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/users/{id}/groups/remove\x12\x97\x01\n" +
 	"\n" +
-	"CreateUser\x12\x1a.user.v1.CreateUserRequest\x1a\x1b.user.v1.CreateUserResponse\"P\x8a\xa6\x1d4\"2Create a user and optionally place them in groups.\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/usersB0Z.github.com/linzhengen/hub/v1/server/pb/user/v1b\x06proto3"
+	"CreateUser\x12\x1a.user.v1.CreateUserRequest\x1a\x1b.user.v1.CreateUserResponse\"P\x8a\xa6\x1d4\"2Create a user and optionally place them in groups.\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/usersB-Z+github.com/linzhengen/hub/server/pb/user/v1b\x06proto3"
 
 var (
 	file_user_v1_service_proto_rawDescOnce sync.Once

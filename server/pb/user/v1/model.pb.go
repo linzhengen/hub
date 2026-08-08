@@ -7,7 +7,7 @@
 package v1
 
 import (
-	v1 "github.com/linzhengen/hub/v1/server/pb/system/resource/v1"
+	v1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -395,7 +395,7 @@ const file_user_v1_model_proto_rawDesc = "" +
 	"\tauth_code\x18\x05 \x01(\tR\bauthCode\x12,\n" +
 	"\x04type\x18\x06 \x01(\x0e2\x18.system.resource.v1.TypeR\x04type\x12%\n" +
 	"\x04meta\x18\a \x01(\v2\x11.user.v1.MenuMetaR\x04meta\x12)\n" +
-	"\bchildren\x18\b \x03(\v2\r.user.v1.MenuR\bchildrenB0Z.github.com/linzhengen/hub/v1/server/pb/user/v1b\x06proto3"
+	"\bchildren\x18\b \x03(\v2\r.user.v1.MenuR\bchildrenB-Z+github.com/linzhengen/hub/server/pb/user/v1b\x06proto3"
 
 var (
 	file_user_v1_model_proto_rawDescOnce sync.Once

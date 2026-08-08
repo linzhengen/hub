@@ -1,4 +1,4 @@
-module github.com/linzhengen/hub/v1
+module github.com/linzhengen/hub
 
 go 1.26.0
 

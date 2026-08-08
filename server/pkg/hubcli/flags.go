@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
+	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
 // registerFieldFlags gives an operation one flag per request field, typed after

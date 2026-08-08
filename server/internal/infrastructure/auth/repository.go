@@ -3,8 +3,8 @@ package auth
 import (
 	"context"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/server/internal/domain/auth"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 )
 
 // Repository is the implementation of the auth.Repository interface

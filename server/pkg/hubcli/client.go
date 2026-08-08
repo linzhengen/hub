@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
+	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
 // Client calls the hub REST gateway.

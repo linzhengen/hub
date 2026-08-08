@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
+	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
 // crudVerbs are the prefixes that earn a command a short alias: `hub user list`

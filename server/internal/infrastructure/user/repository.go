@@ -3,9 +3,9 @@ package user
 import (
 	"context"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/contextx"
-	"github.com/linzhengen/hub/v1/server/internal/domain/user"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/server/internal/domain/contextx"
+	"github.com/linzhengen/hub/server/internal/domain/user"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 )
 
 type repositoryImpl struct {

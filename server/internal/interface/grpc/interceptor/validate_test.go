@@ -11,8 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	pbgroupv1 "github.com/linzhengen/hub/v1/server/pb/system/group/v1"
-	pbuserv1 "github.com/linzhengen/hub/v1/server/pb/user/v1"
+	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
+	pbuserv1 "github.com/linzhengen/hub/server/pb/user/v1"
 )
 
 func newTestValidator(t *testing.T) Validator {

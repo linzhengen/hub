@@ -26,7 +26,7 @@ import (
 	"time"
 
 	"github.com/sqlc-dev/pqtype"
-	postgressqlc "github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres/sqlc"
+	postgressqlc "github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres/sqlc"
 )
 
 {{range .Models}}

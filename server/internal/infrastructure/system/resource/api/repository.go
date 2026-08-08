@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/api"
-	"github.com/linzhengen/hub/v1/server/pkg/apicatalog"
+	"github.com/linzhengen/hub/server/internal/domain/system/resource/api"
+	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
 // New returns the API definitions the RBAC importer registers, read from the

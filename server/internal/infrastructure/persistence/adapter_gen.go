@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	postgressqlc "github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres/sqlc"
+	postgressqlc "github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres/sqlc"
 	"github.com/sqlc-dev/pqtype"
 )
 

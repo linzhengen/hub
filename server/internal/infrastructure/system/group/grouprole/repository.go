@@ -3,8 +3,8 @@ package grouprole
 import (
 	"context"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/system/group/grouprole"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/server/internal/domain/system/group/grouprole"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 )
 
 func New(q persistence.Querier) grouprole.Repository {

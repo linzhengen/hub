@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/linzhengen/hub/v1/server/internal/domain/auth"
+	"github.com/linzhengen/hub/server/internal/domain/auth"
 )
 
 // revisionPollInterval bounds how stale an authorization decision can be.

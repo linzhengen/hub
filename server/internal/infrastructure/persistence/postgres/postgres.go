@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence/postgres/sqlc"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres/sqlc"
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 
-	"github.com/linzhengen/hub/v1/server/config"
+	"github.com/linzhengen/hub/server/config"
 )
 
 func NewConn(cfg config.PostgreSQL) (*sql.DB, error) {

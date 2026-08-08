@@ -19,13 +19,13 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	"github.com/linzhengen/hub/v1/server/config"
-	"github.com/linzhengen/hub/v1/server/di"
-	"github.com/linzhengen/hub/v1/server/internal/infrastructure/persistence"
-	httphandler "github.com/linzhengen/hub/v1/server/internal/interface/http"
-	"github.com/linzhengen/hub/v1/server/internal/usecase/develop"
+	"github.com/linzhengen/hub/server/config"
+	"github.com/linzhengen/hub/server/di"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
+	httphandler "github.com/linzhengen/hub/server/internal/interface/http"
+	"github.com/linzhengen/hub/server/internal/usecase/develop"
 
-	"github.com/linzhengen/hub/v1/server/pkg/logger"
+	"github.com/linzhengen/hub/server/pkg/logger"
 )
 
 func main() {

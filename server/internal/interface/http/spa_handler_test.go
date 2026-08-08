@@ -9,8 +9,8 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/linzhengen/hub/v1/server/pkg/logger"
-	"github.com/linzhengen/hub/v1/ui/web"
+	"github.com/linzhengen/hub/server/pkg/logger"
+	"github.com/linzhengen/hub/ui/web"
 )
 
 func TestNewSPAHandler(t *testing.T) {

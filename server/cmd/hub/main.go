@@ -8,7 +8,7 @@ package main
 import (
 	"os"
 
-	"github.com/linzhengen/hub/v1/server/pkg/hubcli"
+	"github.com/linzhengen/hub/server/pkg/hubcli"
 )
 
 // version is overridden at build time with -ldflags "-X main.version=...".

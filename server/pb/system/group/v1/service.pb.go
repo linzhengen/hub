@@ -8,7 +8,7 @@ package v1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	_ "github.com/linzhengen/hub/v1/server/pb/hub/annotations/v1"
+	_ "github.com/linzhengen/hub/server/pb/hub/annotations/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -995,7 +995,7 @@ const file_system_group_v1_service_proto_rawDesc = "" +
 	"\x0fAddRolesToGroup\x12'.system.group.v1.AddRolesToGroupRequest\x1a(.system.group.v1.AddRolesToGroupResponse\"g\x8a\xa6\x1d;\"9Grant roles to a group, keeping the roles it already has.\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/groups/{id}/roles/add\x12\xc0\x01\n" +
 	"\x14RemoveRolesFromGroup\x12,.system.group.v1.RemoveRolesFromGroupRequest\x1a-.system.group.v1.RemoveRolesFromGroupResponse\"K\x8a\xa6\x1d\x1c\"\x1aRevoke roles from a group.\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/groups/{id}/roles/remove\x12\xc7\x01\n" +
 	"\x0fAddUsersToGroup\x12'.system.group.v1.AddUsersToGroupRequest\x1a(.system.group.v1.AddUsersToGroupResponse\"a\x8a\xa6\x1d5\"3Add users to a group, keeping the existing members.\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/groups/{id}/users/add\x12\xc0\x01\n" +
-	"\x14RemoveUsersFromGroup\x12,.system.group.v1.RemoveUsersFromGroupRequest\x1a-.system.group.v1.RemoveUsersFromGroupResponse\"K\x8a\xa6\x1d\x1c\"\x1aRemove users from a group.\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/groups/{id}/users/removeB8Z6github.com/linzhengen/hub/v1/server/pb/system/group/v1b\x06proto3"
+	"\x14RemoveUsersFromGroup\x12,.system.group.v1.RemoveUsersFromGroupRequest\x1a-.system.group.v1.RemoveUsersFromGroupResponse\"K\x8a\xa6\x1d\x1c\"\x1aRemove users from a group.\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/groups/{id}/users/removeB5Z3github.com/linzhengen/hub/server/pb/system/group/v1b\x06proto3"
 
 var (
 	file_system_group_v1_service_proto_rawDescOnce sync.Once
