@@ -99,6 +99,9 @@ temp/
 *.p12
 *.pfx
 
+# Claude Code
+.claude/settings.local.json
+
 # Playwright
 ui/web/test-results/
 ui/web/playwright-report/
