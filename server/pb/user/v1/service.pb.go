@@ -1196,7 +1196,7 @@ const file_user_v1_service_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12,\n" +
 	"\tgroup_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\bgroupIds\"A\n" +
 	"\x1cRemoveGroupsFromUserResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2\xf7\r\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2\xf9\r\n" +
 	"\vUserService\x12\x87\x01\n" +
 	"\x05GetMe\x12\x15.user.v1.GetMeRequest\x1a\x16.user.v1.GetMeResponse\"O\x8a\xa6\x1d9\b\x01\"5Get the profile and groups of the authenticated user.\x82\xd3\xe4\x93\x02\f\x12\n" +
 	"/api/v1/me\x12\xa3\x01\n" +

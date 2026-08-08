@@ -31,11 +31,13 @@ func TestOperationCarriesRestMappingAndRbacRule(t *testing.T) {
 	assert.NotEmpty(t, op.Summary, "every rpc should describe itself for the CLI and agent docs")
 }
 
-// GetMe and GetMeMenus must stay reachable without a role assignment: a user
-// with no roles yet still has to be able to load their own profile and
-// navigation menu.  GetMeMenus returns an empty list when no roles are
-// assigned, so making it public never leaks data — it just avoids a 403 that
-// would leave the sidebar blank for brand-new users.
+// GetMe, GetMeMenus, and SendMeVerifyEmail must stay reachable without a role
+// assignment: a user with no roles yet still has to be able to load their own
+// profile, navigation menu, and trigger email verification.  GetMeMenus returns
+// an empty list when no roles are assigned, so making it public never leaks
+// data — it just avoids a 403 that would leave the sidebar blank for brand-new
+// users.  SendMeVerifyEmail is safe to make public because it always sends to
+// the authenticated user's own address; no target id is accepted.
 func TestPublicOperations(t *testing.T) {
 	var public []string
 	for _, op := range apicatalog.Default().Operations() {
@@ -46,6 +48,7 @@ func TestPublicOperations(t *testing.T) {
 	assert.ElementsMatch(t, []string{
 		"/user.v1.UserService/GetMe",
 		"/user.v1.UserService/GetMeMenus",
+		"/user.v1.UserService/SendMeVerifyEmail",
 	}, public)
 }
 
