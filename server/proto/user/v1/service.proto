@@ -36,7 +36,12 @@ service UserService {
       post: "/api/v1/me/verify-email"
       body: "*"
     };
-    option (hub.annotations.v1.method_rule) = {summary: "Send a verification email to the authenticated user's address."};
+    // Any authenticated user must be able to trigger their own email verification,
+    // including users who have no roles yet (same reasoning as GetMe).
+    option (hub.annotations.v1.method_rule) = {
+      public: true
+      summary: "Send a verification email to the authenticated user's address."
+    };
   }
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {
     option (google.api.http) = {get: "/api/v1/users/{id}"};
@@ -81,9 +86,15 @@ service UserService {
 }
 
 message CreateUserRequest {
-  string username = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string username = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
   string email = 2 [(buf.validate.field).string.email = true];
-  string password = 3 [(buf.validate.field).string = {min_len: 8, max_len: 128}];
+  string password = 3 [(buf.validate.field).string = {
+    min_len: 8
+    max_len: 128
+  }];
   repeated string group_ids = 5 [(buf.validate.field).repeated.items.string.uuid = true];
 }
 
@@ -105,7 +116,10 @@ message GetMeMenusResponse {
 }
 
 message UpdateMeRequest {
-  string username = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string username = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
   string email = 2 [(buf.validate.field).string.email = true];
   string password = 3;
 }
@@ -147,10 +161,16 @@ message ListUserResponse {
 
 message UpdateUserRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  string username = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string username = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
   string email = 3 [(buf.validate.field).string.email = true];
   User.Status status = 4;
-  optional string password = 5 [(buf.validate.field).string = {min_len: 8, max_len: 128}];
+  optional string password = 5 [(buf.validate.field).string = {
+    min_len: 8
+    max_len: 128
+  }];
   repeated string group_ids = 6 [(buf.validate.field).repeated.items.string.uuid = true];
 }
 
@@ -166,7 +186,12 @@ message DeleteUserResponse {}
 
 message AddGroupsToUserRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  repeated string group_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
+  repeated string group_ids = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      string: {uuid: true}
+    }
+  }];
 }
 
 message AddGroupsToUserResponse {
@@ -175,7 +200,12 @@ message AddGroupsToUserResponse {
 
 message RemoveGroupsFromUserRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  repeated string group_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
+  repeated string group_ids = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      string: {uuid: true}
+    }
+  }];
 }
 
 message RemoveGroupsFromUserResponse {
