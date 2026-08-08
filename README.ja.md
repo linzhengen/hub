@@ -2,53 +2,64 @@
 
 [English version](README.md) | [简体中文 (Chinese)](README.zh.md)
 
-hub は、Go バックエンド、Vite フロントエンド、Keycloak テーマ、および Terraform と Kubernetes によるインフラ管理を統合したプロジェクトです。
+**hub** は Go バックエンド・React フロントエンド・Keycloak 認証・Kubernetes 対応インフラを組み合わせたオープンソースの ID・アクセス管理プラットフォームです。
 
-## プロジェクト概要
+## スクリーンショット
 
-このプロジェクトは、クリーンアーキテクチャに基づいた堅牢なバックエンドと、モダンな技術スタックを用いたフロントエンド、そしてそれらを支える Infrastructure as Code (IaC) で構成されています。
+| ログイン | ダッシュボード |
+|:---:|:---:|
+| ![Login](docs/screenshots/keycloak-login.png) | ![Dashboard](docs/screenshots/dashboard.png) |
 
-### 主な機能
-- **認証・認可**: Keycloak を利用したセキュアな認証基盤。
-- **API 基盤**: gRPC および gRPC-Gateway を用いた RESTful API。
-- **UI**: React 19 と Tailwind CSS 4 を使用したレスポンシブな管理画面。
-- **インフラ**: Terraform によるリソース管理と Kubernetes へのデプロイ。
+| ユーザー管理 | ユーザー管理 — フィルター・一括操作 |
+|:---:|:---:|
+| ![Users](docs/screenshots/users.png) | ![Users Filters](docs/screenshots/users-filters.png) |
+
+| グループ管理 | ロール管理 |
+|:---:|:---:|
+| ![Groups](docs/screenshots/groups.png) | ![Roles](docs/screenshots/roles.png) |
+
+---
+
+## hub でできること
+
+- **ユーザー管理** — 作成・更新・無効化、一括ステータス変更、CSV エクスポート
+- **グループ管理** — ユーザーをグループに整理し、デュアルパネル UI でロールを割り当て
+- **ロールベースアクセス制御 (RBAC)** — Protobuf 定義から自動生成された細粒度の権限管理
+- **Keycloak SSO** — ブラウザログイン・デバイスフロー (RFC 8628)・CI 向けクライアントクレデンシャル
+- **CLI (`hub`)** — すべての API 操作がコマンドとして利用可能。`hub api describe <rpc>` でサーバーが検証する RBAC ルールを確認できる
 
 ---
 
 ## アーキテクチャ
-
-プロジェクトは以下の4つの主要コンポーネントで構成されています。
 
 ```mermaid
 graph TD
     Client[Web Browser] -->|HTTPS| Gateway[gRPC-Gateway / REST API]
     Gateway -->|gRPC| Server[Go Backend API]
     Server -->|SQL| DB[(PostgreSQL)]
-    Server -->|OIDC/SAML| Auth[Keycloak]
+    Server -->|OIDC| Auth[Keycloak]
     Client -->|OIDC| Auth
     Infra[Terraform / K8s] -.->|Manages| Server
     Infra -.->|Manages| Auth
     Infra -.->|Manages| DB
 ```
 
-### レイヤー構造
-- **Backend API (`/server`)**: Go による DDD (Domain-Driven Design) とクリーンアーキテクチャの実装。
-- **Frontend Web (`/ui/web`)**: Vite, React 19, Tailwind CSS 4, TanStack Query を用いた SPA。
-- **Keycloak Theme (`/ui/keycloak-theme`)**: Keycloak 用のカスタムログインテーマ。
-- **Infrastructure (`/infra`)**:
-    - `tf/`: Terraform によるクラウド・ミドルウェア設定。
-    - `k8s/`: Kubernetes マニフェストと Kustomize オーバーレイ。
+| レイヤー | 役割 |
+|:---|:---|
+| **Backend API** (`/server`) | Go · DDD · Clean Architecture · gRPC + gRPC-Gateway |
+| **Frontend** (`/ui/web`) | React 19 · Vite · TypeScript · Tailwind CSS 4 · TanStack Query v5 |
+| **Auth** (`/ui/keycloak-theme`) | Keycloak · カスタム FreeMarker ログインテーマ |
+| **Infrastructure** (`/infra`) | Terraform (クラウドリソース) · Kubernetes + Kustomize (マニフェスト) |
 
 ---
 
 ## 技術スタック
 
 | レイヤー | 技術 / ツール |
-| :--- | :--- |
+|:---|:---|
 | **Backend** | Go 1.26, gRPC, gRPC-Gateway, Protocol Buffers, sqlc, golangci-lint |
 | **Frontend** | React 19, Vite, TypeScript, Tailwind CSS 4, Shadcn UI, TanStack Query v5, Keycloak JS |
-| **Auth** | Keycloak, FreeMarker Templates (Theme) |
+| **Auth** | Keycloak, FreeMarker Templates |
 | **Infra** | Terraform, Kubernetes, Kustomize |
 | **Database** | PostgreSQL |
 
@@ -58,77 +69,93 @@ graph TD
 
 ```text
 .
-├── server/             # Go バックエンドアプリケーション
-│   ├── cmd/            # エントリポイント
+├── server/             # Go バックエンド
+│   ├── cmd/            # エントリポイント（サーバー・CLI・ジェネレーター）
 │   ├── internal/       # ビジネスロジック (Clean Architecture)
-│   └── proto/          # API 定義 (Protobuf)
+│   └── proto/          # API 定義 — 単一の真実のソース
 ├── ui/
-│   ├── web/            # Vite + React フロントエンド (Keycloak 連携)
-│   └── keycloak-theme/ # Keycloak カスタムテーマ
+│   ├── web/            # React SPA
+│   └── keycloak-theme/ # Keycloak カスタムログインテーマ
 ├── infra/
 │   ├── tf/             # Terraform (IaC)
 │   └── k8s/            # Kubernetes マニフェスト
-├── go.mod              # Go モジュール定義
-└── Makefile            # プロジェクト共通のタスク実行
+├── go.mod
+└── Makefile            # 共通タスク
 ```
 
-各ディレクトリには詳細な開発ガイド（`AGENTS.md`）が用意されています。
+> 各ディレクトリに詳細な開発ガイド (`AGENTS.md`) が用意されています。
 
 ---
 
 ## 開発の始め方
 
-### Kubernetes (MiniKube) へのデプロイ
+### 前提条件
 
-`infra/k8s` に MiniKube 用のマニフェストが用意されています。
-
-```bash
-# マニフェストの生成
-kubectl kustomize infra/k8s/overlays/minikube
-
-# デプロイ
-kubectl apply -k infra/k8s/overlays/minikube
-```
-
-Note: `hub` 本体のイメージは事前にビルドされている必要があります。
-`minikube docker-env` を使用して MiniKube 内の Docker デーモンでビルドするか、イメージをロードしてください。
+- Docker + Docker Compose
+- Go 1.26 以上
+- Node.js + pnpm
+- `kubectl` + `minikube`（Kubernetes デプロイの場合）
 
 ### 1. 依存関係のインストール
 
 ```bash
-# Backend 開発ツール
+# Backend 開発ツール (buf, sqlc, protoc プラグイン など)
 make init
 
 # Frontend 依存パッケージ
 cd ui/web && pnpm install
 ```
 
-### 2. ローカル開発環境の起動
+### 2. ローカル環境の起動
 
 ```bash
-# Docker Compose と Terraform を使用した環境構築
+# PostgreSQL・Keycloak・API サーバーを Docker Compose で起動
 make dev
 ```
 
-### 3. コード生成 (Protobuf / SQL)
+Web UI は Vite dev server で提供されます：
+
+```bash
+cd ui/web && pnpm dev   # http://localhost:3000
+```
+
+### 3. 初期データの投入
+
+```bash
+make dev-seed
+```
+
+### 4. コード再生成（proto / SQL 変更後）
 
 ```bash
 make gen
 ```
 
+### Kubernetes (MiniKube) へのデプロイ
+
+```bash
+# マニフェストの確認
+kubectl kustomize infra/k8s/overlays/minikube
+
+# 適用
+kubectl apply -k infra/k8s/overlays/minikube
+```
+
+> 事前に MiniKube 内でイメージをビルドしてください：`eval $(minikube docker-env) && docker build -t hub .`
+
 ---
 
 ## CLI 認証 (`hub auth login`)
 
-`hub` CLI は **OAuth 2.0 Device Authorization Grant** (RFC 8628) によるブラウザベースのログインをサポートしています。クライアントシークレットは不要です。
+`hub` CLI は **OAuth 2.0 Device Authorization Grant** (RFC 8628) によるブラウザベースのログインをサポートしています。対話的な利用ではクライアントシークレット不要です。
 
-### CLI のインストール
+### インストール
 
 ```bash
 make cli
 ```
 
-### ウェブログイン（対話的な利用のデフォルト）
+### ブラウザログイン（対話的な利用のデフォルト）
 
 ```bash
 HUB_OIDC_ISSUER=http://localhost:8080/realms/hub \
@@ -138,9 +165,9 @@ hub auth login
 
 1. ワンタイムコードが表示され、ブラウザが自動的に開きます。
 2. ブラウザでコードを入力し、Keycloak アカウントでサインインします。
-3. CLI に `✓ Authentication successful` と表示され、トークンが設定プロファイルに保存されます。
+3. CLI に `✓ Authentication successful` と表示され、トークンが保存されます。
 
-> クライアントシークレットが設定されている場合でも `--web` フラグでデバイスフローを強制できます。
+> クライアントシークレットが設定されている場合でも `--web` でデバイスフローを強制できます。
 
 ### 非対話ログイン（サービスアカウント / CI）
 
@@ -151,7 +178,7 @@ HUB_OIDC_CLIENT_SECRET=<secret> \
 hub auth login
 ```
 
-クライアントシークレットがあり `--username` がない場合は、**クライアントクレデンシャルグラント** が使用されます。
+クライアントシークレットがあり `--username` がない場合は**クライアントクレデンシャルグラント**が使用されます。
 
 ### パスワードグラント
 
@@ -170,8 +197,6 @@ hub auth token
 ---
 
 ## 開発ガイドライン
-
-各コンポーネントの詳細なガイドラインは、それぞれのディレクトリにある `AGENTS.md` を参照してください。
 
 - [Backend 開発ガイド](server/AGENTS.md)
 - [Frontend 開発ガイド](ui/web/AGENTS.md)
