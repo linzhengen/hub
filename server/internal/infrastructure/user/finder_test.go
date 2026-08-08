@@ -50,29 +50,32 @@ func TestUserFinder_GetMeMenus(t *testing.T) {
 	}
 	mock.ExpectQuery(identQuery).WithArgs(driverIdentArgs...).WillReturnRows(identRows)
 
-	// Mock for the second query (menus)
+	// Mock for the second query (direct menus — parent_id is empty so no ancestor fetch)
 	menuRows := sqlmock.NewRows([]string{
 		"id", "parent_id", "name", "identifier", "type", "path", "component", "display_order", "description", "metadata", "status", "created_at", "updated_at",
 	}).AddRow(
 		"menu1", "", "Menu 1", "menu.menu1", "menu", "/menu1", "Menu1", 1, "Menu 1", metadataJson, "active", time.Now(), time.Now(),
 	)
 
-	menuQueryBuilder := dialect.From("resources").
+	directQueryBuilder := dialect.From("resources").
 		Where(goqu.I("type").Eq("menu")).
+		Where(goqu.I("status").Eq("Active")).
 		Where(goqu.Or(goqu.I("identifier").Eq("menu.menu1"))).
 		Where(goqu.I("identifier").NotLike("%*")).
 		Order(goqu.I("display_order").Asc())
 
-	menuQuery, menuArgs, _ := menuQueryBuilder.Select(
+	directQuery, directArgs, _ := directQueryBuilder.Select(
 		"id", "parent_id", "name", "identifier", "type", "path", "component",
 		"display_order", "description", "metadata", "status", "created_at", "updated_at",
 	).Prepared(true).ToSQL()
 
-	driverMenuArgs := make([]driver.Value, len(menuArgs))
-	for i, arg := range menuArgs {
+	driverMenuArgs := make([]driver.Value, len(directArgs))
+	for i, arg := range directArgs {
 		driverMenuArgs[i] = arg
 	}
-	mock.ExpectQuery(menuQuery).WithArgs(driverMenuArgs...).WillReturnRows(menuRows)
+	mock.ExpectQuery(directQuery).WithArgs(driverMenuArgs...).WillReturnRows(menuRows)
+
+	// No parent fetch expected because menu1's parent_id is empty.
 
 	menus, err := finder.GetMeMenus(ctx)
 

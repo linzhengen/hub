@@ -6,11 +6,11 @@ import { Button, Modal, Input, Table, Form, Select, Space, Card } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import { FolderKanban } from 'lucide-react';
 
-import { toast } from 'sonner';
 import { MAX_PAGE_SIZE, useServerPagination } from '@/hooks/useServerPagination';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { cn } from '@/lib/utils';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
+import { useNotify } from '@/hooks/useNotify';
 
 const { Option } = Select;
 
@@ -25,6 +25,7 @@ interface UserFormValues {
 export function Users() {
   const queryClient = useQueryClient();
   const confirmDanger = useDangerConfirm();
+  const notify = useNotify();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [managingGroupsUser, setManagingGroupsUser] = useState<User | null>(null);
@@ -62,9 +63,9 @@ export function Users() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setIsCreateOpen(false);
-      toast.success('User created successfully');
+      notify.success('User created successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const updateMutation = useMutation({
@@ -72,18 +73,18 @@ export function Users() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setEditingUser(null);
-      toast.success('User updated successfully');
+      notify.success('User updated successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: userService.deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('User deleted successfully');
+      notify.success('User deleted successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const assignGroupMutation = useMutation({
@@ -98,9 +99,9 @@ export function Users() {
           groupIds: [...(managingGroupsUser.groupIds ?? []), variables.groupId]
         });
       }
-      toast.success('Group assigned successfully');
+      notify.success('Group assigned successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const unassignGroupMutation = useMutation({
@@ -115,9 +116,9 @@ export function Users() {
           groupIds: (managingGroupsUser.groupIds ?? []).filter(id => id !== variables.groupId)
         });
       }
-      toast.success('Group unassigned successfully');
+      notify.success('Group unassigned successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
 

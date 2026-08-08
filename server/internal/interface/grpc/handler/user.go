@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"strings"
 
 	"github.com/linzhengen/hub/v1/server/internal/domain/system/resource/menu"
 	"github.com/linzhengen/hub/v1/server/internal/usecase"
@@ -62,17 +63,18 @@ func (h userHandler) GetMeMenus(ctx context.Context, _ *pbv1.GetMeMenusRequest) 
 
 func buildMenuTree(menus []*menu.Menu) []*menu.Menu {
 	menuMap := make(map[string]*menu.Menu)
-	for _, menu := range menus {
-		menuMap[menu.Id] = menu
+	for _, m := range menus {
+		menuMap[m.Id] = m
 	}
 
 	var tree []*menu.Menu
-	for _, menu := range menus {
-		if menu.ParentId == "" {
-			tree = append(tree, menu)
+	for _, m := range menus {
+		// parent_id is stored as CHAR(36) DEFAULT ''; treat blank/whitespace-only as root
+		if strings.TrimSpace(m.ParentId) == "" {
+			tree = append(tree, m)
 		} else {
-			if parent, ok := menuMap[menu.ParentId]; ok {
-				parent.Children = append(parent.Children, menu)
+			if parent, ok := menuMap[m.ParentId]; ok {
+				parent.Children = append(parent.Children, m)
 			}
 		}
 	}
@@ -235,8 +237,11 @@ func menuDomainToPb(menu *menu.Menu) *pbv1.Menu {
 		if order, ok := menu.Metadata["order"].(float64); ok {
 			meta.Order = uint32(order)
 		}
-		if title, ok := menu.Metadata["title"].(string); ok {
+		if title, ok := menu.Metadata["title"].(string); ok && title != "" {
 			meta.Title = title
+		} else {
+			// metadata に title がない場合は name をタイトルとして使う
+			meta.Title = menu.Name
 		}
 		if authority, ok := menu.Metadata["authority"].(string); ok {
 			meta.Authority = authority
@@ -247,6 +252,8 @@ func menuDomainToPb(menu *menu.Menu) *pbv1.Menu {
 		if hideInMenu, ok := menu.Metadata["hideInMenu"].(string); ok {
 			meta.HideInMenu = hideInMenu == "true"
 		}
+	} else {
+		meta.Title = menu.Name
 	}
 	return &pbv1.Menu{
 		Name:       menu.Name,

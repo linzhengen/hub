@@ -22,7 +22,14 @@ service UserService {
   }
   rpc GetMeMenus(GetMeMenusRequest) returns (GetMeMenusResponse) {
     option (google.api.http) = {get: "/api/v1/me/menus"};
-    option (hub.annotations.v1.method_rule) = {summary: "List the menu tree the authenticated user is allowed to see."};
+    // Every authenticated caller must be able to fetch their navigation menu.
+    // The server-side finder filters the result to only the menus their roles
+    // permit, so a user with no roles simply gets an empty list rather than a
+    // permission error that would leave the app unable to render a sidebar.
+    option (hub.annotations.v1.method_rule) = {
+      public: true
+      summary: "List the menu tree the authenticated user is allowed to see."
+    };
   }
   rpc UpdateMe(UpdateMeRequest) returns (UpdateMeResponse) {
     option (google.api.http) = {

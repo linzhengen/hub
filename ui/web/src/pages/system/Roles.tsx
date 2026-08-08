@@ -5,10 +5,10 @@ import { permissionService, Permission } from '@/services/permission.ts';
 import { resourceService } from '@/services/resource.ts';
 import { Button, Modal, Input, Table, Form, Space, Card, TreeSelect, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
-import { toast } from 'sonner';
 import { MAX_PAGE_SIZE, useServerPagination } from '@/hooks/useServerPagination';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
+import { useNotify } from '@/hooks/useNotify';
 
 interface RoleFormValues {
   name: string;
@@ -19,6 +19,7 @@ interface RoleFormValues {
 export function Roles() {
   const queryClient = useQueryClient();
   const confirmDanger = useDangerConfirm();
+  const notify = useNotify();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [createForm] = Form.useForm();
@@ -77,9 +78,9 @@ export function Roles() {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       setIsCreateOpen(false);
       createForm.resetFields();
-      toast.success('Role created successfully');
+      notify.success('Role created successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const updateMutation = useMutation({
@@ -104,18 +105,18 @@ export function Roles() {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
       setEditingRole(null);
       editForm.resetFields();
-      toast.success('Role updated successfully');
+      notify.success('Role updated successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: roleService.deleteRole,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      toast.success('Role deleted successfully');
+      notify.success('Role deleted successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const handleCreateSubmit = (values: RoleFormValues) => {

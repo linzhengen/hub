@@ -5,9 +5,9 @@ import { Button, Modal, Input, Table, Form, Select, Tag, Space, Card, InputNumbe
 
 const { Option } = Select;
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
-import { toast } from 'sonner';
 import { MAX_PAGE_SIZE } from '@/hooks/useServerPagination';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
+import { useNotify } from '@/hooks/useNotify';
 
 interface ResourceTreeNode extends Resource {
   children?: ResourceTreeNode[];
@@ -16,6 +16,7 @@ interface ResourceTreeNode extends Resource {
 export function Menus() {
   const queryClient = useQueryClient();
   const confirmDanger = useDangerConfirm();
+  const notify = useNotify();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [createForm] = Form.useForm();
@@ -35,9 +36,9 @@ export function Menus() {
       queryClient.invalidateQueries({ queryKey: ['menu-resources'] });
       setIsCreateOpen(false);
       createForm.resetFields();
-      toast.success('Menu resource created successfully');
+      notify.success('Menu resource created successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const updateMutation = useMutation({
@@ -45,18 +46,18 @@ export function Menus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-resources'] });
       setEditingResource(null);
-      toast.success('Menu resource updated successfully');
+      notify.success('Menu resource updated successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: resourceService.deleteResource,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['menu-resources'] });
-      toast.success('Resource deleted successfully');
+      notify.success('Resource deleted successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const handleCreateSubmit = (values: CreateMenuResourceRequest) => {

@@ -52,7 +52,15 @@ export const stubApi = async (page: Page): Promise<ApiStub> => {
       return;
     }
 
-    const body = path.endsWith('/me/menus') ? { menus: [] } : meResponse;
+    // Return a minimal menu so the sidebar renders navigation links.
+    // Without at least the Users entry the sidebar is empty and tests that
+    // click getByRole('link', { name: 'Users' }) time out.
+    const meMenusResponse = {
+      menus: [
+        { name: 'Users', path: '/users', meta: { title: 'Users', icon: 'user' } },
+      ],
+    };
+    const body = path.endsWith('/me/menus') ? meMenusResponse : meResponse;
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
 

@@ -77,8 +77,18 @@ func (f *userFinder) GetMeMenus(ctx context.Context) ([]*menu.Menu, error) {
 	var exps []goqu.Expression
 	for _, identifier := range identifiers {
 		if strings.HasSuffix(identifier, "*") {
-			prefix := strings.TrimSuffix(identifier, "*")
-			exps = append(exps, goqu.I("identifier").Like(prefix+"%"))
+			// "menu.*" → trim "*" → "menu." → trim trailing "." → "menu"
+			// LIKE 'menu%' matches "menu", "menu.foo", etc.
+			prefix := strings.TrimRight(strings.TrimSuffix(identifier, "*"), ".")
+			if prefix == "" {
+				// bare "*" means all menus
+				exps = append(exps, goqu.L("TRUE"))
+			} else {
+				exps = append(exps, goqu.Or(
+					goqu.I("identifier").Eq(prefix),
+					goqu.I("identifier").Like(prefix+".%"),
+				))
+			}
 		} else {
 			exps = append(exps, goqu.I("identifier").Eq(identifier))
 		}
@@ -88,13 +98,15 @@ func (f *userFinder) GetMeMenus(ctx context.Context) ([]*menu.Menu, error) {
 		return []*menu.Menu{}, nil
 	}
 
-	menuQueryBuilder := f.dialect.From("resources").
+	// Step 1: fetch the menus the user has direct permission for.
+	directQueryBuilder := f.dialect.From("resources").
 		Where(goqu.I("type").Eq("menu")).
+		Where(goqu.I("status").Eq("Active")).
 		Where(goqu.Or(exps...)).
 		Where(goqu.I("identifier").NotLike("%*")).
 		Order(goqu.I("display_order").Asc())
 
-	menuQuery, menuQueryParams, err := menuQueryBuilder.Select(
+	directQuery, directQueryParams, err := directQueryBuilder.Select(
 		"id", "parent_id", "name", "identifier", "type", "path", "component",
 		"display_order", "description", "metadata", "status", "created_at", "updated_at",
 	).Prepared(true).ToSQL()
@@ -103,19 +115,78 @@ func (f *userFinder) GetMeMenus(ctx context.Context) ([]*menu.Menu, error) {
 		return nil, err
 	}
 
-	menuRows, err := f.db.QueryContext(ctx, menuQuery, menuQueryParams...)
+	menuRows, err := f.db.QueryContext(ctx, directQuery, directQueryParams...)
 	if err != nil {
 		logger.Errorf("GetMeMenus: failed to execute menu SQL query: %v", err)
 		return nil, err
 	}
 	defer func() {
-		err := menuRows.Close()
-		if err != nil {
+		if err := menuRows.Close(); err != nil {
 			logger.Errorf("GetMeMenus: error closing menu rows: %v", err)
 		}
 	}()
 
-	return f.scanMenus(menuRows)
+	directMenus, err := f.scanMenus(menuRows)
+	if err != nil {
+		return nil, err
+	}
+
+	// Step 2: collect parent IDs that are not already in the result set,
+	// so that a child-only permission still shows its ancestor menus.
+	directIDs := make(map[string]struct{}, len(directMenus))
+	for _, m := range directMenus {
+		directIDs[m.Id] = struct{}{}
+	}
+
+	var missingParentIDs []interface{}
+	for _, m := range directMenus {
+		pid := strings.TrimSpace(m.ParentId)
+		if pid != "" {
+			if _, found := directIDs[pid]; !found {
+				missingParentIDs = append(missingParentIDs, pid)
+				directIDs[pid] = struct{}{} // avoid duplicates
+			}
+		}
+	}
+
+	if len(missingParentIDs) == 0 {
+		return directMenus, nil
+	}
+
+	// Fetch missing ancestors (one level is enough for a two-level menu tree;
+	// extend to a loop if deeper nesting is needed).
+	parentQueryBuilder := f.dialect.From("resources").
+		Where(goqu.I("type").Eq("menu")).
+		Where(goqu.I("status").Eq("Active")).
+		Where(goqu.I("id").In(missingParentIDs...)).
+		Order(goqu.I("display_order").Asc())
+
+	parentQuery, parentQueryParams, err := parentQueryBuilder.Select(
+		"id", "parent_id", "name", "identifier", "type", "path", "component",
+		"display_order", "description", "metadata", "status", "created_at", "updated_at",
+	).Prepared(true).ToSQL()
+	if err != nil {
+		logger.Errorf("GetMeMenus: failed to build parent menu SQL query: %v", err)
+		return nil, err
+	}
+
+	parentRows, err := f.db.QueryContext(ctx, parentQuery, parentQueryParams...)
+	if err != nil {
+		logger.Errorf("GetMeMenus: failed to execute parent menu SQL query: %v", err)
+		return nil, err
+	}
+	defer func() {
+		if err := parentRows.Close(); err != nil {
+			logger.Errorf("GetMeMenus: error closing parent menu rows: %v", err)
+		}
+	}()
+
+	parentMenus, err := f.scanMenus(parentRows)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(parentMenus, directMenus...), nil
 }
 
 func (f *userFinder) scanMenus(rows *sql.Rows) ([]*menu.Menu, error) {

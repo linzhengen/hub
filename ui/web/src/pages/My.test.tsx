@@ -19,7 +19,9 @@ vi.mock('@/providers/auth', () => ({ useAuth: mockUseAuth }));
 
 const toastSuccess = vi.hoisted(() => vi.fn());
 const toastError = vi.hoisted(() => vi.fn());
-vi.mock('sonner', () => ({ toast: { success: toastSuccess, error: toastError, info: vi.fn() } }));
+vi.mock('@/hooks/useNotify', () => ({
+  useNotify: () => ({ success: toastSuccess, error: toastError }),
+}));
 
 const meResponse: GetMeResponse = {
   user: { id: 'user-1', username: 'linzhengen', email: 'user@example.com', status: 'STATUS_ACTIVE' },
