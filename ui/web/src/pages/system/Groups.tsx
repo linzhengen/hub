@@ -6,12 +6,12 @@ import { userService, User } from '@/services/user.ts';
 import { Button, Modal, Input, Table, Form, Select, Space, Card, Drawer, Checkbox, Tooltip } from 'antd';
 
 const { Option } = Select;
-import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined, SearchOutlined, FolderOutlined, ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined, SearchOutlined, ArrowRightOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useNotify } from '@/hooks/useNotify';
 import { MAX_PAGE_SIZE, useServerPagination } from '@/hooks/useServerPagination';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
-import { Users, Shield, Key } from 'lucide-react';
+import { Key } from 'lucide-react';
 
 type GroupFormValues = CreateGroupRequest;
 
@@ -289,21 +289,6 @@ export function Groups() {
     },
   ];
 
-  // 検索フィルター
-
-  // 統計データの計算
-  const totalGroups = data?.groups?.length || 0;
-  const activeGroups = data?.groups?.filter(g => g.status === 'STATUS_ACTIVE').length || 0;
-  const averageRolesPerGroup = data?.groups?.length ?
-    (data.groups.reduce((acc, group) => acc + (group.roleIds?.length || 0), 0) / data.groups.length).toFixed(1)
-    : '0.0';
-  const averageUsersPerGroup = data?.groups?.length ?
-    (data.groups.reduce((acc, group) => {
-      const groupUsers = usersData?.users?.filter(user => user.groupIds?.includes(group.id ?? '')).length || 0;
-      return acc + groupUsers;
-    }, 0) / data.groups.length).toFixed(1)
-    : '0.0';
-
   return (
     <div className="space-y-6">
       {/* ヘッダーセクション */}
@@ -330,63 +315,6 @@ export function Groups() {
             Add Group
           </Button>
         </div>
-      </div>
-
-      {/* 統計カード */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Groups</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{totalGroups}</div>
-            </div>
-            <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-              <FolderOutlined style={{ fontSize: '20px' }} className="text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Groups</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{activeGroups}</div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                {totalGroups > 0 ? `${Math.round((activeGroups / totalGroups) * 100)}% active` : 'No groups'}
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/20">
-              <div className="h-5 w-5 rounded-full bg-green-500"></div>
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg. Roles/Group</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{averageRolesPerGroup}</div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                {rolesData?.roles?.length || 0} total roles
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20">
-              <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-        </Card>
-        <Card className="shadow-sm dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg. Users/Group</div>
-              <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{averageUsersPerGroup}</div>
-              <div className="text-sm mt-2 text-gray-500 dark:text-gray-400">
-                {usersData?.users?.length || 0} total users
-              </div>
-            </div>
-            <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20">
-              <Users className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-            </div>
-          </div>
-        </Card>
       </div>
 
       {/* グループテーブル */}
