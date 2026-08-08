@@ -1,14 +1,15 @@
 resource "keycloak_openid_client" "hub_web" {
-  realm_id                            = keycloak_realm.hub_realm.id
-  client_id                           = "hub-web"
-  name                                = "HUB"
-  enabled                             = true
-  standard_flow_enabled               = true
-  implicit_flow_enabled               = false
-  direct_access_grants_enabled        = true
-  backchannel_logout_session_required = true
-  access_type                         = "PUBLIC"
-  access_token_lifespan               = "1800"
+  realm_id                                  = keycloak_realm.hub_realm.id
+  client_id                                 = "hub-web"
+  name                                      = "HUB"
+  enabled                                   = true
+  standard_flow_enabled                     = true
+  implicit_flow_enabled                     = false
+  direct_access_grants_enabled              = true
+  oauth2_device_authorization_grant_enabled = true
+  backchannel_logout_session_required       = true
+  access_type                               = "PUBLIC"
+  access_token_lifespan                     = "1800"
   valid_redirect_uris = [
     "http://localhost:3000/*",
     "http://localhost:9090/*"
