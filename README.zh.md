@@ -118,6 +118,57 @@ make gen
 
 ---
 
+## CLI 认证 (`hub auth login`)
+
+`hub` CLI 支持通过 **OAuth 2.0 设备授权授予**（RFC 8628）进行基于浏览器的登录，无需客户端密钥。
+
+### 安装 CLI
+
+```bash
+make cli
+```
+
+### Web 登录（交互式使用的默认方式）
+
+```bash
+HUB_OIDC_ISSUER=http://localhost:8080/realms/hub \
+HUB_OIDC_CLIENT_ID=hub-web \
+hub auth login
+```
+
+1. 终端显示一次性验证码，浏览器自动打开。
+2. 在浏览器中输入验证码，并使用 Keycloak 账号登录。
+3. CLI 显示 `✓ Authentication successful`，令牌保存到配置文件中。
+
+> 即使已配置客户端密钥，也可使用 `--web` 强制走设备流。
+
+### 非交互式登录（服务账号 / CI）
+
+```bash
+HUB_OIDC_ISSUER=http://localhost:8080/realms/hub \
+HUB_OIDC_CLIENT_ID=hub-api \
+HUB_OIDC_CLIENT_SECRET=<secret> \
+hub auth login
+```
+
+有客户端密钥且未指定 `--username` 时，使用**客户端凭据授予**。
+
+### 密码授予
+
+```bash
+hub auth login --username admin
+# 密码通过提示安全输入，或设置 HUB_PASSWORD
+```
+
+### 验证令牌
+
+```bash
+hub auth whoami
+hub auth token
+```
+
+---
+
 ## 开发指南
 
 有关各组件的详细指南，请参阅每个目录中的 `AGENTS.md`。

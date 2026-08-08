@@ -118,6 +118,57 @@ make gen
 
 ---
 
+## CLI 認証 (`hub auth login`)
+
+`hub` CLI は **OAuth 2.0 Device Authorization Grant** (RFC 8628) によるブラウザベースのログインをサポートしています。クライアントシークレットは不要です。
+
+### CLI のインストール
+
+```bash
+make cli
+```
+
+### ウェブログイン（対話的な利用のデフォルト）
+
+```bash
+HUB_OIDC_ISSUER=http://localhost:8080/realms/hub \
+HUB_OIDC_CLIENT_ID=hub-web \
+hub auth login
+```
+
+1. ワンタイムコードが表示され、ブラウザが自動的に開きます。
+2. ブラウザでコードを入力し、Keycloak アカウントでサインインします。
+3. CLI に `✓ Authentication successful` と表示され、トークンが設定プロファイルに保存されます。
+
+> クライアントシークレットが設定されている場合でも `--web` フラグでデバイスフローを強制できます。
+
+### 非対話ログイン（サービスアカウント / CI）
+
+```bash
+HUB_OIDC_ISSUER=http://localhost:8080/realms/hub \
+HUB_OIDC_CLIENT_ID=hub-api \
+HUB_OIDC_CLIENT_SECRET=<secret> \
+hub auth login
+```
+
+クライアントシークレットがあり `--username` がない場合は、**クライアントクレデンシャルグラント** が使用されます。
+
+### パスワードグラント
+
+```bash
+hub auth login --username admin
+# パスワードはプロンプトで安全に入力、または HUB_PASSWORD を設定
+```
+
+### トークンの確認
+
+```bash
+hub auth whoami
+hub auth token
+```
+
+---
+
 ## 開発ガイドライン
 
 各コンポーネントの詳細なガイドラインは、それぞれのディレクトリにある `AGENTS.md` を参照してください。

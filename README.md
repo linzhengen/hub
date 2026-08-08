@@ -118,6 +118,57 @@ make gen
 
 ---
 
+## CLI Authentication (`hub auth login`)
+
+The `hub` CLI supports browser-based login via the **OAuth 2.0 Device Authorization Grant** (RFC 8628) — no client secret required.
+
+### Install the CLI
+
+```bash
+make cli
+```
+
+### Web login (default for interactive use)
+
+```bash
+HUB_OIDC_ISSUER=http://localhost:8080/realms/hub \
+HUB_OIDC_CLIENT_ID=hub-web \
+hub auth login
+```
+
+1. A one-time code is printed and the browser opens automatically.
+2. Enter the code in the browser and sign in with your Keycloak account.
+3. The CLI prints `✓ Authentication successful` and saves the token to the config profile.
+
+> Use `--web` to force the device flow explicitly even when a client secret is configured.
+
+### Non-interactive login (service accounts / CI)
+
+```bash
+HUB_OIDC_ISSUER=http://localhost:8080/realms/hub \
+HUB_OIDC_CLIENT_ID=hub-api \
+HUB_OIDC_CLIENT_SECRET=<secret> \
+hub auth login
+```
+
+With a client secret and no `--username`, the **client credentials grant** is used.
+
+### Password grant
+
+```bash
+hub auth login --username admin
+# Password is prompted securely, or set HUB_PASSWORD
+```
+
+### Verify the token
+
+```bash
+hub auth whoami
+hub auth token
+```
+
+---
+
 ## Development Guidelines
 
 Refer to the `AGENTS.md` in each directory for detailed guidelines of each component.
