@@ -74,7 +74,10 @@ message ListRoleResponse {
 }
 
 message CreateRoleRequest {
-  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
   string description = 2 [(buf.validate.field).string.max_len = 255];
 }
 
@@ -84,7 +87,10 @@ message CreateRoleResponse {
 
 message UpdateRoleRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
   string description = 3 [(buf.validate.field).string.max_len = 255];
 }
 
@@ -100,7 +106,12 @@ message DeleteRoleResponse {}
 
 message AddPermissionsToRoleRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  repeated string permission_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
+  repeated string permission_ids = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      string: {uuid: true}
+    }
+  }];
 }
 
 message AddPermissionsToRoleResponse {
@@ -109,7 +120,12 @@ message AddPermissionsToRoleResponse {
 
 message RemovePermissionsFromRoleRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  repeated string permission_ids = 2 [(buf.validate.field).repeated = {min_items: 1, items {string {uuid: true}}}];
+  repeated string permission_ids = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      string: {uuid: true}
+    }
+  }];
 }
 
 message RemovePermissionsFromRoleResponse {

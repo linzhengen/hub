@@ -551,7 +551,7 @@ Send a verification email to the authenticated user's address.
 
 - command: `hub user send-me-verify-email`
 - endpoint: `POST /api/v1/me/verify-email`
-- rbac: `SendMeVerifyEmail` on `api.user.v1.UserService`
+- rbac: none, any authenticated caller may use this rpc
 
 Takes no parameters.
 
