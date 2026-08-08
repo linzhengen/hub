@@ -170,18 +170,16 @@ func (uc userUseCase) Update(ctx context.Context, u *user.User, password *string
 
 func (uc userUseCase) Delete(ctx context.Context, userId string) error {
 	if err := uc.transRepo.ExecTransWithLock(ctx, func(ctx context.Context) error {
-		u, err := uc.userRepo.FindOne(ctx, userId)
-		if err != nil {
-			logger.Errorf("Delete: failed to find user %s for deletion: %v", userId, err)
-			return err
-		}
-		u.Status = user.InActive
-		if err := uc.userRepo.Update(ctx, u); err != nil {
-			logger.Errorf("Delete: failed to update user %s status to inactive: %v", userId, err)
+		if err := uc.userRepo.Delete(ctx, userId); err != nil {
+			logger.Errorf("Delete: failed to delete user %s from DB: %v", userId, err)
 			return err
 		}
 		return nil
 	}); err != nil {
+		return err
+	}
+	if err := uc.oidcUserRepo.DeleteUser(ctx, userId); err != nil {
+		logger.Errorf("Delete: failed to delete user %s from Keycloak: %v", userId, err)
 		return err
 	}
 	return nil
