@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -28,27 +30,44 @@ func (c *CLI) newAuthLoginCommand() *cobra.Command {
 	var (
 		username string
 		password string
+		web      bool
 		save     bool
 	)
 	cmd := &cobra.Command{
 		Use:   "login",
-		Short: "Exchange credentials for an access token",
-		Long: `Exchange credentials for an access token.
+		Short: "Authenticate with hub",
+		Long: `Authenticate with hub and store a token in the configuration profile.
 
-With --username and --password the OIDC password grant is used; without them
-the client credentials grant is, which is how an unattended agent authenticates
-as a service account. The issuer and client come from the profile or from
-HUB_OIDC_ISSUER, HUB_OIDC_CLIENT_ID and HUB_OIDC_CLIENT_SECRET.`,
+Without flags, the browser-based device flow is used: a URL and a short code
+are printed, the browser is opened automatically, and the CLI waits for you to
+sign in. No client secret is required.
+
+With --username / --password the OIDC password grant is used instead.
+Without --username the client credentials grant is used, which is how an
+unattended agent authenticates as a service account (requires a client secret).
+
+The issuer and client come from the profile or from HUB_OIDC_ISSUER and
+HUB_OIDC_CLIENT_ID. HUB_OIDC_CLIENT_SECRET is only needed for the client
+credentials grant.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			if username != "" {
-				var err error
-				if password, err = readPassword(cmd, password); err != nil {
-					return err
-				}
-			}
+			// Default to web (device flow) when no credentials are given.
+			useWeb := web || (username == "" && c.settings.OIDC.ClientSecret == "")
 
-			token, err := requestToken(cmd.Context(), c.settings.OIDC, username, password)
+			var (
+				token Token
+				err   error
+			)
+			if useWeb {
+				token, err = deviceFlow(cmd.Context(), cmd, c.settings.OIDC)
+			} else {
+				if username != "" {
+					if password, err = readPassword(cmd, password); err != nil {
+						return err
+					}
+				}
+				token, err = requestToken(cmd.Context(), c.settings.OIDC, username, password)
+			}
 			if err != nil {
 				return err
 			}
@@ -60,6 +79,7 @@ HUB_OIDC_ISSUER, HUB_OIDC_CLIENT_ID and HUB_OIDC_CLIENT_SECRET.`,
 			return Render(cmd.OutOrStdout(), c.format, token)
 		},
 	}
+	cmd.Flags().BoolVar(&web, "web", false, "open a browser to authenticate (device flow, no client secret needed)")
 	cmd.Flags().StringVarP(&username, "username", "u", "", "username for the password grant")
 	cmd.Flags().StringVarP(&password, "password", "p", "",
 		"password for the password grant. Prefer the prompt or HUB_PASSWORD: a password given here is visible in the shell history and in the process list")
@@ -251,6 +271,181 @@ func refreshToken(ctx context.Context, oidc OIDC, refresh string) (Token, error)
 	form.Set("grant_type", "refresh_token")
 	form.Set("refresh_token", refresh)
 	return exchange(ctx, oidc, form)
+}
+
+// deviceAuthResponse is the response from the device authorization endpoint
+// (RFC 8628 §3.2).
+type deviceAuthResponse struct {
+	DeviceCode              string `json:"device_code"`
+	UserCode                string `json:"user_code"`
+	VerificationURI         string `json:"verification_uri"`
+	VerificationURIComplete string `json:"verification_uri_complete"`
+	ExpiresIn               int    `json:"expires_in"`
+	Interval                int    `json:"interval"`
+}
+
+// deviceFlow implements the OAuth 2.0 Device Authorization Grant (RFC 8628).
+// It prints a URL and a short code for the user to enter in a browser, opens
+// the browser automatically, then polls the token endpoint until the user
+// approves or the code expires.
+func deviceFlow(ctx context.Context, cmd *cobra.Command, oidc OIDC) (Token, error) {
+	if oidc.Issuer == "" {
+		return Token{}, fmt.Errorf("no OIDC issuer configured: set it in the profile or via HUB_OIDC_ISSUER")
+	}
+	if oidc.ClientID == "" {
+		return Token{}, fmt.Errorf("no OIDC client configured: set it in the profile or via HUB_OIDC_CLIENT_ID")
+	}
+
+	// Step 1: Request a device code.
+	form := url.Values{}
+	form.Set("client_id", oidc.ClientID)
+	if oidc.ClientSecret != "" {
+		form.Set("client_secret", oidc.ClientSecret)
+	}
+
+	deviceEndpoint := strings.TrimRight(oidc.Issuer, "/") + "/protocol/openid-connect/auth/device"
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, deviceEndpoint, strings.NewReader(form.Encode()))
+	if err != nil {
+		return Token{}, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	httpClient := &http.Client{Timeout: 30 * time.Second}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return Token{}, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Token{}, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return Token{}, &APIError{StatusCode: resp.StatusCode, Status: resp.Status, Body: trimJSON(raw)}
+	}
+
+	var dar deviceAuthResponse
+	if err := json.Unmarshal(raw, &dar); err != nil {
+		return Token{}, fmt.Errorf("device authorization endpoint returned an unexpected body: %w", err)
+	}
+	if dar.DeviceCode == "" || dar.UserCode == "" {
+		return Token{}, fmt.Errorf("device authorization endpoint returned an incomplete response")
+	}
+
+	// Step 2: Show the code and URL to the user.
+	browserURL := dar.VerificationURIComplete
+	if browserURL == "" {
+		browserURL = dar.VerificationURI
+	}
+	out := cmd.ErrOrStderr()
+	_, _ = fmt.Fprintf(out, "! First copy your one-time code: %s\n", dar.UserCode)
+	_, _ = fmt.Fprintf(out, "- Press Enter to open %s in your browser... ", dar.VerificationURI)
+
+	// Wait for Enter, then open the browser. If stdin is not a terminal (CI),
+	// skip the prompt and just print the URL.
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		// Consume the Enter key press.
+		buf := make([]byte, 1)
+		_, _ = os.Stdin.Read(buf)
+	} else {
+		_, _ = fmt.Fprintln(out)
+	}
+	openBrowser(browserURL)
+
+	// Step 3: Poll the token endpoint.
+	pollInterval := time.Duration(dar.Interval) * time.Second
+	if pollInterval <= 0 {
+		pollInterval = 5 * time.Second
+	}
+	deadline := time.Now().Add(time.Duration(dar.ExpiresIn) * time.Second)
+
+	tokenEndpoint := strings.TrimRight(oidc.Issuer, "/") + "/protocol/openid-connect/token"
+	for {
+		if time.Now().After(deadline) {
+			return Token{}, fmt.Errorf("device code expired before the user authenticated")
+		}
+
+		select {
+		case <-ctx.Done():
+			return Token{}, ctx.Err()
+		case <-time.After(pollInterval):
+		}
+
+		pollForm := url.Values{}
+		pollForm.Set("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+		pollForm.Set("device_code", dar.DeviceCode)
+		pollForm.Set("client_id", oidc.ClientID)
+		if oidc.ClientSecret != "" {
+			pollForm.Set("client_secret", oidc.ClientSecret)
+		}
+
+		pollReq, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenEndpoint, strings.NewReader(pollForm.Encode()))
+		if err != nil {
+			return Token{}, err
+		}
+		pollReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		pollResp, err := httpClient.Do(pollReq)
+		if err != nil {
+			return Token{}, err
+		}
+		pollRaw, err := io.ReadAll(pollResp.Body)
+		_ = pollResp.Body.Close()
+		if err != nil {
+			return Token{}, err
+		}
+
+		if pollResp.StatusCode == http.StatusOK {
+			var token Token
+			if err := json.Unmarshal(pollRaw, &token); err != nil {
+				return Token{}, fmt.Errorf("token endpoint returned an unexpected body: %w", err)
+			}
+			if token.AccessToken == "" {
+				return Token{}, fmt.Errorf("token endpoint returned no access_token")
+			}
+			if token.ExpiresIn > 0 {
+				token.expiresAt = time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)
+			}
+			_, _ = fmt.Fprintln(out, "✓ Authentication successful")
+			return token, nil
+		}
+
+		// Check for well-known error codes (RFC 8628 §3.5).
+		var pollErr struct {
+			Error string `json:"error"`
+		}
+		if jsonErr := json.Unmarshal(pollRaw, &pollErr); jsonErr == nil {
+			switch pollErr.Error {
+			case "authorization_pending":
+				// The user hasn't approved yet — keep polling.
+				continue
+			case "slow_down":
+				// The server wants us to back off.
+				pollInterval += 5 * time.Second
+				continue
+			case "access_denied":
+				return Token{}, fmt.Errorf("access denied: the user rejected the device authorization request")
+			case "expired_token":
+				return Token{}, fmt.Errorf("device code expired before the user authenticated")
+			}
+		}
+		return Token{}, &APIError{StatusCode: pollResp.StatusCode, Status: pollResp.Status, Body: trimJSON(pollRaw)}
+	}
+}
+
+// openBrowser attempts to open url in the default system browser.
+func openBrowser(url string) {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", url)
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+	default:
+		cmd = exec.Command("xdg-open", url)
+	}
+	_ = cmd.Start()
 }
 
 // exchange posts a grant to the issuer's token endpoint.

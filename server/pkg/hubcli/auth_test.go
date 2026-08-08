@@ -2,13 +2,16 @@ package hubcli
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -233,5 +236,110 @@ func TestEnsureFreshToken(t *testing.T) {
 		err := c.ensureFreshToken(context.Background())
 
 		assert.ErrorContains(t, err, "hub auth login")
+	})
+}
+
+// deviceFlowServer stands in for Keycloak's device authorization and token
+// endpoints. The device endpoint returns a fixed deviceAuthResponse. The token
+// endpoint cycles through responses: the first pendingCount responses return
+// authorization_pending, then the final response is returned.
+func deviceFlowServer(t *testing.T, pendingCount int, finalStatus int, finalBody string) (*httptest.Server, *atomic.Int32) {
+	t.Helper()
+	calls := &atomic.Int32{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/protocol/openid-connect/auth/device":
+			resp := deviceAuthResponse{
+				DeviceCode:              "dc-123",
+				UserCode:                "ABCD-1234",
+				VerificationURI:         r.Host + "/device",
+				VerificationURIComplete: r.Host + "/device?user_code=ABCD-1234",
+				ExpiresIn:               300,
+				Interval:                1, // 1-second poll in tests
+			}
+			raw, _ := json.Marshal(resp)
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(raw)
+		case "/protocol/openid-connect/token":
+			n := int(calls.Add(1))
+			if n <= pendingCount {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte(`{"error":"authorization_pending"}`))
+				return
+			}
+			w.WriteHeader(finalStatus)
+			_, _ = w.Write([]byte(finalBody))
+		}
+	}))
+	t.Cleanup(server.Close)
+	return server, calls
+}
+
+// noopCmd returns a cobra.Command whose output is discarded, which keeps test
+// output clean and avoids stdin reads.
+func noopCmd() *cobra.Command {
+	cmd := &cobra.Command{}
+	cmd.SetOut(nil)
+	return cmd
+}
+
+func TestDeviceFlow(t *testing.T) {
+	t.Run("succeeds after authorization_pending responses", func(t *testing.T) {
+		server, calls := deviceFlowServer(t, 2,
+			http.StatusOK,
+			`{"access_token":"at","refresh_token":"rt","expires_in":300}`)
+
+		token, err := deviceFlow(context.Background(), noopCmd(),
+			OIDC{Issuer: server.URL, ClientID: "hub-web"})
+
+		require.NoError(t, err)
+		assert.Equal(t, "at", token.AccessToken)
+		assert.Equal(t, "rt", token.RefreshToken)
+		assert.False(t, token.ExpiresAt().IsZero(), "expiry must be resolved from expires_in")
+		assert.EqualValues(t, 3, calls.Load(), "2 pending + 1 success")
+	})
+
+	t.Run("returns an error on access_denied", func(t *testing.T) {
+		server, _ := deviceFlowServer(t, 0,
+			http.StatusBadRequest,
+			`{"error":"access_denied"}`)
+
+		_, err := deviceFlow(context.Background(), noopCmd(),
+			OIDC{Issuer: server.URL, ClientID: "hub-web"})
+
+		assert.ErrorContains(t, err, "access denied")
+	})
+
+	t.Run("returns an error on expired_token", func(t *testing.T) {
+		server, _ := deviceFlowServer(t, 0,
+			http.StatusBadRequest,
+			`{"error":"expired_token"}`)
+
+		_, err := deviceFlow(context.Background(), noopCmd(),
+			OIDC{Issuer: server.URL, ClientID: "hub-web"})
+
+		assert.ErrorContains(t, err, "expired")
+	})
+
+	t.Run("returns an error when context is cancelled", func(t *testing.T) {
+		server, _ := deviceFlowServer(t, 999,
+			http.StatusOK, `{"access_token":"at"}`)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // cancel immediately
+
+		_, err := deviceFlow(ctx, noopCmd(),
+			OIDC{Issuer: server.URL, ClientID: "hub-web"})
+
+		assert.ErrorIs(t, err, context.Canceled)
+	})
+
+	t.Run("rejects missing configuration", func(t *testing.T) {
+		_, err := deviceFlow(context.Background(), noopCmd(), OIDC{})
+		assert.ErrorContains(t, err, "no OIDC issuer configured")
+
+		_, err = deviceFlow(context.Background(), noopCmd(), OIDC{Issuer: "http://x"})
+		assert.ErrorContains(t, err, "no OIDC client configured")
 	})
 }
