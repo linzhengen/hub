@@ -23,3 +23,18 @@ variable "admin_user_password" {
   type        = string
   sensitive   = true
 }
+
+variable "smtp_host" {
+  description = "SMTP server host"
+  default     = "mailhog"
+}
+
+variable "smtp_port" {
+  description = "SMTP server port"
+  default     = "1025"
+}
+
+variable "smtp_from" {
+  description = "SMTP from address"
+  default     = "hub@example.com"
+}
