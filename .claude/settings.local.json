@@ -44,7 +44,8 @@
       "Bash(kustomize build:*)",
       "Bash(gh api:*)",
       "Bash(buf generate:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(gh run:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",
