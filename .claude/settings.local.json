@@ -1,8 +1,0 @@
-{
-  "enableAllProjectMcpServers": true,
-  "alwaysThinkingEnabled": false,
-  "fastMode": false,
-  "modelConfiguration": {
-    "modelContextWindow": 110000
-  }
-}
