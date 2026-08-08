@@ -43,7 +43,8 @@
       "Bash(helm template:*)",
       "Bash(kustomize build:*)",
       "Bash(gh api:*)",
-      "Bash(buf generate:*)"
+      "Bash(buf generate:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",

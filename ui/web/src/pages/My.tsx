@@ -4,7 +4,7 @@ import { useAuth } from '@/providers/auth';
 import { ME_QUERY_KEY, useMe } from '@/hooks/useMe';
 import { Card, Descriptions, Tag, Button, Form, Input, Modal, Divider, Spin } from 'antd';
 import { UserOutlined, MailOutlined, SafetyOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
-import { toast } from 'sonner';
+import { useNotify } from '@/hooks/useNotify';
 import { userService } from '@/services/user';
 import type { GetMeResponse, UpdateMeRequest } from '@/services/user';
 
@@ -16,6 +16,7 @@ interface ProfileFormValues {
 export function My() {
   const { user: authUser } = useAuth();
   const queryClient = useQueryClient();
+  const notify = useNotify();
   const [isEditing, setIsEditing] = useState(false);
   const [editForm] = Form.useForm();
 
@@ -27,7 +28,8 @@ export function My() {
   useEffect(() => {
     if (!error) return;
     console.error('Failed to fetch user from API:', error);
-    toast.error('Failed to load profile data from server');
+    notify.error('Failed to load profile data from server');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
   // 表示用のユーザー情報をマージ
@@ -43,15 +45,15 @@ export function My() {
       queryClient.setQueryData<GetMeResponse>(ME_QUERY_KEY, response);
       setIsEditing(false);
       editForm.resetFields();
-      toast.success('Profile updated successfully');
+      notify.success('Profile updated successfully');
     },
-    onError: (error: Error) => toast.error(error.message),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   const resendVerificationMutation = useMutation({
     mutationFn: () => userService.sendMeVerifyEmail(),
-    onSuccess: () => toast.success('Verification email sent'),
-    onError: (error: Error) => toast.error(error.message),
+    onSuccess: () => notify.success('Verification email sent'),
+    onError: (error: Error) => notify.error(error.message),
   });
 
   // 編集開始時の処理

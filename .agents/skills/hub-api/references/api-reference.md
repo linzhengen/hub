@@ -498,7 +498,7 @@ List the menu tree the authenticated user is allowed to see.
 
 - command: `hub user get-me-menus`
 - endpoint: `GET /api/v1/me/menus`
-- rbac: `GetMeMenus` on `api.user.v1.UserService`
+- rbac: none, any authenticated caller may use this rpc
 
 Takes no parameters.
 

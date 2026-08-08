@@ -1199,9 +1199,9 @@ const file_user_v1_service_proto_rawDesc = "" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2\xf7\r\n" +
 	"\vUserService\x12\x87\x01\n" +
 	"\x05GetMe\x12\x15.user.v1.GetMeRequest\x1a\x16.user.v1.GetMeResponse\"O\x8a\xa6\x1d9\b\x01\"5Get the profile and groups of the authenticated user.\x82\xd3\xe4\x93\x02\f\x12\n" +
-	"/api/v1/me\x12\xa1\x01\n" +
+	"/api/v1/me\x12\xa3\x01\n" +
 	"\n" +
-	"GetMeMenus\x12\x1a.user.v1.GetMeMenusRequest\x1a\x1b.user.v1.GetMeMenusResponse\"Z\x8a\xa6\x1d>\"<List the menu tree the authenticated user is allowed to see.\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/me/menus\x12\x9c\x01\n" +
+	"GetMeMenus\x12\x1a.user.v1.GetMeMenusRequest\x1a\x1b.user.v1.GetMeMenusResponse\"\\\x8a\xa6\x1d@\b\x01\"<List the menu tree the authenticated user is allowed to see.\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/me/menus\x12\x9c\x01\n" +
 	"\bUpdateMe\x12\x18.user.v1.UpdateMeRequest\x1a\x19.user.v1.UpdateMeResponse\"[\x8a\xa6\x1dB\"@Update the authenticated user's own username, email or password.\x82\xd3\xe4\x93\x02\x0f:\x01*\x1a\n" +
 	"/api/v1/me\x12\xc4\x01\n" +
 	"\x11SendMeVerifyEmail\x12!.user.v1.SendMeVerifyEmailRequest\x1a\".user.v1.SendMeVerifyEmailResponse\"h\x8a\xa6\x1dB\b\x01\">Send a verification email to the authenticated user's address.\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/me/verify-email\x12v\n" +

@@ -1,18 +1,36 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 
-// Assume these icons are imported from an icon library
 import {
   ChevronDownIcon,
-  GridIcon,
   HorizontaLDots,
+  FolderIcon,
+  GridIcon,
   UserIcon,
   GroupIcon,
   LockIcon,
-  FolderIcon,
+  BoltIcon,
+  BoxIcon,
+  CalenderIcon,
+  ChatIcon,
+  DocsIcon,
+  EnvelopeIcon,
+  FileIcon,
+  ListIcon,
+  MailIcon,
+  PageIcon,
+  PieChartIcon,
+  PlugInIcon,
+  ShootingStarIcon,
+  TableIcon,
+  TaskIcon,
+  TimeIcon,
+  UserCircleIcon,
 } from "@/icons";
 import { Key } from "lucide-react";
 import { useSidebar } from "@/context/sidebar";
+import { useMenuResources } from "@/hooks/useMenuResources";
+import type { Menu } from "@/services/user";
 
 type NavItem = {
   name: string;
@@ -21,27 +39,86 @@ type NavItem = {
   subItems?: { name: string; icon?: React.ReactNode; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
-  {
-    icon: <GridIcon />,
-    name: "Dashboard",
-    path: "/dashboard",
-  },
-  {
-    icon: <UserIcon />,
-    name: "Users",
-    path: "/users",
-  },
-  {
-    name: "Systems",
-    icon: <LockIcon />,
-    subItems: [
-      { name: "Groups", icon: <GroupIcon />, path: "/system/groups", pro: false },
-      { name: "Roles", icon: <Key />, path: "/system/roles", pro: false },
-      { name: "Menus", icon: <FolderIcon />, path: "/system/menus", pro: false },
-    ],
-  },
-];
+/** metadata.icon の文字列から React ノードを返す。未知のキーは FolderIcon にフォールバック。 */
+const resolveMenuIcon = (iconName: string | undefined): React.ReactNode => {
+  // 大文字小文字・プレフィックス（"mdi:"等）を正規化して比較する
+  const normalized = iconName?.replace(/^[^:]+:/, "").toLowerCase() ?? "";
+  switch (normalized) {
+    case "grid":              return <GridIcon />;
+    case "gridicon":          return <GridIcon />;
+    case "user":              return <UserIcon />;
+    case "usericon":          return <UserIcon />;
+    case "user-circle":       return <UserCircleIcon />;
+    case "account-circle":    return <UserCircleIcon />;
+    case "usercircleicon":    return <UserCircleIcon />;
+    case "group":             return <GroupIcon />;
+    case "groupicon":         return <GroupIcon />;
+    case "lock":              return <LockIcon />;
+    case "lockicon":          return <LockIcon />;
+    case "settings":          return <LockIcon />;
+    case "folder":            return <FolderIcon />;
+    case "foldericon":        return <FolderIcon />;
+    case "key":               return <Key />;
+    case "bolt":              return <BoltIcon />;
+    case "bolticon":          return <BoltIcon />;
+    case "box":               return <BoxIcon />;
+    case "boxicon":           return <BoxIcon />;
+    case "calendar":          return <CalenderIcon />;
+    case "calendericon":      return <CalenderIcon />;
+    case "chat":              return <ChatIcon />;
+    case "chaticon":          return <ChatIcon />;
+    case "docs":              return <DocsIcon />;
+    case "docsicon":          return <DocsIcon />;
+    case "envelope":          return <EnvelopeIcon />;
+    case "envelopeicon":      return <EnvelopeIcon />;
+    case "file":              return <FileIcon />;
+    case "fileicon":          return <FileIcon />;
+    case "list":              return <ListIcon />;
+    case "listicon":          return <ListIcon />;
+    case "mail":              return <MailIcon />;
+    case "mailicon":          return <MailIcon />;
+    case "page":              return <PageIcon />;
+    case "pageicon":          return <PageIcon />;
+    case "pie-chart":         return <PieChartIcon />;
+    case "piecharticon":      return <PieChartIcon />;
+    case "plug-in":           return <PlugInIcon />;
+    case "pluginicon":        return <PlugInIcon />;
+    case "star":              return <ShootingStarIcon />;
+    case "shootingstaricon":  return <ShootingStarIcon />;
+    case "table":             return <TableIcon />;
+    case "tableicon":         return <TableIcon />;
+    case "task":              return <TaskIcon />;
+    case "taskicon":          return <TaskIcon />;
+    case "time":              return <TimeIcon />;
+    case "timeicon":          return <TimeIcon />;
+    default:                  return <FolderIcon />;
+  }
+};
+
+/**
+ * サーバーから返却された Menu ツリーを NavItem[] に変換する。
+ * hideInMenu な項目はサーバーが除外済みだが、フロントでも念のためスキップする。
+ * meta.order 昇順はサーバーがソート済みのためここでは行わない。
+ */
+const buildNavItems = (menus: Menu[]): NavItem[] =>
+  menus
+    .filter((m) => !m.meta?.hideInMenu)
+    .map((m) => {
+      const children = (m.children ?? []).filter((c) => !c.meta?.hideInMenu);
+      const navItem: NavItem = {
+        name: m.meta?.title ?? m.name ?? "",
+        icon: resolveMenuIcon(m.meta?.icon),
+        path: children.length === 0 ? (m.path ?? undefined) : undefined,
+      };
+      if (children.length > 0) {
+        navItem.subItems = children.map((child) => ({
+          name: child.meta?.title ?? child.name ?? "",
+          icon: resolveMenuIcon(child.meta?.icon),
+          path: child.path ?? "",
+        }));
+      }
+      return navItem;
+    });
 
 const othersItems: NavItem[] = [];
 
@@ -51,9 +128,9 @@ type Submenu = { type: "main" | "others"; index: number };
 type ManualSubmenu = { pathname: string; submenu: Submenu | null };
 
 /** 現在のパスを含むサブメニューを返す。該当しなければ null */
-const findSubmenuForPath = (pathname: string): Submenu | null => {
+const findSubmenuForPath = (pathname: string, mainItems: NavItem[]): Submenu | null => {
   const groups = [
-    { type: "main", items: navItems },
+    { type: "main", items: mainItems },
     { type: "others", items: othersItems },
   ] as const;
 
@@ -71,6 +148,32 @@ const findSubmenuForPath = (pathname: string): Submenu | null => {
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
+  const { data: menuResources, isLoading: isMenuLoading } = useMenuResources();
+
+  const dynamicNavItems = useMemo(
+    () => (menuResources ? buildNavItems(menuResources) : null),
+    [menuResources],
+  );
+
+  // API取得中または取得失敗時は静的フォールバック
+  const activeNavItems: NavItem[] = useMemo(
+    () =>
+      dynamicNavItems ??
+      [
+        { icon: <GridIcon />, name: "Dashboard", path: "/dashboard" },
+        { icon: <UserIcon />, name: "Users", path: "/users" },
+        {
+          name: "Systems",
+          icon: <LockIcon />,
+          subItems: [
+            { name: "Groups", icon: <GroupIcon />, path: "/system/groups" },
+            { name: "Roles", icon: <Key />, path: "/system/roles" },
+            { name: "Menus", icon: <FolderIcon />, path: "/system/menus" },
+          ],
+        },
+      ],
+    [dynamicNavItems],
+  );
 
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
     {}
@@ -87,7 +190,10 @@ const AppSidebar: React.FC = () => {
   // setState せず描画時に計算する。手動トグルはそのルートにいる間だけ上書きし、
   // 遷移すると破棄される（effect がナビゲーションのたびに上書きしていた従来の
   // 挙動と同じ）。
-  const routeSubmenu = useMemo(() => findSubmenuForPath(location.pathname), [location.pathname]);
+  const routeSubmenu = useMemo(
+    () => findSubmenuForPath(location.pathname, activeNavItems),
+    [location.pathname, activeNavItems],
+  );
   const [manualSubmenu, setManualSubmenu] = useState<ManualSubmenu | null>(null);
   const openSubmenu = useMemo(
     () => (manualSubmenu?.pathname === location.pathname ? manualSubmenu.submenu : routeSubmenu),
@@ -305,7 +411,18 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {isMenuLoading && !dynamicNavItems ? (
+                <div className="flex flex-col gap-3 px-1">
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="h-9 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse"
+                    />
+                  ))}
+                </div>
+              ) : (
+                renderMenuItems(activeNavItems, "main")
+              )}
             </div>
           </div>
         </nav>

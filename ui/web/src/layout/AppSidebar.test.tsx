@@ -2,15 +2,60 @@ import { MemoryRouter, Route, Routes } from 'react-router';
 import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import AppSidebar from '@/layout/AppSidebar';
+import type { Menu } from '@/services/user';
 
 const mockUseSidebar = vi.hoisted(() => vi.fn());
 vi.mock('@/context/sidebar', () => ({ useSidebar: mockUseSidebar }));
+
+const mockUseMenuResources = vi.hoisted(() => vi.fn());
+vi.mock('@/hooks/useMenuResources', () => ({ useMenuResources: mockUseMenuResources }));
+
+/** テスト用の動的メニューデータ（GetMeMenus レスポンスのツリー構造） */
+const mockMenuResources: Menu[] = [
+  {
+    name: 'Dashboard',
+    path: '/dashboard',
+    meta: { title: 'Dashboard', icon: 'grid', order: 1 },
+  },
+  {
+    name: 'Users',
+    path: '/users',
+    meta: { title: 'Users', icon: 'UserIcon', order: 2 },
+  },
+  {
+    name: 'Systems',
+    path: '/system',
+    meta: { title: 'Systems', icon: 'carbon:settings', order: 3 },
+    children: [
+      {
+        name: 'Groups',
+        path: '/system/groups',
+        meta: { title: 'Groups', icon: 'GroupIcon', order: 1 },
+      },
+      {
+        name: 'Roles',
+        path: '/system/roles',
+        meta: { title: 'Roles', icon: 'Key', order: 2 },
+      },
+      {
+        name: 'Menus',
+        path: '/system/menus',
+        meta: { title: 'Menus', icon: 'FolderIcon', order: 3 },
+      },
+    ],
+  },
+];
 
 mockUseSidebar.mockReturnValue({
   isExpanded: true,
   isMobileOpen: false,
   isHovered: false,
   setIsHovered: vi.fn(),
+});
+
+mockUseMenuResources.mockReturnValue({
+  data: mockMenuResources,
+  isLoading: false,
 });
 
 /**
