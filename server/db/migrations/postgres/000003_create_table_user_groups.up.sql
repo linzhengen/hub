@@ -1,7 +1,7 @@
 CREATE TABLE "user_groups"
 (
-    "user_id"    CHAR(36)    NOT NULL,
-    "group_id"   CHAR(36)    NOT NULL,
+    "user_id"    UUID        NOT NULL,
+    "group_id"   UUID        NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY ("user_id", "group_id"),

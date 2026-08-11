@@ -175,7 +175,7 @@ func (uc resourceUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*r
 		}
 		items = append(items, &resource.Resource{
 			Id:           i.ID,
-			ParentId:     i.ParentID,
+			ParentId:     i.ParentID.String,
 			Name:         i.Name,
 			Identifier:   *identifier,
 			Type:         resource.ResourceType(i.Type),

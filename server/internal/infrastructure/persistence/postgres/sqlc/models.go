@@ -11,6 +11,21 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+type ChatMessage struct {
+	ID        string
+	SessionID string
+	Role      string
+	Content   string
+	CreatedAt time.Time
+}
+
+type ChatSession struct {
+	ID        string
+	UserID    string
+	Title     string
+	CreatedAt time.Time
+}
+
 type Group struct {
 	ID          string
 	Name        string
@@ -44,7 +59,7 @@ type RbacRevision struct {
 
 type Resource struct {
 	ID           string
-	ParentID     string
+	ParentID     sql.NullString
 	Name         string
 	Identifier   string
 	Type         string

@@ -61,7 +61,7 @@ func (r repositoryImpl) Create(ctx context.Context, p *permission.Permission) er
 }
 
 func (r repositoryImpl) Update(ctx context.Context, p *permission.Permission) error {
-	return persistence.GetQ(ctx, r.q).UpdatePermission(ctx, p.Id, string(p.Verb), p.ResourceId, p.Description)
+	return persistence.GetQ(ctx, r.q).UpdatePermission(ctx, string(p.Verb), p.ResourceId, p.Description, p.Id)
 }
 
 func (r repositoryImpl) Delete(ctx context.Context, id string) error {

@@ -11,6 +11,23 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+// ChatMessageModel represents a ChatMessage in the database
+type ChatMessageModel struct {
+	ID        string
+	SessionID string
+	Role      string
+	Content   string
+	CreatedAt time.Time
+}
+
+// ChatSessionModel represents a ChatSession in the database
+type ChatSessionModel struct {
+	ID        string
+	UserID    string
+	Title     string
+	CreatedAt time.Time
+}
+
 // GroupModel represents a Group in the database
 type GroupModel struct {
 	ID          string
@@ -110,6 +127,8 @@ type Querier interface {
 	WithTx(tx *sql.Tx) Querier
 
 	AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error
+	CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error)
+	CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error)
 	CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string) error
 	CreateGroupRole(ctx context.Context, GroupID string, RoleID string) error
 	CreatePermission(ctx context.Context, ID string, Verb string, ResourceID string, Description string) error
@@ -117,6 +136,7 @@ type Querier interface {
 	CreateRole(ctx context.Context, ID string, Name string, Description string) error
 	CreateUser(ctx context.Context, ID string, Username string, Email string, Status string) error
 	CreateUserGroup(ctx context.Context, UserID string, GroupID string) error
+	DeleteChatSession(ctx context.Context, id string) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
 	DeleteGroupRole(ctx context.Context, GroupID string, RoleID string) error
@@ -131,6 +151,9 @@ type Querier interface {
 	IsUserInGroup(ctx context.Context, UserID string, GroupID string) (bool, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, RoleID string, PermissionID string) error
+	SelectChatMessagesBySessionId(ctx context.Context, sessionID string) ([]*ChatMessageModel, error)
+	SelectChatSessionById(ctx context.Context, id string) (*ChatSessionModel, error)
+	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSessionModel, error)
 	SelectGroupById(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRoleModel, error)
@@ -178,6 +201,42 @@ func (p *PostgreSQLQuerier) AddPermissionToRole(ctx context.Context, RoleID stri
 
 }
 
+func (p *PostgreSQLQuerier) CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error) {
+	row, err := p.q.CreateChatMessage(ctx, postgressqlc.CreateChatMessageParams{
+		SessionID: SessionID,
+		Role:      Role,
+		Content:   Content,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ChatMessageModel{
+		ID:        row.ID,
+		SessionID: row.SessionID,
+		Role:      row.Role,
+		Content:   row.Content,
+		CreatedAt: row.CreatedAt,
+	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error) {
+	row, err := p.q.CreateChatSession(ctx, postgressqlc.CreateChatSessionParams{
+		UserID: UserID,
+		Title:  Title,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ChatSessionModel{
+		ID:        row.ID,
+		UserID:    row.UserID,
+		Title:     row.Title,
+		CreatedAt: row.CreatedAt,
+	}, nil
+
+}
+
 func (p *PostgreSQLQuerier) CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string) error {
 	return p.q.CreateGroup(ctx, postgressqlc.CreateGroupParams{
 		ID:          ID,
@@ -210,7 +269,7 @@ func (p *PostgreSQLQuerier) CreateResource(ctx context.Context, ID string, Paren
 	m, _ := json.Marshal(Metadata)
 	return p.q.CreateResource(ctx, postgressqlc.CreateResourceParams{
 		ID:           ID,
-		ParentID:     ParentID,
+		ParentID:     sql.NullString{String: ParentID, Valid: ParentID != ""},
 		Name:         Name,
 		Identifier:   Identifier,
 		Type:         Type,
@@ -248,6 +307,11 @@ func (p *PostgreSQLQuerier) CreateUserGroup(ctx context.Context, UserID string, 
 		UserID:  UserID,
 		GroupID: GroupID,
 	})
+
+}
+
+func (p *PostgreSQLQuerier) DeleteChatSession(ctx context.Context, id string) error {
+	return p.q.DeleteChatSession(ctx, id)
 
 }
 
@@ -341,6 +405,57 @@ func (p *PostgreSQLQuerier) RemovePermissionFromRole(ctx context.Context, RoleID
 		RoleID:       RoleID,
 		PermissionID: PermissionID,
 	})
+
+}
+
+func (p *PostgreSQLQuerier) SelectChatMessagesBySessionId(ctx context.Context, sessionID string) ([]*ChatMessageModel, error) {
+	rows, err := p.q.SelectChatMessagesBySessionId(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*ChatMessageModel, len(rows))
+	for i, row := range rows {
+		res[i] = &ChatMessageModel{
+			ID:        row.ID,
+			SessionID: row.SessionID,
+			Role:      row.Role,
+			Content:   row.Content,
+			CreatedAt: row.CreatedAt,
+		}
+	}
+	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectChatSessionById(ctx context.Context, id string) (*ChatSessionModel, error) {
+	row, err := p.q.SelectChatSessionById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &ChatSessionModel{
+		ID:        row.ID,
+		UserID:    row.UserID,
+		Title:     row.Title,
+		CreatedAt: row.CreatedAt,
+	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSessionModel, error) {
+	rows, err := p.q.SelectChatSessionsByUserId(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*ChatSessionModel, len(rows))
+	for i, row := range rows {
+		res[i] = &ChatSessionModel{
+			ID:        row.ID,
+			UserID:    row.UserID,
+			Title:     row.Title,
+			CreatedAt: row.CreatedAt,
+		}
+	}
+	return res, nil
 
 }
 
@@ -466,7 +581,7 @@ func (p *PostgreSQLQuerier) SelectResourceById(ctx context.Context, id string) (
 	}
 	return &ResourceModel{
 		ID:           row.ID,
-		ParentID:     row.ParentID,
+		ParentID:     row.ParentID.String,
 		Name:         row.Name,
 		Identifier:   row.Identifier,
 		Type:         row.Type,
@@ -493,7 +608,7 @@ func (p *PostgreSQLQuerier) SelectResourceByIdentifier(ctx context.Context, iden
 	}
 	return &ResourceModel{
 		ID:           row.ID,
-		ParentID:     row.ParentID,
+		ParentID:     row.ParentID.String,
 		Name:         row.Name,
 		Identifier:   row.Identifier,
 		Type:         row.Type,
@@ -520,7 +635,7 @@ func (p *PostgreSQLQuerier) SelectResourceForUpdate(ctx context.Context, id stri
 	}
 	return &ResourceModel{
 		ID:           row.ID,
-		ParentID:     row.ParentID,
+		ParentID:     row.ParentID.String,
 		Name:         row.Name,
 		Identifier:   row.Identifier,
 		Type:         row.Type,
@@ -692,7 +807,7 @@ func (p *PostgreSQLQuerier) UpdatePermission(ctx context.Context, Verb string, R
 func (p *PostgreSQLQuerier) UpdateResource(ctx context.Context, ParentID string, Name string, Identifier string, Type string, Path string, Component string, DisplayOrder int32, Description string, Metadata map[string]string, Status string, ID string) error {
 	m, _ := json.Marshal(Metadata)
 	return p.q.UpdateResource(ctx, postgressqlc.UpdateResourceParams{
-		ParentID:     ParentID,
+		ParentID:     sql.NullString{String: ParentID, Valid: ParentID != ""},
 		Name:         Name,
 		Identifier:   Identifier,
 		Type:         Type,

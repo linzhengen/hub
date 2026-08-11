@@ -41,7 +41,7 @@ dev-seed: gen
 	docker compose exec hub ./tmp/cli resource-import
 
 migrate:
-	migrate -path server/db/migrations/postgres -database "postgres://postgres:password#123@localhost:56836/hub?sslmode=disable" up
+	migrate -path server/db/migrations/postgres -database "postgres://postgres:password%23123@localhost:5432/hub?sslmode=disable" up
 
 gen:
 	cd server && \

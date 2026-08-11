@@ -10,6 +10,8 @@ import (
 
 type Querier interface {
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
+	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (*ChatMessage, error)
+	CreateChatSession(ctx context.Context, arg CreateChatSessionParams) (*ChatSession, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) error
 	CreateGroupRole(ctx context.Context, arg CreateGroupRoleParams) error
 	CreatePermission(ctx context.Context, arg CreatePermissionParams) error
@@ -17,6 +19,7 @@ type Querier interface {
 	CreateRole(ctx context.Context, arg CreateRoleParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	CreateUserGroup(ctx context.Context, arg CreateUserGroupParams) error
+	DeleteChatSession(ctx context.Context, id string) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
 	DeleteGroupRole(ctx context.Context, arg DeleteGroupRoleParams) error
@@ -31,6 +34,9 @@ type Querier interface {
 	IsUserInGroup(ctx context.Context, arg IsUserInGroupParams) (bool, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, arg RemovePermissionFromRoleParams) error
+	SelectChatMessagesBySessionId(ctx context.Context, sessionID string) ([]*ChatMessage, error)
+	SelectChatSessionById(ctx context.Context, id string) (*ChatSession, error)
+	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSession, error)
 	SelectGroupById(ctx context.Context, id string) (*Group, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*Group, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRole, error)

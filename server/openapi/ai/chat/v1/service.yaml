@@ -1,0 +1,219 @@
+components:
+    schemas:
+        ChatServiceSendMessageBody:
+            properties:
+                content:
+                    type: string
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1CreateSessionRequest:
+            properties:
+                title:
+                    type: string
+            type: object
+        v1CreateSessionResponse:
+            properties:
+                session:
+                    $ref: '#/components/schemas/v1Session'
+            type: object
+        v1DeleteSessionResponse:
+            type: object
+        v1ListMessagesResponse:
+            properties:
+                messages:
+                    items:
+                        $ref: '#/components/schemas/v1Message'
+                    type: array
+            type: object
+        v1ListSessionsResponse:
+            properties:
+                sessions:
+                    items:
+                        $ref: '#/components/schemas/v1Session'
+                    type: array
+            type: object
+        v1Message:
+            properties:
+                content:
+                    type: string
+                createdAt:
+                    format: date-time
+                    type: string
+                id:
+                    type: string
+                role:
+                    type: string
+                sessionId:
+                    type: string
+            type: object
+        v1SendMessageResponse:
+            properties:
+                delta:
+                    type: string
+                done:
+                    type: boolean
+                message:
+                    $ref: '#/components/schemas/v1Message'
+            type: object
+        v1Session:
+            properties:
+                createdAt:
+                    format: date-time
+                    type: string
+                id:
+                    type: string
+                title:
+                    type: string
+                userId:
+                    type: string
+            type: object
+info:
+    title: ai/chat/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/chat/sessions:
+        get:
+            operationId: ChatService_ListSessions
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListSessionsResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ChatService
+        post:
+            operationId: ChatService_CreateSession
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateSessionRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateSessionResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ChatService
+    /api/v1/chat/sessions/{id}:
+        delete:
+            operationId: ChatService_DeleteSession
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeleteSessionResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ChatService
+    /api/v1/chat/sessions/{id}/messages:
+        get:
+            operationId: ChatService_ListMessages
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListMessagesResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ChatService
+        post:
+            operationId: ChatService_SendMessage
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ChatServiceSendMessageBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    error:
+                                        $ref: '#/components/schemas/rpcStatus'
+                                    result:
+                                        $ref: '#/components/schemas/v1SendMessageResponse'
+                                title: Stream result of v1SendMessageResponse
+                                type: object
+                    description: A successful response.(streaming responses)
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ChatService
+tags:
+    - name: ChatService

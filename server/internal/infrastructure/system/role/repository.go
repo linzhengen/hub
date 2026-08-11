@@ -42,7 +42,7 @@ func (r repositoryImpl) Create(ctx context.Context, u *role.Role) error {
 }
 
 func (r repositoryImpl) Update(ctx context.Context, u *role.Role) error {
-	return persistence.GetQ(ctx, r.q).UpdateRole(ctx, u.Id, u.Name, u.Description)
+	return persistence.GetQ(ctx, r.q).UpdateRole(ctx, u.Name, u.Description, u.Id)
 }
 
 func (r repositoryImpl) Delete(ctx context.Context, id string) error {

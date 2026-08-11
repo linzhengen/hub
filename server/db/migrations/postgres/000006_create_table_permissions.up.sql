@@ -1,8 +1,8 @@
 CREATE TABLE "permissions"
 (
-    "id"          CHAR(36) PRIMARY KEY,
+    "id"          UUID PRIMARY KEY,
     "verb"        VARCHAR(255) NOT NULL,
-    "resource_id" CHAR(36)     NOT NULL,
+    "resource_id" UUID         NOT NULL,
     "description" TEXT         NOT NULL DEFAULT '',
     "created_at"  TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at"  TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
