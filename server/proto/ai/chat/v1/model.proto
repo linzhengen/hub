@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package ai.chat.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/pb/ai/chat/v1";
+
+message Session {
+  string id = 1;
+  string user_id = 2;
+  string title = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message Message {
+  string id = 1;
+  string session_id = 2;
+  string role = 3;
+  string content = 4;
+  google.protobuf.Timestamp created_at = 5;
+}

@@ -13,6 +13,7 @@ import (
 	"github.com/linzhengen/hub/server/internal/domain/oidc/token"
 	"github.com/linzhengen/hub/server/internal/domain/user"
 	"github.com/linzhengen/hub/server/internal/interface/grpc/interceptor"
+	pbchatv1 "github.com/linzhengen/hub/server/pb/ai/chat/v1"
 	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
@@ -42,6 +43,7 @@ func New(
 	permissionServiceServer pbpermissionv1.PermissionServiceServer,
 	resourceServiceServer pbresourcev1.ResourceServiceServer,
 	groupServiceServer pbgroupv1.GroupServiceServer,
+	chatServiceServer pbchatv1.ChatServiceServer,
 ) *grpc.Server {
 	store, err := memorystore.New(&memorystore.Config{
 		Tokens:   opts.APIRateLimit,
@@ -94,6 +96,7 @@ func New(
 	pbpermissionv1.RegisterPermissionServiceServer(grpcServer, permissionServiceServer)
 	pbresourcev1.RegisterResourceServiceServer(grpcServer, resourceServiceServer)
 	pbgroupv1.RegisterGroupServiceServer(grpcServer, groupServiceServer)
+	pbchatv1.RegisterChatServiceServer(grpcServer, chatServiceServer)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 	return grpcServer
 }

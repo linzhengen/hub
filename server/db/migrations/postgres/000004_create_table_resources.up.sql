@@ -1,7 +1,7 @@
 CREATE TABLE "resources"
 (
-    "id"            CHAR(36) PRIMARY KEY,
-    "parent_id"     CHAR(36)     NOT NULL DEFAULT '',
+    "id"            UUID         PRIMARY KEY,
+    "parent_id"     UUID,
     "name"          VARCHAR(255) NOT NULL,
     "identifier"    VARCHAR(255) NOT NULL UNIQUE,
     "type"          VARCHAR(50)  NOT NULL,

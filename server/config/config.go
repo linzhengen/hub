@@ -25,6 +25,12 @@ type EnvConfig struct {
 	Seed
 	RateLimit
 	KeyCloak
+	Anthropic
+}
+
+type Anthropic struct {
+	APIKey string `env:"ANTHROPIC_API_KEY,required"`
+	Model  string `env:"ANTHROPIC_MODEL,default=claude-sonnet-4-6"`
 }
 
 type Grpc struct {

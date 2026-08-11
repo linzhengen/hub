@@ -43,7 +43,7 @@ VALUES ($1,
 
 type CreateResourceParams struct {
 	ID           string
-	ParentID     string
+	ParentID     sql.NullString
 	Name         string
 	Identifier   string
 	Type         string
@@ -182,7 +182,7 @@ WHERE id = $11
 `
 
 type UpdateResourceParams struct {
-	ParentID     string
+	ParentID     sql.NullString
 	Name         string
 	Identifier   string
 	Type         string

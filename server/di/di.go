@@ -19,6 +19,7 @@ func NewDI(envCfg config.EnvConfig, db *sql.DB) *dig.Container {
 	modules.ProvideAuth(c)
 	modules.ProvideUser(c)
 	modules.ProvideSystem(c)
+	modules.ProvideAI(c)
 	modules.ProvideGateway(c)
 	modules.ProvideCLI(c)
 

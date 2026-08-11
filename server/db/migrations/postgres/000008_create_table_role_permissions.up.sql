@@ -1,7 +1,7 @@
 CREATE TABLE "role_permissions"
 (
-    "role_id"       CHAR(36)    NOT NULL,
-    "permission_id" CHAR(36)    NOT NULL,
+    "role_id"       UUID        NOT NULL,
+    "permission_id" UUID        NOT NULL,
     "created_at"    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at"    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY ("role_id", "permission_id"),

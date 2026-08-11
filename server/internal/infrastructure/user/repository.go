@@ -37,7 +37,7 @@ func (r repositoryImpl) Create(ctx context.Context, u *user.User) error {
 }
 
 func (r repositoryImpl) Update(ctx context.Context, u *user.User) error {
-	return persistence.GetQ(ctx, r.q).UpdateUser(ctx, u.Id, u.Username, u.Email, string(u.Status))
+	return persistence.GetQ(ctx, r.q).UpdateUser(ctx, u.Username, u.Email, string(u.Status), u.Id)
 }
 
 func (r repositoryImpl) Delete(ctx context.Context, id string) error {

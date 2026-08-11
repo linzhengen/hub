@@ -9,6 +9,7 @@ lint:
   ignore_only:
     RPC_NO_SERVER_STREAMING:
       - proto/ai/app/v1/service.proto
+      - proto/ai/chat/v1/service.proto
       - proto/ai/workflow/v1/service.proto
   disallow_comment_ignores: true
 breaking:

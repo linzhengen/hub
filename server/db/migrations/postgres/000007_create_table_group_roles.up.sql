@@ -1,7 +1,7 @@
 CREATE TABLE "group_roles"
 (
-    "group_id"   CHAR(36)    NOT NULL,
-    "role_id"    CHAR(36)    NOT NULL,
+    "group_id"   UUID        NOT NULL,
+    "role_id"    UUID        NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY ("group_id", "role_id"),

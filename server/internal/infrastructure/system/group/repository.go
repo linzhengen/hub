@@ -44,7 +44,7 @@ func (r repositoryImpl) Create(ctx context.Context, g *group.Group) error {
 }
 
 func (r repositoryImpl) Update(ctx context.Context, g *group.Group) error {
-	return persistence.GetQ(ctx, r.q).UpdateGroup(ctx, g.Id, g.Name, string(g.Status), g.Description)
+	return persistence.GetQ(ctx, r.q).UpdateGroup(ctx, g.Name, g.Description, string(g.Status), g.Id)
 }
 
 func (r repositoryImpl) Delete(ctx context.Context, id string) error {
