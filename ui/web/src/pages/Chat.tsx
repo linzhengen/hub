@@ -12,6 +12,7 @@ import {
 import { useNotify } from '@/hooks/useNotify';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 import { useChatConversation } from '@/hooks/useChatConversation';
+import { Markdown } from '@/components/common/Markdown';
 import { chatService, ROLE_ASSISTANT } from '@/services/chat';
 import type { Message, Session, ToolCall, ToolProposal } from '@/services/chat';
 
@@ -20,11 +21,19 @@ const SESSIONS_QUERY_KEY = ['chatSessions'];
 /**
  * One turn in the transcript.
  *
- * The content is rendered as preformatted text rather than Markdown: the model
- * answers in Markdown, but rendering it needs a dependency this project has not
- * taken yet, and showing the source is honest where a half-built renderer would
- * silently drop formatting. `whitespace-pre-wrap` at least keeps the line breaks
- * and indentation the model intended.
+ * The assistant answers in Markdown, so its turns are rendered as Markdown -
+ * headings, lists and fenced blocks are how it lays an answer out, and showing
+ * the source made every answer harder to read than the plain sentence it was
+ * trying to be.
+ *
+ * The user's own turn is not: they typed literal text, and running it through a
+ * Markdown parser would eat their underscores and asterisks and reflow their
+ * line breaks. `whitespace-pre-wrap` shows it back exactly as written.
+ *
+ * A streaming answer is rendered the same way, from whatever has arrived. Half
+ * a fenced block renders as an unterminated block for a moment and then
+ * settles, which reads better than the alternative of holding the text back
+ * until the stream ends.
  */
 const Turn: React.FC<{ role: string; content: string; pending?: boolean }> = ({
   role,
@@ -35,14 +44,18 @@ const Turn: React.FC<{ role: string; content: string; pending?: boolean }> = ({
   return (
     <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} mb-4`}>
       <div
-        className={`max-w-[80%] rounded-lg px-4 py-3 ${
+        className={`max-w-[80%] min-w-0 rounded-lg px-4 py-3 ${
           isAssistant ? 'bg-gray-100 dark:bg-gray-800' : 'bg-blue-600 text-white'
         }`}
       >
-        <div className="whitespace-pre-wrap break-words font-mono text-sm">
-          {content}
-          {pending && <span className="ml-1 animate-pulse">▍</span>}
-        </div>
+        {isAssistant ? (
+          // The caret is appended to the source rather than rendered beside it,
+          // so it sits at the end of the last line the way a cursor does. Put
+          // outside, it would land under a block element on its own line.
+          <Markdown>{pending ? `${content}▍` : content}</Markdown>
+        ) : (
+          <div className="text-sm whitespace-pre-wrap break-words">{content}</div>
+        )}
       </div>
     </div>
   );
