@@ -72,6 +72,28 @@ Send a message and stream the assistant response.
 | `--id` | `id` | path | string | uuid |
 | `--content` | `content` | body | string | length 1..8192 |
 
+## system.audit.v1.AuditService
+
+### ListAuditLog
+
+List recorded changes to users, groups, roles, permissions and resources, newest first.
+
+- command: `hub audit list-audit-log`
+- endpoint: `GET /api/v1/audit-logs`
+- rbac: `ListAuditLog` on `api.system.audit.v1.AuditService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--actor-user-id` | `actorUserId` | query | string | uuid |
+| `--resource` | `resource` | query | string | length <= 255 |
+| `--action` | `action` | query | string | length <= 64 |
+| `--target-id` | `targetId` | query | string | length <= 255 |
+| `--channel` | `channel` | query | `CHANNEL_UNSPECIFIED` \| `CHANNEL_API` \| `CHANNEL_AI_CHAT` |  |
+| `--since` | `since` | query | message |  |
+| `--until` | `until` | query | message |  |
+
 ## system.group.v1.GroupService
 
 ### AddRolesToGroup

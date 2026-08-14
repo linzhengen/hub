@@ -6,10 +6,26 @@ package sqlc
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/sqlc-dev/pqtype"
 )
+
+type AuditLog struct {
+	ID          string
+	ActorUserID string
+	Channel     string
+	AiSessionID sql.NullString
+	Resource    string
+	Action      string
+	TargetID    string
+	Arguments   json.RawMessage
+	Succeeded   bool
+	Error       string
+	Client      string
+	CreatedAt   time.Time
+}
 
 type ChatMessage struct {
 	ID        string

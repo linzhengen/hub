@@ -5,7 +5,9 @@ import (
 
 	"github.com/linzhengen/hub/server/config"
 	"github.com/linzhengen/hub/server/internal/domain/ai/chat"
+	"github.com/linzhengen/hub/server/internal/domain/audit"
 	"github.com/linzhengen/hub/server/internal/domain/auth"
+	"github.com/linzhengen/hub/server/internal/domain/trans"
 	"github.com/linzhengen/hub/server/internal/domain/user"
 	chatInfra "github.com/linzhengen/hub/server/internal/infrastructure/ai/chat"
 	claudeInfra "github.com/linzhengen/hub/server/internal/infrastructure/ai/claude"
@@ -14,6 +16,7 @@ import (
 	chatHandler "github.com/linzhengen/hub/server/internal/interface/grpc/handler/ai"
 	"github.com/linzhengen/hub/server/internal/interface/grpc/interceptor"
 	aiUseCase "github.com/linzhengen/hub/server/internal/usecase/ai"
+	pbauditv1 "github.com/linzhengen/hub/server/pb/system/audit/v1"
 	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
@@ -54,11 +57,14 @@ func provideToolBox(
 	authSvc auth.Service,
 	userRepo user.Repository,
 	validator interceptor.Validator,
+	auditRepo audit.Repository,
+	transRepo trans.Repository,
 	roleServiceServer pbrolev1.RoleServiceServer,
 	userServiceServer pbuserv1.UserServiceServer,
 	permissionServiceServer pbpermissionv1.PermissionServiceServer,
 	resourceServiceServer pbresourcev1.ResourceServiceServer,
 	groupServiceServer pbgroupv1.GroupServiceServer,
+	auditServiceServer pbauditv1.AuditServiceServer,
 ) (chat.ToolBox, error) {
 	return toolInfra.New(
 		catalog,
@@ -69,7 +75,9 @@ func provideToolBox(
 			toolInfra.Register(&pbrolev1.RoleService_ServiceDesc, roleServiceServer),
 			toolInfra.Register(&pbpermissionv1.PermissionService_ServiceDesc, permissionServiceServer),
 			toolInfra.Register(&pbresourcev1.ResourceService_ServiceDesc, resourceServiceServer),
+			toolInfra.Register(&pbauditv1.AuditService_ServiceDesc, auditServiceServer),
 		},
+		interceptor.UnaryAuditInterceptor(auditRepo, transRepo, catalog),
 		interceptor.UnaryAuthzInterceptor(authSvc, userRepo, catalog),
 		interceptor.UnaryValidateInterceptor(validator),
 	)

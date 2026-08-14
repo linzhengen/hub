@@ -1,0 +1,168 @@
+components:
+    schemas:
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1AuditLog:
+            description: |-
+                AuditLog is one recorded attempt to change the authorization graph.
+
+                The actor is always a person. A change the assistant made is recorded against
+                the user it was answering, with channel telling them apart.
+            properties:
+                action:
+                    type: string
+                actorUserId:
+                    type: string
+                arguments:
+                    description: The request as it arrived, as JSON, with secrets removed.
+                    type: string
+                channel:
+                    $ref: '#/components/schemas/v1Channel'
+                client:
+                    description: What the caller said it was - a user agent. Unverified.
+                    type: string
+                createdAt:
+                    format: date-time
+                    type: string
+                error:
+                    type: string
+                id:
+                    type: string
+                resource:
+                    description: |-
+                        The RBAC resource and verb of the operation, so a record reads the same way
+                        a permission does.
+                    type: string
+                sessionId:
+                    description: |-
+                        The chat session the assistant was answering in. Empty for every other
+                        channel.
+                    type: string
+                succeeded:
+                    description: False for an attempt that was refused or failed. Those are recorded too.
+                    type: boolean
+                targetId:
+                    description: The entity that was changed, when the operation names one.
+                    type: string
+            type: object
+        v1Channel:
+            default: CHANNEL_UNSPECIFIED
+            description: |-
+                Channel is the route a recorded change arrived by: CHANNEL_API is the user
+                calling the API themselves (the console, the hub CLI, or a direct request),
+                and CHANNEL_AI_CHAT is the assistant calling it while answering them, with
+                session_id saying in which conversation.
+
+                The per-value comments this would normally carry are left out on purpose: the
+                OpenAPI generator renders them into a description that the web client's
+                schema generator cannot parse.
+            enum:
+                - CHANNEL_UNSPECIFIED
+                - CHANNEL_API
+                - CHANNEL_AI_CHAT
+            type: string
+        v1ListAuditLogResponse:
+            properties:
+                auditLogs:
+                    items:
+                        $ref: '#/components/schemas/v1AuditLog'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+info:
+    title: system/audit/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/audit-logs:
+        get:
+            operationId: AuditService_ListAuditLog
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - description: |-
+                    The person responsible for the change. Optional so that the uuid rule is
+                    skipped when the filter is not used, rather than rejecting every unfiltered
+                    listing.
+                  in: query
+                  name: actorUserId
+                  schema:
+                    type: string
+                - description: The RBAC resource, e.g. "api.system.group.v1.GroupService".
+                  in: query
+                  name: resource
+                  schema:
+                    type: string
+                - description: The rpc name, e.g. "AddRolesToGroup".
+                  in: query
+                  name: action
+                  schema:
+                    type: string
+                - description: The entity that was changed.
+                  in: query
+                  name: targetId
+                  schema:
+                    type: string
+                - in: query
+                  name: channel
+                  schema:
+                    default: CHANNEL_UNSPECIFIED
+                    enum:
+                        - CHANNEL_UNSPECIFIED
+                        - CHANNEL_API
+                        - CHANNEL_AI_CHAT
+                    type: string
+                - description: Bounds on when the change was recorded. Either may be left unset.
+                  in: query
+                  name: since
+                  schema:
+                    format: date-time
+                    type: string
+                - in: query
+                  name: until
+                  schema:
+                    format: date-time
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListAuditLogResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AuditService
+tags:
+    - name: AuditService
