@@ -325,10 +325,12 @@ func (x *SendMessageRequest) GetContent() string {
 }
 
 type SendMessageResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Delta         string                 `protobuf:"bytes,1,opt,name=delta,proto3" json:"delta,omitempty"`
-	Done          bool                   `protobuf:"varint,2,opt,name=done,proto3" json:"done,omitempty"`
-	Message       *Message               `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Delta   string                 `protobuf:"bytes,1,opt,name=delta,proto3" json:"delta,omitempty"`
+	Done    bool                   `protobuf:"varint,2,opt,name=done,proto3" json:"done,omitempty"`
+	Message *Message               `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	// ToolCall is set instead of delta on the frames that report a lookup.
+	ToolCall      *ToolCall `protobuf:"bytes,4,opt,name=tool_call,json=toolCall,proto3" json:"tool_call,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -380,6 +382,13 @@ func (x *SendMessageResponse) GetDone() bool {
 func (x *SendMessageResponse) GetMessage() *Message {
 	if x != nil {
 		return x.Message
+	}
+	return nil
+}
+
+func (x *SendMessageResponse) GetToolCall() *ToolCall {
+	if x != nil {
+		return x.ToolCall
 	}
 	return nil
 }
@@ -491,11 +500,12 @@ const file_ai_chat_v1_service_proto_rawDesc = "" +
 	"\x12SendMessageRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12$\n" +
 	"\acontent\x18\x02 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\x80@R\acontent\"n\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80@R\acontent\"\xa1\x01\n" +
 	"\x13SendMessageResponse\x12\x14\n" +
 	"\x05delta\x18\x01 \x01(\tR\x05delta\x12\x12\n" +
 	"\x04done\x18\x02 \x01(\bR\x04done\x12-\n" +
-	"\amessage\x18\x03 \x01(\v2\x13.ai.chat.v1.MessageR\amessage\"/\n" +
+	"\amessage\x18\x03 \x01(\v2\x13.ai.chat.v1.MessageR\amessage\x121\n" +
+	"\ttool_call\x18\x04 \x01(\v2\x14.ai.chat.v1.ToolCallR\btoolCall\"/\n" +
 	"\x13ListMessagesRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"G\n" +
 	"\x14ListMessagesResponse\x12/\n" +
@@ -533,27 +543,29 @@ var file_ai_chat_v1_service_proto_goTypes = []any{
 	(*ListMessagesResponse)(nil),  // 9: ai.chat.v1.ListMessagesResponse
 	(*Session)(nil),               // 10: ai.chat.v1.Session
 	(*Message)(nil),               // 11: ai.chat.v1.Message
+	(*ToolCall)(nil),              // 12: ai.chat.v1.ToolCall
 }
 var file_ai_chat_v1_service_proto_depIdxs = []int32{
 	10, // 0: ai.chat.v1.CreateSessionResponse.session:type_name -> ai.chat.v1.Session
 	10, // 1: ai.chat.v1.ListSessionsResponse.sessions:type_name -> ai.chat.v1.Session
 	11, // 2: ai.chat.v1.SendMessageResponse.message:type_name -> ai.chat.v1.Message
-	11, // 3: ai.chat.v1.ListMessagesResponse.messages:type_name -> ai.chat.v1.Message
-	0,  // 4: ai.chat.v1.ChatService.CreateSession:input_type -> ai.chat.v1.CreateSessionRequest
-	2,  // 5: ai.chat.v1.ChatService.ListSessions:input_type -> ai.chat.v1.ListSessionsRequest
-	4,  // 6: ai.chat.v1.ChatService.DeleteSession:input_type -> ai.chat.v1.DeleteSessionRequest
-	6,  // 7: ai.chat.v1.ChatService.SendMessage:input_type -> ai.chat.v1.SendMessageRequest
-	8,  // 8: ai.chat.v1.ChatService.ListMessages:input_type -> ai.chat.v1.ListMessagesRequest
-	1,  // 9: ai.chat.v1.ChatService.CreateSession:output_type -> ai.chat.v1.CreateSessionResponse
-	3,  // 10: ai.chat.v1.ChatService.ListSessions:output_type -> ai.chat.v1.ListSessionsResponse
-	5,  // 11: ai.chat.v1.ChatService.DeleteSession:output_type -> ai.chat.v1.DeleteSessionResponse
-	7,  // 12: ai.chat.v1.ChatService.SendMessage:output_type -> ai.chat.v1.SendMessageResponse
-	9,  // 13: ai.chat.v1.ChatService.ListMessages:output_type -> ai.chat.v1.ListMessagesResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	12, // 3: ai.chat.v1.SendMessageResponse.tool_call:type_name -> ai.chat.v1.ToolCall
+	11, // 4: ai.chat.v1.ListMessagesResponse.messages:type_name -> ai.chat.v1.Message
+	0,  // 5: ai.chat.v1.ChatService.CreateSession:input_type -> ai.chat.v1.CreateSessionRequest
+	2,  // 6: ai.chat.v1.ChatService.ListSessions:input_type -> ai.chat.v1.ListSessionsRequest
+	4,  // 7: ai.chat.v1.ChatService.DeleteSession:input_type -> ai.chat.v1.DeleteSessionRequest
+	6,  // 8: ai.chat.v1.ChatService.SendMessage:input_type -> ai.chat.v1.SendMessageRequest
+	8,  // 9: ai.chat.v1.ChatService.ListMessages:input_type -> ai.chat.v1.ListMessagesRequest
+	1,  // 10: ai.chat.v1.ChatService.CreateSession:output_type -> ai.chat.v1.CreateSessionResponse
+	3,  // 11: ai.chat.v1.ChatService.ListSessions:output_type -> ai.chat.v1.ListSessionsResponse
+	5,  // 12: ai.chat.v1.ChatService.DeleteSession:output_type -> ai.chat.v1.DeleteSessionResponse
+	7,  // 13: ai.chat.v1.ChatService.SendMessage:output_type -> ai.chat.v1.SendMessageResponse
+	9,  // 14: ai.chat.v1.ChatService.ListMessages:output_type -> ai.chat.v1.ListMessagesResponse
+	10, // [10:15] is the sub-list for method output_type
+	5,  // [5:10] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_ai_chat_v1_service_proto_init() }

@@ -166,6 +166,66 @@ func (x *Message) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+// ToolCall reports that the assistant looked something up while answering, so
+// the client can say what it is doing rather than sit silent through a pause.
+//
+// It carries what was asked, not what came back: the arguments explain the
+// pause ("looking up the admin group") while a result would put data on screen
+// that the answer itself is about to summarise anyway.
+type ToolCall struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Name is the tool the assistant called, e.g. "list_user".
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Arguments is the JSON object the assistant passed, as it supplied it.
+	Arguments     string `protobuf:"bytes,2,opt,name=arguments,proto3" json:"arguments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolCall) Reset() {
+	*x = ToolCall{}
+	mi := &file_ai_chat_v1_model_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolCall) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolCall) ProtoMessage() {}
+
+func (x *ToolCall) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_chat_v1_model_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolCall.ProtoReflect.Descriptor instead.
+func (*ToolCall) Descriptor() ([]byte, []int) {
+	return file_ai_chat_v1_model_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ToolCall) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ToolCall) GetArguments() string {
+	if x != nil {
+		return x.Arguments
+	}
+	return ""
+}
+
 var File_ai_chat_v1_model_proto protoreflect.FileDescriptor
 
 const file_ai_chat_v1_model_proto_rawDesc = "" +
@@ -185,7 +245,10 @@ const file_ai_chat_v1_model_proto_rawDesc = "" +
 	"\x04role\x18\x03 \x01(\tR\x04role\x12\x18\n" +
 	"\acontent\x18\x04 \x01(\tR\acontent\x129\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB)Z'github.com/linzhengen/hub/pb/ai/chat/v1b\x06proto3"
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"<\n" +
+	"\bToolCall\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1c\n" +
+	"\targuments\x18\x02 \x01(\tR\targumentsB)Z'github.com/linzhengen/hub/pb/ai/chat/v1b\x06proto3"
 
 var (
 	file_ai_chat_v1_model_proto_rawDescOnce sync.Once
@@ -199,15 +262,16 @@ func file_ai_chat_v1_model_proto_rawDescGZIP() []byte {
 	return file_ai_chat_v1_model_proto_rawDescData
 }
 
-var file_ai_chat_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_ai_chat_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_ai_chat_v1_model_proto_goTypes = []any{
 	(*Session)(nil),               // 0: ai.chat.v1.Session
 	(*Message)(nil),               // 1: ai.chat.v1.Message
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+	(*ToolCall)(nil),              // 2: ai.chat.v1.ToolCall
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_ai_chat_v1_model_proto_depIdxs = []int32{
-	2, // 0: ai.chat.v1.Session.created_at:type_name -> google.protobuf.Timestamp
-	2, // 1: ai.chat.v1.Message.created_at:type_name -> google.protobuf.Timestamp
+	3, // 0: ai.chat.v1.Session.created_at:type_name -> google.protobuf.Timestamp
+	3, // 1: ai.chat.v1.Message.created_at:type_name -> google.protobuf.Timestamp
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -226,7 +290,7 @@ func file_ai_chat_v1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_chat_v1_model_proto_rawDesc), len(file_ai_chat_v1_model_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

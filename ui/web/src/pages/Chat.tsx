@@ -6,7 +6,7 @@ import { useNotify } from '@/hooks/useNotify';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 import { useChatConversation } from '@/hooks/useChatConversation';
 import { chatService, ROLE_ASSISTANT } from '@/services/chat';
-import type { Message, Session } from '@/services/chat';
+import type { Message, Session, ToolCall } from '@/services/chat';
 
 const SESSIONS_QUERY_KEY = ['chatSessions'];
 
@@ -41,6 +41,34 @@ const Turn: React.FC<{ role: string; content: string; pending?: boolean }> = ({
   );
 };
 
+/**
+ * The lookups the assistant made while answering.
+ *
+ * Shown while the answer streams so a pause has a visible reason, and dropped
+ * once the turn is stored - the saved conversation is the answer, not how it
+ * was reached. Arguments are included because "which group is it looking at" is
+ * the part that makes the line informative; results are not, since the answer
+ * summarises them anyway.
+ */
+const ToolTrace: React.FC<{ calls: ToolCall[] }> = ({ calls }) => {
+  if (calls.length === 0) return null;
+  return (
+    <div className="mb-4 flex justify-start">
+      <ul className="m-0 list-none space-y-1 p-0 text-xs text-gray-500 dark:text-gray-400">
+        {calls.map((call, i) => (
+          <li key={`${call.name}-${i}`} className="font-mono">
+            <Spin size="small" className="mr-2" />
+            {call.name}
+            {call.arguments && call.arguments !== '{}' && (
+              <span className="ml-1 opacity-70">{call.arguments}</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 export function Chat() {
   const queryClient = useQueryClient();
   const notify = useNotify();
@@ -60,13 +88,21 @@ export function Chat() {
   // shown so the page is not empty for a user who already has a history.
   const openId = selectedId ?? sessions[0]?.id ?? null;
 
-  const { messages, isLoading: isMessagesLoading, pendingContent, streamingText, isStreaming, error, send } =
-    useChatConversation(openId);
+  const {
+    messages,
+    isLoading: isMessagesLoading,
+    pendingContent,
+    streamingText,
+    toolCalls,
+    isStreaming,
+    error,
+    send,
+  } = useChatConversation(openId);
 
   // Follow the answer as it streams in.
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamingText, pendingContent]);
+  }, [messages, streamingText, pendingContent, toolCalls]);
 
   const createMutation = useMutation({
     mutationFn: () => chatService.createSession({ title: 'New chat' }),
@@ -178,6 +214,7 @@ export function Chat() {
                     <Turn key={message.id} role={message.role ?? ''} content={message.content ?? ''} />
                   ))}
                   {pendingContent !== null && <Turn role="user" content={pendingContent} />}
+                  {isStreaming && <ToolTrace calls={toolCalls} />}
                   {isStreaming && <Turn role={ROLE_ASSISTANT} content={streamingText} pending />}
                   <div ref={transcriptEndRef} />
                 </>

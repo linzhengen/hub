@@ -20,3 +20,16 @@ message Message {
   string content = 4;
   google.protobuf.Timestamp created_at = 5;
 }
+
+// ToolCall reports that the assistant looked something up while answering, so
+// the client can say what it is doing rather than sit silent through a pause.
+//
+// It carries what was asked, not what came back: the arguments explain the
+// pause ("looking up the admin group") while a result would put data on screen
+// that the answer itself is about to summarise anyway.
+message ToolCall {
+  // Name is the tool the assistant called, e.g. "list_user".
+  string name = 1;
+  // Arguments is the JSON object the assistant passed, as it supplied it.
+  string arguments = 2;
+}

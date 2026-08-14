@@ -10,6 +10,7 @@ export type ListSessionsResponse = components['schemas']['v1ListSessionsResponse
 export type DeleteSessionResponse = components['schemas']['v1DeleteSessionResponse'];
 export type ListMessagesResponse = components['schemas']['v1ListMessagesResponse'];
 export type SendMessageResponse = components['schemas']['v1SendMessageResponse'];
+export type ToolCall = components['schemas']['v1ToolCall'];
 
 /** The role the server tags a message with. */
 export const ROLE_USER = 'user';

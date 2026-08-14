@@ -118,6 +118,60 @@ describe('useChatConversation', () => {
     await waitFor(() => expect(listMessages).toHaveBeenCalled());
   });
 
+  it('ツール呼び出しを到着順に積み上げる', async () => {
+    sendMessage.mockReturnValue(
+      streamOf([
+        { toolCall: { name: 'list_group', arguments: '{"groupName":"admin"}' } },
+        { toolCall: { name: 'list_user', arguments: '{}' } },
+        { delta: '2 人です' },
+        { done: true },
+      ]),
+    );
+
+    const { result } = renderHook(() => useChatConversation('s1'), { wrapper });
+    await waitFor(() => expect(result.current.messages).toHaveLength(1));
+
+    await act(async () => {
+      await result.current.send('admin には誰がいる?');
+    });
+
+    // 送信が終われば表示はサーバーの保存内容に委ねるので、痕跡は残らない。
+    expect(result.current.toolCalls).toEqual([]);
+  });
+
+  it('送信中はツール呼び出しを表に出す', async () => {
+    let release: (() => void) | undefined;
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    sendMessage.mockReturnValue(
+      (async function* () {
+        yield { toolCall: { name: 'list_group', arguments: '{"groupName":"admin"}' } };
+        await blocked;
+        yield { done: true };
+      })() as ReturnType<typeof chatService.sendMessage>,
+    );
+
+    const { result } = renderHook(() => useChatConversation('s1'), { wrapper });
+    await waitFor(() => expect(result.current.messages).toHaveLength(1));
+
+    let sending: Promise<void>;
+    act(() => {
+      sending = result.current.send('admin には誰がいる?');
+    });
+
+    await waitFor(() => expect(result.current.toolCalls).toHaveLength(1));
+    expect(result.current.toolCalls[0].name).toBe('list_group');
+    expect(result.current.toolCalls[0].arguments).toBe('{"groupName":"admin"}');
+    // ツールのフレームは本文を運ばないので、回答の組み立てを汚さない。
+    expect(result.current.streamingText).toBe('');
+
+    await act(async () => {
+      release?.();
+      await sending;
+    });
+  });
+
   it('空の入力は送らない', async () => {
     const { result } = renderHook(() => useChatConversation('s1'), { wrapper });
 
