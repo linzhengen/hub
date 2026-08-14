@@ -19,7 +19,7 @@ type Querier interface {
 	CreateRole(ctx context.Context, arg CreateRoleParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	CreateUserGroup(ctx context.Context, arg CreateUserGroupParams) error
-	DeleteChatSession(ctx context.Context, id string) error
+	DeleteChatSession(ctx context.Context, arg DeleteChatSessionParams) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
 	DeleteGroupRole(ctx context.Context, arg DeleteGroupRoleParams) error
@@ -34,8 +34,12 @@ type Querier interface {
 	IsUserInGroup(ctx context.Context, arg IsUserInGroupParams) (bool, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, arg RemovePermissionFromRoleParams) error
-	SelectChatMessagesBySessionId(ctx context.Context, sessionID string) ([]*ChatMessage, error)
-	SelectChatSessionById(ctx context.Context, id string) (*ChatSession, error)
+	SelectChatMessagesBySessionId(ctx context.Context, arg SelectChatMessagesBySessionIdParams) ([]*ChatMessage, error)
+	// Scoping every lookup by user_id keeps a session private to its owner even if
+	// a caller reaches the repository without going through the use case, which is
+	// where the check used to live alone. A session belonging to someone else
+	// returns no row, so it is indistinguishable from one that does not exist.
+	SelectChatSessionById(ctx context.Context, arg SelectChatSessionByIdParams) (*ChatSession, error)
 	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSession, error)
 	SelectGroupById(ctx context.Context, id string) (*Group, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*Group, error)

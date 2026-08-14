@@ -3,12 +3,39 @@ package ai
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/linzhengen/hub/server/internal/domain/ai/chat"
 	"github.com/linzhengen/hub/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/server/pkg/logger"
 )
+
+// errNoUser is what a caller sees when the authentication interceptor has not
+// run. It is a status rather than a plain error so the gateway answers 401
+// instead of turning it into a 500 that reads like an outage.
+var errNoUser = status.Error(codes.Unauthenticated, "unauthenticated")
+
+// errSessionNotFound answers both "no such session" and "somebody else's
+// session" - the repository scopes its queries by user, so the two are the same
+// row-not-found and telling them apart would leak which ids exist.
+var errSessionNotFound = status.Error(codes.NotFound, "chat session not found")
+
+// findOwnedSession loads a session the user owns, mapping the empty result to
+// errSessionNotFound.
+func (uc *chatUseCase) findOwnedSession(ctx context.Context, sessionId, userId string) (*chat.Session, error) {
+	session, err := uc.repo.FindSession(ctx, sessionId, userId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errSessionNotFound
+		}
+		logger.Errorf("findOwnedSession: %v", err)
+		return nil, err
+	}
+	return session, nil
+}
 
 type ChatUseCase interface {
 	CreateSession(ctx context.Context, title string) (*chat.Session, error)
@@ -30,7 +57,7 @@ type chatUseCase struct {
 func (uc *chatUseCase) CreateSession(ctx context.Context, title string) (*chat.Session, error) {
 	userId, ok := contextx.GetUserID(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user not found in context")
+		return nil, errNoUser
 	}
 	s := &chat.Session{UserId: userId, Title: title}
 	if err := uc.repo.CreateSession(ctx, s); err != nil {
@@ -43,7 +70,7 @@ func (uc *chatUseCase) CreateSession(ctx context.Context, title string) (*chat.S
 func (uc *chatUseCase) ListSessions(ctx context.Context) ([]*chat.Session, error) {
 	userId, ok := contextx.GetUserID(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user not found in context")
+		return nil, errNoUser
 	}
 	sessions, err := uc.repo.ListSessions(ctx, userId)
 	if err != nil {
@@ -56,20 +83,12 @@ func (uc *chatUseCase) ListSessions(ctx context.Context) ([]*chat.Session, error
 func (uc *chatUseCase) DeleteSession(ctx context.Context, sessionId string) error {
 	userId, ok := contextx.GetUserID(ctx)
 	if !ok {
-		return fmt.Errorf("user not found in context")
+		return errNoUser
 	}
-	session, err := uc.repo.FindSession(ctx, sessionId)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return fmt.Errorf("session not found")
-		}
-		logger.Errorf("DeleteSession find: %v", err)
+	if _, err := uc.findOwnedSession(ctx, sessionId, userId); err != nil {
 		return err
 	}
-	if session.UserId != userId {
-		return fmt.Errorf("permission denied")
-	}
-	if err := uc.repo.DeleteSession(ctx, sessionId); err != nil {
+	if err := uc.repo.DeleteSession(ctx, sessionId, userId); err != nil {
 		logger.Errorf("DeleteSession delete: %v", err)
 		return err
 	}
@@ -79,16 +98,11 @@ func (uc *chatUseCase) DeleteSession(ctx context.Context, sessionId string) erro
 func (uc *chatUseCase) SendMessage(ctx context.Context, sessionId, content string) (<-chan chat.Delta, error) {
 	userId, ok := contextx.GetUserID(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user not found in context")
+		return nil, errNoUser
 	}
 
-	session, err := uc.repo.FindSession(ctx, sessionId)
-	if err != nil {
-		logger.Errorf("SendMessage find session: %v", err)
+	if _, err := uc.findOwnedSession(ctx, sessionId, userId); err != nil {
 		return nil, err
-	}
-	if session.UserId != userId {
-		return nil, fmt.Errorf("permission denied")
 	}
 
 	userMsg := &chat.Message{SessionId: sessionId, Role: chat.RoleUser, Content: content}
@@ -97,7 +111,7 @@ func (uc *chatUseCase) SendMessage(ctx context.Context, sessionId, content strin
 		return nil, err
 	}
 
-	history, err := uc.repo.ListMessages(ctx, sessionId)
+	history, err := uc.repo.ListMessages(ctx, sessionId, userId)
 	if err != nil {
 		logger.Errorf("SendMessage load history: %v", err)
 		return nil, err
@@ -136,17 +150,12 @@ func (uc *chatUseCase) SendMessage(ctx context.Context, sessionId, content strin
 func (uc *chatUseCase) ListMessages(ctx context.Context, sessionId string) ([]*chat.Message, error) {
 	userId, ok := contextx.GetUserID(ctx)
 	if !ok {
-		return nil, fmt.Errorf("user not found in context")
+		return nil, errNoUser
 	}
-	session, err := uc.repo.FindSession(ctx, sessionId)
-	if err != nil {
-		logger.Errorf("ListMessages find session: %v", err)
+	if _, err := uc.findOwnedSession(ctx, sessionId, userId); err != nil {
 		return nil, err
 	}
-	if session.UserId != userId {
-		return nil, fmt.Errorf("permission denied")
-	}
-	messages, err := uc.repo.ListMessages(ctx, sessionId)
+	messages, err := uc.repo.ListMessages(ctx, sessionId, userId)
 	if err != nil {
 		logger.Errorf("ListMessages: %v", err)
 		return nil, err

@@ -136,7 +136,7 @@ type Querier interface {
 	CreateRole(ctx context.Context, ID string, Name string, Description string) error
 	CreateUser(ctx context.Context, ID string, Username string, Email string, Status string) error
 	CreateUserGroup(ctx context.Context, UserID string, GroupID string) error
-	DeleteChatSession(ctx context.Context, id string) error
+	DeleteChatSession(ctx context.Context, ID string, UserID string) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
 	DeleteGroupRole(ctx context.Context, GroupID string, RoleID string) error
@@ -151,8 +151,8 @@ type Querier interface {
 	IsUserInGroup(ctx context.Context, UserID string, GroupID string) (bool, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, RoleID string, PermissionID string) error
-	SelectChatMessagesBySessionId(ctx context.Context, sessionID string) ([]*ChatMessageModel, error)
-	SelectChatSessionById(ctx context.Context, id string) (*ChatSessionModel, error)
+	SelectChatMessagesBySessionId(ctx context.Context, SessionID string, UserID string) ([]*ChatMessageModel, error)
+	SelectChatSessionById(ctx context.Context, ID string, UserID string) (*ChatSessionModel, error)
 	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSessionModel, error)
 	SelectGroupById(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*GroupModel, error)
@@ -310,8 +310,11 @@ func (p *PostgreSQLQuerier) CreateUserGroup(ctx context.Context, UserID string, 
 
 }
 
-func (p *PostgreSQLQuerier) DeleteChatSession(ctx context.Context, id string) error {
-	return p.q.DeleteChatSession(ctx, id)
+func (p *PostgreSQLQuerier) DeleteChatSession(ctx context.Context, ID string, UserID string) error {
+	return p.q.DeleteChatSession(ctx, postgressqlc.DeleteChatSessionParams{
+		ID:     ID,
+		UserID: UserID,
+	})
 
 }
 
@@ -408,8 +411,11 @@ func (p *PostgreSQLQuerier) RemovePermissionFromRole(ctx context.Context, RoleID
 
 }
 
-func (p *PostgreSQLQuerier) SelectChatMessagesBySessionId(ctx context.Context, sessionID string) ([]*ChatMessageModel, error) {
-	rows, err := p.q.SelectChatMessagesBySessionId(ctx, sessionID)
+func (p *PostgreSQLQuerier) SelectChatMessagesBySessionId(ctx context.Context, SessionID string, UserID string) ([]*ChatMessageModel, error) {
+	rows, err := p.q.SelectChatMessagesBySessionId(ctx, postgressqlc.SelectChatMessagesBySessionIdParams{
+		SessionID: SessionID,
+		UserID:    UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -427,8 +433,11 @@ func (p *PostgreSQLQuerier) SelectChatMessagesBySessionId(ctx context.Context, s
 
 }
 
-func (p *PostgreSQLQuerier) SelectChatSessionById(ctx context.Context, id string) (*ChatSessionModel, error) {
-	row, err := p.q.SelectChatSessionById(ctx, id)
+func (p *PostgreSQLQuerier) SelectChatSessionById(ctx context.Context, ID string, UserID string) (*ChatSessionModel, error) {
+	row, err := p.q.SelectChatSessionById(ctx, postgressqlc.SelectChatSessionByIdParams{
+		ID:     ID,
+		UserID: UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
