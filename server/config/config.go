@@ -36,6 +36,12 @@ type Anthropic struct {
 	// Mock swaps the Anthropic client for a scripted one that needs neither a
 	// key nor network access. See internal/infrastructure/ai/mock.
 	Mock bool `env:"ANTHROPIC_MOCK,default=false"`
+	// SessionTokenBudget caps how many tokens one chat session may spend before
+	// it stops answering. It bounds both an honest runaway - a conversation that
+	// keeps re-reading a large directory - and a deliberate one, and it is per
+	// session rather than per user so that hitting it costs the user one
+	// conversation rather than the assistant.
+	SessionTokenBudget int64 `env:"ANTHROPIC_SESSION_TOKEN_BUDGET,default=400000"`
 	// MockDelay is the pause the mock leaves between streamed deltas, so the
 	// chat UI can be seen filling in rather than appearing at once.
 	MockDelay time.Duration `env:"ANTHROPIC_MOCK_DELAY,default=25ms"`

@@ -7,7 +7,25 @@ package sqlc
 
 import (
 	"context"
+	"encoding/json"
 )
+
+const addChatSessionTokens = `-- name: AddChatSessionTokens :exec
+UPDATE chat_sessions
+SET tokens_used = tokens_used + $2
+WHERE id = $1
+`
+
+type AddChatSessionTokensParams struct {
+	ID         string
+	TokensUsed int64
+}
+
+// Adding rather than setting, so two streams on one session both count.
+func (q *Queries) AddChatSessionTokens(ctx context.Context, arg AddChatSessionTokensParams) error {
+	_, err := q.db.ExecContext(ctx, addChatSessionTokens, arg.ID, arg.TokensUsed)
+	return err
+}
 
 const createChatMessage = `-- name: CreateChatMessage :one
 INSERT INTO chat_messages (session_id, role, content)
@@ -37,7 +55,7 @@ func (q *Queries) CreateChatMessage(ctx context.Context, arg CreateChatMessagePa
 const createChatSession = `-- name: CreateChatSession :one
 INSERT INTO chat_sessions (user_id, title)
 VALUES ($1, $2)
-RETURNING id, user_id, title, created_at
+RETURNING id, user_id, title, created_at, tokens_used
 `
 
 type CreateChatSessionParams struct {
@@ -53,6 +71,73 @@ func (q *Queries) CreateChatSession(ctx context.Context, arg CreateChatSessionPa
 		&i.UserID,
 		&i.Title,
 		&i.CreatedAt,
+		&i.TokensUsed,
+	)
+	return &i, err
+}
+
+const createChatToolProposal = `-- name: CreateChatToolProposal :one
+INSERT INTO chat_tool_proposals (session_id, tool_name, arguments, continuation)
+VALUES ($1, $2, $3, $4)
+RETURNING id, session_id, tool_name, arguments, continuation, status, created_at, decided_at
+`
+
+type CreateChatToolProposalParams struct {
+	SessionID    string
+	ToolName     string
+	Arguments    json.RawMessage
+	Continuation []byte
+}
+
+func (q *Queries) CreateChatToolProposal(ctx context.Context, arg CreateChatToolProposalParams) (*ChatToolProposal, error) {
+	row := q.db.QueryRowContext(ctx, createChatToolProposal,
+		arg.SessionID,
+		arg.ToolName,
+		arg.Arguments,
+		arg.Continuation,
+	)
+	var i ChatToolProposal
+	err := row.Scan(
+		&i.ID,
+		&i.SessionID,
+		&i.ToolName,
+		&i.Arguments,
+		&i.Continuation,
+		&i.Status,
+		&i.CreatedAt,
+		&i.DecidedAt,
+	)
+	return &i, err
+}
+
+const decideChatToolProposal = `-- name: DecideChatToolProposal :one
+UPDATE chat_tool_proposals
+SET status     = $2,
+    decided_at = now()
+WHERE id = $1
+  AND status = 'pending'
+RETURNING id, session_id, tool_name, arguments, continuation, status, created_at, decided_at
+`
+
+type DecideChatToolProposalParams struct {
+	ID     string
+	Status string
+}
+
+// Deciding is conditional on the proposal still being pending, so two decisions
+// racing cannot both run the change: the second updates no row.
+func (q *Queries) DecideChatToolProposal(ctx context.Context, arg DecideChatToolProposalParams) (*ChatToolProposal, error) {
+	row := q.db.QueryRowContext(ctx, decideChatToolProposal, arg.ID, arg.Status)
+	var i ChatToolProposal
+	err := row.Scan(
+		&i.ID,
+		&i.SessionID,
+		&i.ToolName,
+		&i.Arguments,
+		&i.Continuation,
+		&i.Status,
+		&i.CreatedAt,
+		&i.DecidedAt,
 	)
 	return &i, err
 }
@@ -118,7 +203,7 @@ func (q *Queries) SelectChatMessagesBySessionId(ctx context.Context, arg SelectC
 }
 
 const selectChatSessionById = `-- name: SelectChatSessionById :one
-SELECT id, user_id, title, created_at
+SELECT id, user_id, title, created_at, tokens_used
 FROM chat_sessions
 WHERE id = $1
   AND user_id = $2
@@ -142,12 +227,13 @@ func (q *Queries) SelectChatSessionById(ctx context.Context, arg SelectChatSessi
 		&i.UserID,
 		&i.Title,
 		&i.CreatedAt,
+		&i.TokensUsed,
 	)
 	return &i, err
 }
 
 const selectChatSessionsByUserId = `-- name: SelectChatSessionsByUserId :many
-SELECT id, user_id, title, created_at
+SELECT id, user_id, title, created_at, tokens_used
 FROM chat_sessions
 WHERE user_id = $1
 ORDER BY created_at DESC
@@ -167,6 +253,7 @@ func (q *Queries) SelectChatSessionsByUserId(ctx context.Context, userID string)
 			&i.UserID,
 			&i.Title,
 			&i.CreatedAt,
+			&i.TokensUsed,
 		); err != nil {
 			return nil, err
 		}
@@ -179,4 +266,36 @@ func (q *Queries) SelectChatSessionsByUserId(ctx context.Context, userID string)
 		return nil, err
 	}
 	return items, nil
+}
+
+const selectChatToolProposalById = `-- name: SelectChatToolProposalById :one
+SELECT p.id, p.session_id, p.tool_name, p.arguments, p.continuation, p.status, p.created_at, p.decided_at
+FROM chat_tool_proposals p
+         JOIN chat_sessions s ON s.id = p.session_id
+WHERE p.id = $1
+  AND s.user_id = $2
+LIMIT 1
+`
+
+type SelectChatToolProposalByIdParams struct {
+	ID     string
+	UserID string
+}
+
+// Scoped by user_id through the session, for the same reason every other chat
+// query is: a proposal belonging to someone else is absent, not refused.
+func (q *Queries) SelectChatToolProposalById(ctx context.Context, arg SelectChatToolProposalByIdParams) (*ChatToolProposal, error) {
+	row := q.db.QueryRowContext(ctx, selectChatToolProposalById, arg.ID, arg.UserID)
+	var i ChatToolProposal
+	err := row.Scan(
+		&i.ID,
+		&i.SessionID,
+		&i.ToolName,
+		&i.Arguments,
+		&i.Continuation,
+		&i.Status,
+		&i.CreatedAt,
+		&i.DecidedAt,
+	)
+	return &i, err
 }

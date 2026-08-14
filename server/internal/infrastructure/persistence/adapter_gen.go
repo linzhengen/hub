@@ -25,6 +25,7 @@ type AuditLogModel struct {
 	Error       string
 	Client      string
 	CreatedAt   time.Time
+	ApprovalID  string
 }
 
 // ChatMessageModel represents a ChatMessage in the database
@@ -38,10 +39,23 @@ type ChatMessageModel struct {
 
 // ChatSessionModel represents a ChatSession in the database
 type ChatSessionModel struct {
-	ID        string
-	UserID    string
-	Title     string
-	CreatedAt time.Time
+	ID         string
+	UserID     string
+	Title      string
+	CreatedAt  time.Time
+	TokensUsed int64
+}
+
+// ChatToolProposalModel represents a ChatToolProposal in the database
+type ChatToolProposalModel struct {
+	ID           string
+	SessionID    string
+	ToolName     string
+	Arguments    json.RawMessage
+	Continuation []byte
+	Status       string
+	CreatedAt    time.Time
+	DecidedAt    sql.NullTime
 }
 
 // GroupModel represents a Group in the database
@@ -142,10 +156,12 @@ type UserGroupModel struct {
 type Querier interface {
 	WithTx(tx *sql.Tx) Querier
 
+	AddChatSessionTokens(ctx context.Context, ID string, TokensUsed int64) error
 	AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error
-	CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string) (*AuditLogModel, error)
+	CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error)
 	CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error)
 	CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error)
+	CreateChatToolProposal(ctx context.Context, SessionID string, ToolName string, Arguments json.RawMessage, Continuation []byte) (*ChatToolProposalModel, error)
 	CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string) error
 	CreateGroupRole(ctx context.Context, GroupID string, RoleID string) error
 	CreatePermission(ctx context.Context, ID string, Verb string, ResourceID string, Description string) error
@@ -153,6 +169,7 @@ type Querier interface {
 	CreateRole(ctx context.Context, ID string, Name string, Description string) error
 	CreateUser(ctx context.Context, ID string, Username string, Email string, Status string) error
 	CreateUserGroup(ctx context.Context, UserID string, GroupID string) error
+	DecideChatToolProposal(ctx context.Context, ID string, Status string) (*ChatToolProposalModel, error)
 	DeleteChatSession(ctx context.Context, ID string, UserID string) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
@@ -171,6 +188,7 @@ type Querier interface {
 	SelectChatMessagesBySessionId(ctx context.Context, SessionID string, UserID string) ([]*ChatMessageModel, error)
 	SelectChatSessionById(ctx context.Context, ID string, UserID string) (*ChatSessionModel, error)
 	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSessionModel, error)
+	SelectChatToolProposalById(ctx context.Context, ID string, UserID string) (*ChatToolProposalModel, error)
 	SelectGroupById(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRoleModel, error)
@@ -210,6 +228,14 @@ func (p *PostgreSQLQuerier) WithTx(tx *sql.Tx) Querier {
 	return &PostgreSQLQuerier{q: p.q.WithTx(tx)}
 }
 
+func (p *PostgreSQLQuerier) AddChatSessionTokens(ctx context.Context, ID string, TokensUsed int64) error {
+	return p.q.AddChatSessionTokens(ctx, postgressqlc.AddChatSessionTokensParams{
+		ID:         ID,
+		TokensUsed: TokensUsed,
+	})
+
+}
+
 func (p *PostgreSQLQuerier) AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error {
 	return p.q.AddPermissionToRole(ctx, postgressqlc.AddPermissionToRoleParams{
 		RoleID:       RoleID,
@@ -218,7 +244,7 @@ func (p *PostgreSQLQuerier) AddPermissionToRole(ctx context.Context, RoleID stri
 
 }
 
-func (p *PostgreSQLQuerier) CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string) (*AuditLogModel, error) {
+func (p *PostgreSQLQuerier) CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error) {
 	row, err := p.q.CreateAuditLog(ctx, postgressqlc.CreateAuditLogParams{
 		ActorUserID: ActorUserID,
 		Channel:     Channel,
@@ -230,6 +256,7 @@ func (p *PostgreSQLQuerier) CreateAuditLog(ctx context.Context, ActorUserID stri
 		Succeeded:   Succeeded,
 		Error:       Error,
 		Client:      Client,
+		ApprovalID:  sql.NullString{String: ApprovalID, Valid: ApprovalID != ""},
 	})
 	if err != nil {
 		return nil, err
@@ -247,6 +274,7 @@ func (p *PostgreSQLQuerier) CreateAuditLog(ctx context.Context, ActorUserID stri
 		Error:       row.Error,
 		Client:      row.Client,
 		CreatedAt:   row.CreatedAt,
+		ApprovalID:  row.ApprovalID.String,
 	}, nil
 
 }
@@ -279,10 +307,34 @@ func (p *PostgreSQLQuerier) CreateChatSession(ctx context.Context, UserID string
 		return nil, err
 	}
 	return &ChatSessionModel{
-		ID:        row.ID,
-		UserID:    row.UserID,
-		Title:     row.Title,
-		CreatedAt: row.CreatedAt,
+		ID:         row.ID,
+		UserID:     row.UserID,
+		Title:      row.Title,
+		CreatedAt:  row.CreatedAt,
+		TokensUsed: row.TokensUsed,
+	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) CreateChatToolProposal(ctx context.Context, SessionID string, ToolName string, Arguments json.RawMessage, Continuation []byte) (*ChatToolProposalModel, error) {
+	row, err := p.q.CreateChatToolProposal(ctx, postgressqlc.CreateChatToolProposalParams{
+		SessionID:    SessionID,
+		ToolName:     ToolName,
+		Arguments:    Arguments,
+		Continuation: Continuation,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ChatToolProposalModel{
+		ID:           row.ID,
+		SessionID:    row.SessionID,
+		ToolName:     row.ToolName,
+		Arguments:    row.Arguments,
+		Continuation: row.Continuation,
+		Status:       row.Status,
+		CreatedAt:    row.CreatedAt,
+		DecidedAt:    row.DecidedAt,
 	}, nil
 
 }
@@ -357,6 +409,27 @@ func (p *PostgreSQLQuerier) CreateUserGroup(ctx context.Context, UserID string, 
 		UserID:  UserID,
 		GroupID: GroupID,
 	})
+
+}
+
+func (p *PostgreSQLQuerier) DecideChatToolProposal(ctx context.Context, ID string, Status string) (*ChatToolProposalModel, error) {
+	row, err := p.q.DecideChatToolProposal(ctx, postgressqlc.DecideChatToolProposalParams{
+		ID:     ID,
+		Status: Status,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ChatToolProposalModel{
+		ID:           row.ID,
+		SessionID:    row.SessionID,
+		ToolName:     row.ToolName,
+		Arguments:    row.Arguments,
+		Continuation: row.Continuation,
+		Status:       row.Status,
+		CreatedAt:    row.CreatedAt,
+		DecidedAt:    row.DecidedAt,
+	}, nil
 
 }
 
@@ -492,10 +565,11 @@ func (p *PostgreSQLQuerier) SelectChatSessionById(ctx context.Context, ID string
 		return nil, err
 	}
 	return &ChatSessionModel{
-		ID:        row.ID,
-		UserID:    row.UserID,
-		Title:     row.Title,
-		CreatedAt: row.CreatedAt,
+		ID:         row.ID,
+		UserID:     row.UserID,
+		Title:      row.Title,
+		CreatedAt:  row.CreatedAt,
+		TokensUsed: row.TokensUsed,
 	}, nil
 
 }
@@ -508,13 +582,35 @@ func (p *PostgreSQLQuerier) SelectChatSessionsByUserId(ctx context.Context, user
 	res := make([]*ChatSessionModel, len(rows))
 	for i, row := range rows {
 		res[i] = &ChatSessionModel{
-			ID:        row.ID,
-			UserID:    row.UserID,
-			Title:     row.Title,
-			CreatedAt: row.CreatedAt,
+			ID:         row.ID,
+			UserID:     row.UserID,
+			Title:      row.Title,
+			CreatedAt:  row.CreatedAt,
+			TokensUsed: row.TokensUsed,
 		}
 	}
 	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectChatToolProposalById(ctx context.Context, ID string, UserID string) (*ChatToolProposalModel, error) {
+	row, err := p.q.SelectChatToolProposalById(ctx, postgressqlc.SelectChatToolProposalByIdParams{
+		ID:     ID,
+		UserID: UserID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ChatToolProposalModel{
+		ID:           row.ID,
+		SessionID:    row.SessionID,
+		ToolName:     row.ToolName,
+		Arguments:    row.Arguments,
+		Continuation: row.Continuation,
+		Status:       row.Status,
+		CreatedAt:    row.CreatedAt,
+		DecidedAt:    row.DecidedAt,
+	}, nil
 
 }
 

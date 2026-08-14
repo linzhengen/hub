@@ -10,7 +10,9 @@ export type ListSessionsResponse = components['schemas']['v1ListSessionsResponse
 export type DeleteSessionResponse = components['schemas']['v1DeleteSessionResponse'];
 export type ListMessagesResponse = components['schemas']['v1ListMessagesResponse'];
 export type SendMessageResponse = components['schemas']['v1SendMessageResponse'];
+export type ConfirmToolCallResponse = components['schemas']['v1ConfirmToolCallResponse'];
 export type ToolCall = components['schemas']['v1ToolCall'];
+export type ToolProposal = components['schemas']['v1ToolProposal'];
 
 /** The role the server tags a message with. */
 export const ROLE_USER = 'user';
@@ -31,4 +33,18 @@ export const chatService = {
    */
   sendMessage: (id: string, content: string, signal?: AbortSignal) =>
     apiStream<SendMessageResponse>(ops.sendMessage, { path: { id }, body: { content }, signal }),
+
+  /**
+   * Answers a change the assistant proposed and streams the rest of the answer.
+   *
+   * The answer stream had to end for this call to be possible at all - the
+   * server cannot read from a server-streaming rpc - so approving is a second
+   * request that picks the conversation up rather than a reply into the first.
+   */
+  confirmToolCall: (id: string, approved: boolean, signal?: AbortSignal) =>
+    apiStream<ConfirmToolCallResponse>(ops.confirmToolCall, {
+      path: { id },
+      body: { approved },
+      signal,
+    }),
 };

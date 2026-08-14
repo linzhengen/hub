@@ -1,12 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Empty, Input, Spin, Tag, Typography } from 'antd';
-import { DeleteOutlined, PlusOutlined, SendOutlined } from '@ant-design/icons';
+import {
+  CheckOutlined,
+  CloseOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  SendOutlined,
+  WarningOutlined,
+} from '@ant-design/icons';
 import { useNotify } from '@/hooks/useNotify';
 import { useDangerConfirm } from '@/hooks/useDangerConfirm';
 import { useChatConversation } from '@/hooks/useChatConversation';
 import { chatService, ROLE_ASSISTANT } from '@/services/chat';
-import type { Message, Session, ToolCall } from '@/services/chat';
+import type { Message, Session, ToolCall, ToolProposal } from '@/services/chat';
 
 const SESSIONS_QUERY_KEY = ['chatSessions'];
 
@@ -69,6 +76,64 @@ const ToolTrace: React.FC<{ calls: ToolCall[] }> = ({ calls }) => {
   );
 };
 
+/**
+ * The change the assistant wants to make, and the two buttons that decide it.
+ *
+ * The operation and its arguments are shown as they will be sent. "Add three
+ * users to a group" is not something anyone can meaningfully agree to; the tool
+ * name and the ids are, and approving something you cannot read is not
+ * approving it.
+ */
+const ProposalCard: React.FC<{
+  proposal: ToolProposal;
+  onDecide: (approved: boolean) => void;
+  deciding: boolean;
+}> = ({ proposal, onDecide, deciding }) => (
+  <div className="mb-4 flex justify-start">
+    <div className="max-w-[80%] rounded-lg border border-amber-400 bg-amber-50 p-4 dark:border-amber-500/60 dark:bg-amber-950/30">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-900 dark:text-amber-200">
+        <WarningOutlined />
+        The assistant wants to make a change
+      </div>
+      <p className="mb-2 text-xs text-amber-900/80 dark:text-amber-200/80">
+        Nothing has been changed. This runs only if you approve it.
+      </p>
+      <pre className="mb-3 overflow-x-auto rounded bg-white/70 p-2 font-mono text-xs dark:bg-black/30">
+        {proposal.name}({formatArguments(proposal.arguments)})
+      </pre>
+      <div className="flex gap-2">
+        <Button
+          type="primary"
+          icon={<CheckOutlined />}
+          loading={deciding}
+          onClick={() => onDecide(true)}
+        >
+          Approve
+        </Button>
+        <Button icon={<CloseOutlined />} disabled={deciding} onClick={() => onDecide(false)}>
+          Decline
+        </Button>
+      </div>
+    </div>
+  </div>
+);
+
+/**
+ * Renders the arguments as they will be sent.
+ *
+ * Unparseable JSON is shown verbatim rather than hidden: what the server was
+ * about to receive is the thing being approved, so it has to be on screen even
+ * when it is not what was expected.
+ */
+function formatArguments(raw: string | undefined): string {
+  if (raw === undefined || raw === '') return '';
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2);
+  } catch {
+    return raw;
+  }
+}
+
 export function Chat() {
   const queryClient = useQueryClient();
   const notify = useNotify();
@@ -95,14 +160,17 @@ export function Chat() {
     streamingText,
     toolCalls,
     isStreaming,
+    proposal,
+    proposalPreamble,
     error,
     send,
+    confirm,
   } = useChatConversation(openId);
 
   // Follow the answer as it streams in.
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamingText, pendingContent, toolCalls]);
+  }, [messages, streamingText, pendingContent, toolCalls, proposal]);
 
   const createMutation = useMutation({
     mutationFn: () => chatService.createSession({ title: 'New chat' }),
@@ -216,6 +284,16 @@ export function Chat() {
                   {pendingContent !== null && <Turn role="user" content={pendingContent} />}
                   {isStreaming && <ToolTrace calls={toolCalls} />}
                   {isStreaming && <Turn role={ROLE_ASSISTANT} content={streamingText} pending />}
+                  {proposal !== null && proposalPreamble !== '' && (
+                    <Turn role={ROLE_ASSISTANT} content={proposalPreamble} />
+                  )}
+                  {proposal !== null && (
+                    <ProposalCard
+                      proposal={proposal}
+                      deciding={isStreaming}
+                      onDecide={(approved) => void confirm(approved)}
+                    />
+                  )}
                   <div ref={transcriptEndRef} />
                 </>
               )}
@@ -238,15 +316,19 @@ export function Chat() {
                     void handleSend();
                   }}
                   autoSize={{ minRows: 1, maxRows: 6 }}
-                  placeholder="Send a message (Enter to send, Shift+Enter for a new line)"
+                  placeholder={
+                    proposal !== null
+                      ? 'Approve or decline the change above to carry on'
+                      : 'Send a message (Enter to send, Shift+Enter for a new line)'
+                  }
                   aria-label="Message"
-                  disabled={isStreaming}
+                  disabled={isStreaming || proposal !== null}
                 />
                 <Button
                   type="primary"
                   icon={<SendOutlined />}
                   loading={isStreaming}
-                  disabled={draft.trim() === ''}
+                  disabled={draft.trim() === '' || proposal !== null}
                   onClick={() => void handleSend()}
                 >
                   Send

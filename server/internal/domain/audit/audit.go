@@ -50,8 +50,12 @@ type Entry struct {
 	// Error is the failure reported to the caller, empty when Succeeded.
 	Error string
 	// Client is what the caller said it was - a user agent string. Unverified.
-	Client    string
-	CreatedAt time.Time
+	Client string
+	// ApprovalId names the proposal a person approved to allow this change.
+	// Empty for every change that did not go through the assistant's approval
+	// flow, which is every change a user made directly.
+	ApprovalId string
+	CreatedAt  time.Time
 }
 
 // Repository stores audit records. It offers no update and no delete: a record
@@ -64,10 +68,15 @@ type Repository interface {
 type sourceCtx struct{}
 
 // Source is what the recording interceptor cannot work out from the request
-// alone: which channel the call came in by.
+// alone: which channel the call came in by, and - for a change the assistant
+// proposed - which approval let it through.
 type Source struct {
 	Channel   Channel
 	SessionId string
+	// ApprovalId is the proposal the user approved. Set only on a change the
+	// assistant made after being told to go ahead, so the record answers "did a
+	// person agree to this" and not merely "it came through the assistant".
+	ApprovalId string
 }
 
 // NewContext marks ctx as belonging to a channel. Callers that dispatch on a

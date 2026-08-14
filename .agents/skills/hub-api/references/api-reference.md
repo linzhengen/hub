@@ -13,6 +13,19 @@ resource identifier. A role granting `*` on `api.*` covers everything.
 
 ## ai.chat.v1.ChatService
 
+### ConfirmToolCall
+
+Approve or decline a change the assistant proposed, and stream the rest of the answer.
+
+- command: `hub chat confirm-tool-call`
+- endpoint: `POST /api/v1/chat/proposals/{id}/confirm`
+- rbac: `ConfirmToolCall` on `api.ai.chat.v1.ChatService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--approved` | `approved` | body | bool |  |
+
 ### CreateSession
 
 Create a new chat session for the authenticated user.

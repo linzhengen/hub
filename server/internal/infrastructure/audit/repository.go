@@ -35,6 +35,7 @@ func (r repositoryImpl) Create(ctx context.Context, e *auditDomain.Entry) error 
 		e.Succeeded,
 		e.Error,
 		e.Client,
+		e.ApprovalId,
 	)
 	if err != nil {
 		return err

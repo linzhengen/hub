@@ -1,5 +1,13 @@
 components:
     schemas:
+        ChatServiceConfirmToolCallBody:
+            properties:
+                approved:
+                    description: |-
+                        True runs the proposed change; false declines it and lets the assistant
+                        answer around it. There is no third state: a proposal is answered once.
+                    type: boolean
+            type: object
         ChatServiceSendMessageBody:
             properties:
                 content:
@@ -22,6 +30,22 @@ components:
                     type: array
                 message:
                     type: string
+            type: object
+        v1ConfirmToolCallResponse:
+            description: |-
+                ConfirmToolCallResponse is the same frame as SendMessageResponse - the answer
+                carries on where it stopped, and may stop again on a further change.
+            properties:
+                delta:
+                    type: string
+                done:
+                    type: boolean
+                message:
+                    $ref: '#/components/schemas/v1Message'
+                toolCall:
+                    $ref: '#/components/schemas/v1ToolCall'
+                toolProposal:
+                    $ref: '#/components/schemas/v1ToolProposal'
             type: object
         v1CreateSessionRequest:
             properties:
@@ -73,6 +97,8 @@ components:
                     $ref: '#/components/schemas/v1Message'
                 toolCall:
                     $ref: '#/components/schemas/v1ToolCall'
+                toolProposal:
+                    $ref: '#/components/schemas/v1ToolProposal'
             type: object
         v1Session:
             properties:
@@ -102,11 +128,70 @@ components:
                     description: Name is the tool the assistant called, e.g. "list_user".
                     type: string
             type: object
+        v1ToolProposal:
+            description: |-
+                ToolProposal is a change the assistant wants to make and has not made.
+
+                The stream that carries one ends with it: the change happens only if the
+                user answers ConfirmToolCall with approved = true, and until then nothing has
+                been written.
+
+                name and arguments are the real operation and the real arguments rather than
+                a summary of them. "Add three users to a group" is not something a person can
+                meaningfully agree to; the operation and the ids are.
+            properties:
+                arguments:
+                    description: Arguments is the JSON object it proposes to pass, as it supplied it.
+                    type: string
+                id:
+                    type: string
+                name:
+                    description: Name is the tool the assistant proposes to run, e.g. "add_users_to_group".
+                    type: string
+            type: object
 info:
     title: ai/chat/v1/service.proto
     version: version not set
 openapi: 3.0.3
 paths:
+    /api/v1/chat/proposals/{id}/confirm:
+        post:
+            operationId: ChatService_ConfirmToolCall
+            parameters:
+                - description: The proposal being answered.
+                  in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ChatServiceConfirmToolCallBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                properties:
+                                    error:
+                                        $ref: '#/components/schemas/rpcStatus'
+                                    result:
+                                        $ref: '#/components/schemas/v1ConfirmToolCallResponse'
+                                title: Stream result of v1ConfirmToolCallResponse
+                                type: object
+                    description: A successful response.(streaming responses)
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ChatService
     /api/v1/chat/sessions:
         get:
             operationId: ChatService_ListSessions

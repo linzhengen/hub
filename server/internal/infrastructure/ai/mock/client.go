@@ -25,6 +25,18 @@ const ErrorTrigger = "!error"
 // it is asked explicitly.
 const ToolTrigger = "!tool"
 
+// mockTokens is what the mock claims each round cost. It is not a measurement -
+// nothing was sent anywhere - but it makes the accounting and the budget
+// reachable in local development, which is the point of the mock.
+const mockTokens = 500
+
+// WriteTrigger makes the mock propose a change instead of answering, so the
+// approval flow - the proposal frame, the card, approving and declining - can be
+// built and tested without an API key. It is the whole reason the mock exists:
+// the flow it reproduces is the one hardest to reach on demand against a real
+// model, which proposes a change only when it decides to.
+const WriteTrigger = "!write"
+
 type client struct {
 	model string
 	delay time.Duration
@@ -53,6 +65,13 @@ func (c *client) Send(ctx context.Context, messages []*chatDomain.Message) (<-ch
 			return
 		}
 
+		send(ctx, ch, chatDomain.Delta{Tokens: mockTokens})
+
+		if strings.Contains(prompt, WriteTrigger) {
+			c.proposeWrite(ctx, ch)
+			return
+		}
+
 		if strings.Contains(prompt, ToolTrigger) {
 			c.announceTool(ctx, ch)
 		}
@@ -69,6 +88,99 @@ func (c *client) Send(ctx context.Context, messages []*chatDomain.Message) (<-ch
 	}()
 
 	return ch, nil
+}
+
+// Resume answers a decision the way the real client does: the tool runs on
+// approval and on nothing else, and either way the stream finishes with a
+// sentence saying what happened.
+func (c *client) Resume(
+	ctx context.Context,
+	_ []*chatDomain.Message,
+	raw []byte,
+	approved bool,
+) (<-chan chatDomain.Delta, error) {
+	name := string(raw)
+
+	ch := make(chan chatDomain.Delta, 64)
+	go func() {
+		defer close(ch)
+
+		send(ctx, ch, chatDomain.Delta{Tokens: mockTokens})
+
+		if !approved {
+			for _, part := range split(fmt.Sprintf(
+				"You declined, so `%s` was not run and nothing changed.", name)) {
+				if !c.pause(ctx) || !send(ctx, ch, chatDomain.Delta{Text: part}) {
+					return
+				}
+			}
+			send(ctx, ch, chatDomain.Delta{Done: true})
+			return
+		}
+
+		send(ctx, ch, chatDomain.Delta{Tool: &chatDomain.ToolCall{Name: name, Arguments: "{}"}})
+
+		outcome := "no tool box is wired up, so nothing ran"
+		if c.tools != nil {
+			result, err := c.tools.Call(ctx, name, nil)
+			if err != nil {
+				outcome = fmt.Sprintf("`%s` failed: %v", name, err)
+			} else {
+				outcome = fmt.Sprintf("`%s` returned:\n\n```json\n%s\n```", name, result)
+			}
+		}
+		for _, part := range split("You approved it. " + outcome) {
+			if !c.pause(ctx) || !send(ctx, ch, chatDomain.Delta{Text: part}) {
+				return
+			}
+		}
+		send(ctx, ch, chatDomain.Delta{Done: true})
+	}()
+
+	return ch, nil
+}
+
+// proposeWrite stops the answer on a change, exactly as the real client does
+// when the model asks for a tool that writes. Nothing is run here.
+//
+// The continuation the real client stores is the paused conversation; the mock
+// has no conversation to keep, so it stores the tool name - which is all Resume
+// above needs.
+func (c *client) proposeWrite(ctx context.Context, ch chan<- chatDomain.Delta) {
+	tool, ok := c.firstWritableTool(ctx)
+	if !ok {
+		for _, part := range split(
+			"You asked for a change, but you are not permitted to run any of the tools that make one.") {
+			if !c.pause(ctx) || !send(ctx, ch, chatDomain.Delta{Text: part}) {
+				return
+			}
+		}
+		send(ctx, ch, chatDomain.Delta{Done: true})
+		return
+	}
+
+	send(ctx, ch, chatDomain.Delta{Proposal: &chatDomain.ToolProposal{
+		ToolName:     tool.Name,
+		Arguments:    "{}",
+		Continuation: []byte(tool.Name),
+		Status:       chatDomain.ProposalPending,
+	}})
+}
+
+func (c *client) firstWritableTool(ctx context.Context) (chatDomain.Tool, bool) {
+	if c.tools == nil {
+		return chatDomain.Tool{}, false
+	}
+	tools, err := c.tools.Tools(ctx)
+	if err != nil {
+		return chatDomain.Tool{}, false
+	}
+	for _, tool := range tools {
+		if tool.Write {
+			return tool, true
+		}
+	}
+	return chatDomain.Tool{}, false
 }
 
 // reply is deliberately made of Markdown - headings, a list, a fenced block -
@@ -95,6 +207,7 @@ func (c *client) reply(ctx context.Context, prompt string, turn int) string {
 
 	b.WriteString("- Send a message containing `" + ErrorTrigger + "` to make the stream fail.\n")
 	b.WriteString("- Send a message containing `" + ToolTrigger + "` to make it call a tool.\n")
+	b.WriteString("- Send a message containing `" + WriteTrigger + "` to make it propose a change and wait for approval.\n")
 	b.WriteString("- Set `ANTHROPIC_MOCK_DELAY` to change how fast the deltas arrive.\n")
 	b.WriteString("- Talk to the real API instead:\n\n")
 	b.WriteString("```sh\nANTHROPIC_MOCK=false ANTHROPIC_API_KEY=sk-ant-... make dev\n```\n")
@@ -105,17 +218,35 @@ func (c *client) reply(ctx context.Context, prompt string, turn int) string {
 // announceTool emits the same frame the real client emits before a lookup, so
 // the client's tool display can be built and tested without an API key.
 func (c *client) announceTool(ctx context.Context, ch chan<- chatDomain.Delta) {
-	if c.tools == nil {
-		return
-	}
-	tools, err := c.tools.Tools(ctx)
-	if err != nil || len(tools) == 0 {
+	tool, ok := c.firstReadableTool(ctx)
+	if !ok {
 		return
 	}
 	send(ctx, ch, chatDomain.Delta{Tool: &chatDomain.ToolCall{
-		Name:      tools[0].Name,
+		Name:      tool.Name,
 		Arguments: "{}",
 	}})
+}
+
+// firstReadableTool picks a tool that only looks something up.
+//
+// It skips the writes rather than taking whichever tool sorts first, because
+// this path runs the tool it picks. A write must never run without the user
+// having approved it, and "the mock happened to pick one" is not approval.
+func (c *client) firstReadableTool(ctx context.Context) (chatDomain.Tool, bool) {
+	if c.tools == nil {
+		return chatDomain.Tool{}, false
+	}
+	tools, err := c.tools.Tools(ctx)
+	if err != nil {
+		return chatDomain.Tool{}, false
+	}
+	for _, tool := range tools {
+		if !tool.Write {
+			return tool, true
+		}
+	}
+	return chatDomain.Tool{}, false
 }
 
 // callFirstTool runs the first tool the caller is allowed to use and reports
@@ -136,15 +267,26 @@ func (c *client) callFirstTool(ctx context.Context) string {
 	names := make([]string, len(tools))
 	for i, tool := range tools {
 		names[i] = tool.Name
+		if tool.Write {
+			names[i] += " (needs approval)"
+		}
 	}
 
-	result, err := c.tools.Call(ctx, tools[0].Name, nil)
+	// Deliberately a read: this line runs the tool it names, and a write does
+	// not run without the user having approved it.
+	read, ok := c.firstReadableTool(ctx)
+	if !ok {
+		return fmt.Sprintf("Tools you may call: %s\n\nNone of them is a lookup, so nothing was run.",
+			strings.Join(names, ", "))
+	}
+
+	result, err := c.tools.Call(ctx, read.Name, nil)
 	if err != nil {
 		return fmt.Sprintf("Tools you may call: %s\n\nCalling `%s` failed: %v",
-			strings.Join(names, ", "), tools[0].Name, err)
+			strings.Join(names, ", "), read.Name, err)
 	}
 	return fmt.Sprintf("Tools you may call: %s\n\n`%s` returned:\n\n```json\n%s\n```",
-		strings.Join(names, ", "), tools[0].Name, result)
+		strings.Join(names, ", "), read.Name, result)
 }
 
 // pause waits between deltas, reporting whether the stream should continue.

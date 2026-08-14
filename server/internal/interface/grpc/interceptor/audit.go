@@ -66,11 +66,17 @@ var audited = map[string]bool{
 // investigations. What the assistant *does* on the user's behalf is audited -
 // those calls arrive here as the rpc they actually invoke, marked with the
 // ai_chat channel.
+// ConfirmToolCall is excluded for a different reason: it is already accounted
+// for at both ends. An approval that let a change through is recorded on that
+// change, as its approval_id; a decline is recorded on the proposal row, which
+// keeps its status and the time it was decided. A record here would duplicate
+// the first and add nothing to the second.
 var notAudited = map[string]bool{
-	"/ai.chat.v1.ChatService/CreateSession":  true,
-	"/ai.chat.v1.ChatService/DeleteSession":  true,
-	"/ai.chat.v1.ChatService/SendMessage":    true,
-	"/user.v1.UserService/SendMeVerifyEmail": true,
+	"/ai.chat.v1.ChatService/CreateSession":   true,
+	"/ai.chat.v1.ChatService/DeleteSession":   true,
+	"/ai.chat.v1.ChatService/SendMessage":     true,
+	"/ai.chat.v1.ChatService/ConfirmToolCall": true,
+	"/user.v1.UserService/SendMeVerifyEmail":  true,
 }
 
 // UnclassifiedMutations returns the mutating rpcs that appear in neither
@@ -185,6 +191,7 @@ func newEntry(ctx context.Context, op apicatalog.Operation, req any, actor strin
 		TargetId:    targetId(req, nil),
 		Arguments:   arguments(req),
 		Client:      clientOf(ctx),
+		ApprovalId:  source.ApprovalId,
 	}
 }
 

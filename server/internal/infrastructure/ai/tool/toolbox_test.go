@@ -109,8 +109,8 @@ func TestToolsAreFilteredByPermission(t *testing.T) {
 	require.NoError(t, err)
 
 	names := toolNames(tools)
-	assert.Equal(t, []string{"get_user", "list_user"}, names,
-		"only the read operations on the allow list are exposed")
+	assert.Equal(t, []string{"create_user", "get_user", "list_user", "update_user"}, names,
+		"only the operations on the allow list are exposed")
 
 	_, box = build(t, authStub{allow: map[string]bool{"ListUser": true}})
 	tools, err = box.Tools(ctxWithUser())
@@ -125,15 +125,47 @@ func TestToolsAreFilteredByPermission(t *testing.T) {
 }
 
 // Writes must not leak in through the allow list, whatever the caller may do.
-func TestWritesAreNeverExposed(t *testing.T) {
+// A tool that changes something must say so, because that flag is the only
+// thing standing between the model asking and the change happening.
+func TestWritesAreMarkedAsWrites(t *testing.T) {
+	_, box := build(t, authStub{all: true})
+	tools, err := box.Tools(ctxWithUser())
+	require.NoError(t, err)
+
+	for _, tool := range tools {
+		changes := false
+		for _, verb := range []string{"create_", "update_", "delete_", "add_", "remove_"} {
+			if strings.HasPrefix(tool.Name, verb) {
+				changes = true
+			}
+		}
+		assert.Equal(t, changes, tool.Write,
+			"%s: name says it changes data = %v, but Write = %v", tool.Name, changes, tool.Write)
+	}
+}
+
+// The escalation chain is excluded, so the rpcs that compose into it must not
+// reach the model even though the caller is permitted to run them.
+func TestTheEscalationChainIsNeverOffered(t *testing.T) {
 	_, box := build(t, authStub{all: true})
 	tools, err := box.Tools(ctxWithUser())
 	require.NoError(t, err)
 
 	for _, name := range toolNames(tools) {
-		for _, verb := range []string{"create", "update", "delete", "add", "remove"} {
-			assert.False(t, strings.HasPrefix(name, verb), "%s is not read-only", name)
+		for _, excluded := range []string{"add_groups_to_user", "remove_groups_from_user", "delete_user"} {
+			assert.NotEqual(t, excluded, name, "%s reached the model despite being excluded", name)
 		}
+	}
+}
+
+// Deleting is on the excluded list, so no tool may delete.
+func TestNoToolDeletes(t *testing.T) {
+	_, box := build(t, authStub{all: true})
+	tools, err := box.Tools(ctxWithUser())
+	require.NoError(t, err)
+
+	for _, name := range toolNames(tools) {
+		assert.False(t, strings.HasPrefix(name, "delete_"), "%s deletes", name)
 	}
 }
 

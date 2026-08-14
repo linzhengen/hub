@@ -123,20 +123,38 @@ The project relies heavily on code generation to reduce boilerplate and ensure c
 | `ANTHROPIC_MOCK_DELAY` | `25ms` | Pause between streamed deltas, so the UI is seen filling in. |
 | `ANTHROPIC_API_KEY` | - | Required unless `ANTHROPIC_MOCK=true`; the config refuses to start otherwise. |
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Model id, echoed by the mock so a screenshot says which backend answered. |
+| `ANTHROPIC_SESSION_TOKEN_BUDGET` | `400000` | What one chat session may spend before it stops answering. Per session, so hitting it costs one conversation rather than the assistant. Zero or less removes the cap. |
 
 Sending a message containing `!error` makes the mock fail the stream, which is
-how the client's error path is exercised without breaking the real API, and
-`!tool` makes it call a tool (below).
+how the client's error path is exercised without breaking the real API, `!tool`
+makes it call a tool, and `!write` makes it propose a change and wait for
+approval (both below).
 
 ### Chat tools
 
 `internal/infrastructure/ai/tool` lets the assistant answer from hub's own data
-instead of from memory. It is **read-only**; writes arrive with an approval flow
-separately (linzhengen/hub#125).
+instead of from memory, and change it with the user's approval.
 
--   **What is exposed** is the `exposed` allow list in `toolbox.go`, written out
-    by gRPC method path. It is deliberately not a rule such as "anything called
-    `Get*`", so adding an rpc to the API never silently hands it to a model.
+-   **What is exposed** is the `exposed` map in `toolbox.go`, written out by
+    gRPC method path, with a flag saying whether each one writes. It is
+    deliberately not a rule such as "anything called `Get*`", so adding an rpc
+    to the API never silently hands it to a model.
+-   **What is excluded** is the `escalation` map, and nothing on it reaches the
+    model whatever the user is permitted to do and whatever they approve:
+
+    ```
+    AddPermissionsToRole -> AddRolesToGroup -> AddGroupsToUser
+    ```
+
+    Those three compose into a path to any permission at all, and every
+    `Delete*` is excluded on the same grounds. Approval is not a sufficient
+    guard for them: the threat is not that the model exceeds the user's rights -
+    it cannot - but that text somebody else wrote, read back through a tool
+    result, talks the model into proposing a change, and the person approving it
+    is the person that text is written to persuade. Changing who can do what is
+    rare, deliberate work with the highest cost when it goes wrong and the least
+    to gain from automation, so it stays in the console. `New` refuses to build
+    a tool box if an rpc appears in both maps.
 -   **What a tool looks like** comes from `pkg/apicatalog`: the summary from the
     proto annotation becomes the description, and the request fields become the
     JSON Schema, constraints included.
@@ -163,6 +181,46 @@ separately (linzhengen/hub#125).
 `maxToolRounds` in the Claude client bounds how many times the model may call
 tools before it has to answer. Two rounds is the normal case ("find the group,
 then read its members"), so a single round is not enough.
+
+### The approval flow
+
+A read runs the moment the model asks. **A change never does.** The model gets
+as far as proposing one; the stream stops, and the change happens only if the
+user says so.
+
+-   **Why**, again, is not permissions. Every tool call goes through the same
+    authorization the user's own requests do, so the model cannot exceed them.
+    It is that tool results carry text other people wrote, and that text is in a
+    position to talk the model into proposing something nobody asked for.
+    Putting a person between the proposal and the change breaks that path -
+    which is why the person is shown the **operation and its real arguments**,
+    not a summary. "Add three users to a group" is not something anyone can
+    meaningfully agree to.
+-   **Why it is two rpcs**: grpc-gateway's server-streaming is one way. The
+    answer stream has to end for the user to reply to it, so `SendMessage` stops
+    on a `tool_proposal` frame and `ConfirmToolCall` opens a new stream that
+    carries on. The paused conversation therefore has to outlive the request,
+    which is what `chat_tool_proposals` is for.
+-   **The continuation** in that row is opaque to everything but the backend
+    that wrote it. Keeping it opaque is what stops a provider's message format
+    becoming part of the schema; the Claude client stores its own small record
+    rather than the SDK's parameter types, which marshal for sending but do not
+    round trip.
+-   **One approval is one change.** The decision is claimed with an update that
+    matches only a pending row, so a retry, a double click or a replayed request
+    finds nothing to claim. Only the first change in a turn is ever put to the
+    user, so approving what you were shown cannot approve what you were not.
+-   **What is recorded**: the change itself, in the audit log, against the
+    person - with `channel = ai_chat`, the session id, and the `approval_id` of
+    the proposal they approved. A decline is recorded on the proposal row.
+-   **In the mock**: `!write` proposes a change and waits, so the card, the two
+    buttons and both outcomes can be built and tested without an API key. The
+    mock's `!tool` path deliberately picks a *read*, since that path runs the
+    tool it picks.
+
+`internal/infrastructure/ai/claude/pause_test.go` is the check that a tool
+result carrying instructions cannot become a change: it feeds the injected text
+in and asserts the change is proposed rather than run.
 
 ## 7.1 Audit log
 

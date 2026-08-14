@@ -30,25 +30,66 @@ import (
 	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
-// exposed lists the rpcs the assistant may call, by gRPC method path.
+// exposed lists the rpcs the assistant may call, by gRPC method path, and says
+// whether each one writes.
 //
 // It is an explicit list rather than a rule such as "anything called Get* or
 // List*", so that adding an rpc to the API never silently hands it to a model.
-// Everything here is read-only; writes arrive with an approval flow, separately.
+// A read runs when the model asks; a write is only ever proposed, and runs after
+// the user has approved it.
 var exposed = map[string]bool{
-	"/user.v1.UserService/ListUser":                          true,
-	"/user.v1.UserService/GetUser":                           true,
-	"/system.group.v1.GroupService/ListGroup":                true,
-	"/system.group.v1.GroupService/GetGroup":                 true,
-	"/system.role.v1.RoleService/ListRole":                   true,
-	"/system.role.v1.RoleService/GetRole":                    true,
-	"/system.permission.v1.PermissionService/ListPermission": true,
-	"/system.permission.v1.PermissionService/GetPermission":  true,
-	"/system.resource.v1.ResourceService/ListResource":       true,
-	"/system.resource.v1.ResourceService/GetResource":        true,
+	"/user.v1.UserService/ListUser":                          false,
+	"/user.v1.UserService/GetUser":                           false,
+	"/system.group.v1.GroupService/ListGroup":                false,
+	"/system.group.v1.GroupService/GetGroup":                 false,
+	"/system.role.v1.RoleService/ListRole":                   false,
+	"/system.role.v1.RoleService/GetRole":                    false,
+	"/system.permission.v1.PermissionService/ListPermission": false,
+	"/system.permission.v1.PermissionService/GetPermission":  false,
+	"/system.resource.v1.ResourceService/ListResource":       false,
+	"/system.resource.v1.ResourceService/GetResource":        false,
 	// The audit log answers "who added them to that group, and when" without
 	// anyone having to write SQL, which is the question it exists for.
-	"/system.audit.v1.AuditService/ListAuditLog": true,
+	"/system.audit.v1.AuditService/ListAuditLog": false,
+
+	// Writes. Each is proposed to the user and runs only once approved.
+	"/user.v1.UserService/CreateUser":                    true,
+	"/user.v1.UserService/UpdateUser":                    true,
+	"/system.group.v1.GroupService/CreateGroup":          true,
+	"/system.group.v1.GroupService/UpdateGroup":          true,
+	"/system.group.v1.GroupService/AddUsersToGroup":      true,
+	"/system.group.v1.GroupService/RemoveUsersFromGroup": true,
+}
+
+// escalation lists the rpcs the assistant may never call, whatever the user is
+// permitted to do and whatever they approve.
+//
+// These three compose into a path to any permission at all:
+//
+//	AddPermissionsToRole -> AddRolesToGroup -> AddGroupsToUser
+//
+// Approval is not enough of a guard for them. The threat is not that the model
+// exceeds the user's rights - it cannot - but that text written by somebody else
+// and read back through a tool result talks the model into proposing a change,
+// and the person approving it is the same person the injected text is written
+// to persuade ("this is routine, approve it"). Changing who can do what is rare,
+// deliberate work with the highest cost when it goes wrong and the least to gain
+// from being automated, so it stays in the console where a human drives it.
+//
+// The deletes are here for the same reason: a deletion the user did not intend
+// is not undone by having approved it.
+var escalation = map[string]bool{
+	"/system.role.v1.RoleService/AddPermissionsToRole":         true,
+	"/system.role.v1.RoleService/RemovePermissionsFromRole":    true,
+	"/system.group.v1.GroupService/AddRolesToGroup":            true,
+	"/system.group.v1.GroupService/RemoveRolesFromGroup":       true,
+	"/user.v1.UserService/AddGroupsToUser":                     true,
+	"/user.v1.UserService/RemoveGroupsFromUser":                true,
+	"/user.v1.UserService/DeleteUser":                          true,
+	"/system.group.v1.GroupService/DeleteGroup":                true,
+	"/system.role.v1.RoleService/DeleteRole":                   true,
+	"/system.permission.v1.PermissionService/DeletePermission": true,
+	"/system.resource.v1.ResourceService/DeleteResource":       true,
 }
 
 // hidden lists response fields the assistant never needs, removed from every
@@ -92,6 +133,7 @@ type binding struct {
 	op      apicatalog.Operation
 	svc     Service
 	handler methodHandler
+	write   bool
 }
 
 type methodHandler func(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error)
@@ -118,8 +160,15 @@ func New(
 		for i := range svc.desc.Methods {
 			method := svc.desc.Methods[i]
 			full := "/" + svc.desc.ServiceName + "/" + method.MethodName
-			if !exposed[full] {
+			write, listed := exposed[full]
+			if !listed {
 				continue
+			}
+			// Refusing here rather than trusting the two maps not to overlap:
+			// an rpc that reaches the model because someone added it to both
+			// lists is the failure this list exists to prevent.
+			if escalation[full] {
+				return nil, fmt.Errorf("tool: %s is excluded from the tools but also exposed", full)
 			}
 			op, ok := catalog.ByFullMethod(full)
 			if !ok {
@@ -130,7 +179,7 @@ func New(
 				return nil, fmt.Errorf("tool: %s and %s both generate the tool name %q",
 					previous.op.FullMethod, full, name)
 			}
-			box.byName[name] = binding{op: op, svc: svc, handler: methodHandler(method.Handler)}
+			box.byName[name] = binding{op: op, svc: svc, handler: methodHandler(method.Handler), write: write}
 		}
 	}
 	return box, nil
@@ -165,8 +214,9 @@ func (b *toolBox) Tools(ctx context.Context) ([]chatDomain.Tool, error) {
 		}
 		tools = append(tools, chatDomain.Tool{
 			Name:        name,
-			Description: describe(bind.op),
+			Description: describe(bind.op, bind.write),
 			InputSchema: schemaOf(bind.op),
+			Write:       bind.write,
 		})
 	}
 	return tools, nil
@@ -248,13 +298,19 @@ func strip(node any) any {
 // describe writes the tool description the model reads. The summary comes from
 // the proto annotation, so it is the same sentence the CLI and the agent
 // reference show.
-func describe(op apicatalog.Operation) string {
+func describe(op apicatalog.Operation, write bool) string {
 	var b strings.Builder
 	b.WriteString(op.Summary)
 	if op.Summary != "" && !strings.HasSuffix(op.Summary, ".") {
 		b.WriteString(".")
 	}
-	b.WriteString(" Read-only.")
+	if write {
+		// Said in the description so the model knows the pause is coming and
+		// does not treat a proposal as a completed action.
+		b.WriteString(" This changes data, and runs only after the user approves it.")
+	} else {
+		b.WriteString(" Read-only.")
+	}
 	return b.String()
 }
 

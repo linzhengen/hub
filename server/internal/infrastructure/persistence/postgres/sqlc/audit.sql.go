@@ -21,9 +21,10 @@ INSERT INTO audit_logs (actor_user_id,
                         arguments,
                         succeeded,
                         error,
-                        client)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, actor_user_id, channel, ai_session_id, resource, action, target_id, arguments, succeeded, error, client, created_at
+                        client,
+                        approval_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+RETURNING id, actor_user_id, channel, ai_session_id, resource, action, target_id, arguments, succeeded, error, client, created_at, approval_id
 `
 
 type CreateAuditLogParams struct {
@@ -37,6 +38,7 @@ type CreateAuditLogParams struct {
 	Succeeded   bool
 	Error       string
 	Client      string
+	ApprovalID  sql.NullString
 }
 
 func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (*AuditLog, error) {
@@ -51,6 +53,7 @@ func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) 
 		arg.Succeeded,
 		arg.Error,
 		arg.Client,
+		arg.ApprovalID,
 	)
 	var i AuditLog
 	err := row.Scan(
@@ -66,6 +69,7 @@ func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) 
 		&i.Error,
 		&i.Client,
 		&i.CreatedAt,
+		&i.ApprovalID,
 	)
 	return &i, err
 }

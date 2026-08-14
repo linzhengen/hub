@@ -17,6 +17,7 @@ vi.mock('@/services/chat', async (importOriginal) => {
       deleteSession: vi.fn(),
       listMessages: vi.fn(),
       sendMessage: vi.fn(),
+      confirmToolCall: vi.fn(),
     },
   };
 });
@@ -31,6 +32,7 @@ const listSessions = vi.mocked(chatService.listSessions);
 const listMessages = vi.mocked(chatService.listMessages);
 const sendMessage = vi.mocked(chatService.sendMessage);
 const createSession = vi.mocked(chatService.createSession);
+const confirmToolCall = vi.mocked(chatService.confirmToolCall);
 
 const streamOf = (responses: readonly SendMessageResponse[]) =>
   (async function* () {
@@ -161,5 +163,95 @@ describe('Chat', () => {
     renderChat();
 
     expect(await screen.findByText('Select a session, or start a new chat')).toBeTruthy();
+  });
+});
+
+// sendDraft types a message and sends it, which every test below does first.
+const sendDraft = async (text: string) => {
+  await screen.findByText('First chat');
+  fireEvent.change(await screen.findByLabelText('Message'), { target: { value: text } });
+  fireEvent.click(screen.getByRole('button', { name: /send/i }));
+};
+
+describe('a change the assistant proposes', () => {
+  const proposal = {
+    id: 'p1',
+    name: 'add_users_to_group',
+    arguments: '{"id":"admin-group","userIds":["u1","u2"]}',
+  };
+
+  beforeEach(() => {
+    listSessions.mockResolvedValue({ sessions });
+    listMessages.mockResolvedValue({ messages: [] });
+    sendMessage.mockReturnValue(streamOf([{ toolProposal: proposal }]));
+  });
+
+  // Approving something you cannot read is not approving it, so the operation
+  // and its arguments have to be on screen - not a summary of them.
+  it('shows the operation and the arguments it will be called with', async () => {
+    renderChat();
+    await sendDraft('add them to the admin group');
+
+    await waitFor(() => {
+      expect(screen.getByText(/The assistant wants to make a change/)).toBeTruthy();
+    });
+    const card = screen.getByText(/add_users_to_group/);
+    expect(card.textContent).toContain('admin-group');
+    expect(card.textContent).toContain('u1');
+    expect(card.textContent).toContain('u2');
+  });
+
+  it('says plainly that nothing has been changed yet', async () => {
+    renderChat();
+    await sendDraft('add them to the admin group');
+
+    await waitFor(() => {
+      expect(screen.getByText(/Nothing has been changed/)).toBeTruthy();
+    });
+    expect(confirmToolCall).not.toHaveBeenCalled();
+  });
+
+  it('runs the change only when approved', async () => {
+    confirmToolCall.mockReturnValue(
+      streamOf([{ delta: 'Added them.' }, { done: true }]) as ReturnType<
+        typeof chatService.confirmToolCall
+      >,
+    );
+    renderChat();
+    await sendDraft('add them to the admin group');
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /Approve/ })).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: /Approve/ }));
+
+    await waitFor(() => {
+      expect(confirmToolCall).toHaveBeenCalledWith('p1', true, expect.anything());
+    });
+  });
+
+  it('declines without running the change', async () => {
+    confirmToolCall.mockReturnValue(
+      streamOf([{ delta: 'Left it alone.' }, { done: true }]) as ReturnType<
+        typeof chatService.confirmToolCall
+      >,
+    );
+    renderChat();
+    await sendDraft('add them to the admin group');
+
+    await waitFor(() => expect(screen.getByRole('button', { name: /Decline/ })).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: /Decline/ }));
+
+    await waitFor(() => {
+      expect(confirmToolCall).toHaveBeenCalledWith('p1', false, expect.anything());
+    });
+  });
+
+  // Typing past an unanswered proposal would leave it hanging, and the next
+  // message would arrive with the conversation still stopped.
+  it('does not accept another message until the change is answered', async () => {
+    renderChat();
+    await sendDraft('add them to the admin group');
+
+    await waitFor(() => expect(screen.getByText(/Nothing has been changed/)).toBeTruthy());
+    expect(screen.getByLabelText('Message')).toHaveProperty('disabled', true);
   });
 });

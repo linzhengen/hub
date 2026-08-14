@@ -32,6 +32,13 @@ service ChatService {
     };
     option (hub.annotations.v1.method_rule) = {summary: "Send a message and stream the assistant response."};
   }
+  rpc ConfirmToolCall(ConfirmToolCallRequest) returns (stream ConfirmToolCallResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/chat/proposals/{id}/confirm"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Approve or decline a change the assistant proposed, and stream the rest of the answer."};
+  }
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
     option (google.api.http) = {get: "/api/v1/chat/sessions/{id}/messages"};
     option (hub.annotations.v1.method_rule) = {summary: "List messages in a chat session."};
@@ -72,6 +79,28 @@ message SendMessageResponse {
   Message message = 3;
   // ToolCall is set instead of delta on the frames that report a lookup.
   ToolCall tool_call = 4;
+  // ToolProposal is set on the frame that stops the answer to ask permission
+  // for a change. It is the last frame of the stream; answer it with
+  // ConfirmToolCall.
+  ToolProposal tool_proposal = 5;
+}
+
+message ConfirmToolCallRequest {
+  // The proposal being answered.
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // True runs the proposed change; false declines it and lets the assistant
+  // answer around it. There is no third state: a proposal is answered once.
+  bool approved = 2;
+}
+
+// ConfirmToolCallResponse is the same frame as SendMessageResponse - the answer
+// carries on where it stopped, and may stop again on a further change.
+message ConfirmToolCallResponse {
+  string delta = 1;
+  bool done = 2;
+  Message message = 3;
+  ToolCall tool_call = 4;
+  ToolProposal tool_proposal = 5;
 }
 
 message ListMessagesRequest {
