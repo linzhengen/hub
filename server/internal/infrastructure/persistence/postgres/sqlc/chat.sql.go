@@ -61,22 +61,35 @@ const deleteChatSession = `-- name: DeleteChatSession :exec
 DELETE
 FROM chat_sessions
 WHERE id = $1
+  AND user_id = $2
 `
 
-func (q *Queries) DeleteChatSession(ctx context.Context, id string) error {
-	_, err := q.db.ExecContext(ctx, deleteChatSession, id)
+type DeleteChatSessionParams struct {
+	ID     string
+	UserID string
+}
+
+func (q *Queries) DeleteChatSession(ctx context.Context, arg DeleteChatSessionParams) error {
+	_, err := q.db.ExecContext(ctx, deleteChatSession, arg.ID, arg.UserID)
 	return err
 }
 
 const selectChatMessagesBySessionId = `-- name: SelectChatMessagesBySessionId :many
-SELECT id, session_id, role, content, created_at
-FROM chat_messages
-WHERE session_id = $1
-ORDER BY created_at ASC
+SELECT m.id, m.session_id, m.role, m.content, m.created_at
+FROM chat_messages m
+         JOIN chat_sessions s ON s.id = m.session_id
+WHERE m.session_id = $1
+  AND s.user_id = $2
+ORDER BY m.created_at ASC
 `
 
-func (q *Queries) SelectChatMessagesBySessionId(ctx context.Context, sessionID string) ([]*ChatMessage, error) {
-	rows, err := q.db.QueryContext(ctx, selectChatMessagesBySessionId, sessionID)
+type SelectChatMessagesBySessionIdParams struct {
+	SessionID string
+	UserID    string
+}
+
+func (q *Queries) SelectChatMessagesBySessionId(ctx context.Context, arg SelectChatMessagesBySessionIdParams) ([]*ChatMessage, error) {
+	rows, err := q.db.QueryContext(ctx, selectChatMessagesBySessionId, arg.SessionID, arg.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,11 +121,21 @@ const selectChatSessionById = `-- name: SelectChatSessionById :one
 SELECT id, user_id, title, created_at
 FROM chat_sessions
 WHERE id = $1
+  AND user_id = $2
 LIMIT 1
 `
 
-func (q *Queries) SelectChatSessionById(ctx context.Context, id string) (*ChatSession, error) {
-	row := q.db.QueryRowContext(ctx, selectChatSessionById, id)
+type SelectChatSessionByIdParams struct {
+	ID     string
+	UserID string
+}
+
+// Scoping every lookup by user_id keeps a session private to its owner even if
+// a caller reaches the repository without going through the use case, which is
+// where the check used to live alone. A session belonging to someone else
+// returns no row, so it is indistinguishable from one that does not exist.
+func (q *Queries) SelectChatSessionById(ctx context.Context, arg SelectChatSessionByIdParams) (*ChatSession, error) {
+	row := q.db.QueryRowContext(ctx, selectChatSessionById, arg.ID, arg.UserID)
 	var i ChatSession
 	err := row.Scan(
 		&i.ID,

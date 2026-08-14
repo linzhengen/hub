@@ -25,8 +25,8 @@ func (r repositoryImpl) CreateSession(ctx context.Context, s *chatDomain.Session
 	return nil
 }
 
-func (r repositoryImpl) FindSession(ctx context.Context, id string) (*chatDomain.Session, error) {
-	row, err := persistence.GetQ(ctx, r.q).SelectChatSessionById(ctx, id)
+func (r repositoryImpl) FindSession(ctx context.Context, id, userId string) (*chatDomain.Session, error) {
+	row, err := persistence.GetQ(ctx, r.q).SelectChatSessionById(ctx, id, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +45,8 @@ func (r repositoryImpl) ListSessions(ctx context.Context, userId string) ([]*cha
 	return sessions, nil
 }
 
-func (r repositoryImpl) DeleteSession(ctx context.Context, id string) error {
-	return persistence.GetQ(ctx, r.q).DeleteChatSession(ctx, id)
+func (r repositoryImpl) DeleteSession(ctx context.Context, id, userId string) error {
+	return persistence.GetQ(ctx, r.q).DeleteChatSession(ctx, id, userId)
 }
 
 func (r repositoryImpl) CreateMessage(ctx context.Context, m *chatDomain.Message) error {
@@ -59,8 +59,8 @@ func (r repositoryImpl) CreateMessage(ctx context.Context, m *chatDomain.Message
 	return nil
 }
 
-func (r repositoryImpl) ListMessages(ctx context.Context, sessionId string) ([]*chatDomain.Message, error) {
-	rows, err := persistence.GetQ(ctx, r.q).SelectChatMessagesBySessionId(ctx, sessionId)
+func (r repositoryImpl) ListMessages(ctx context.Context, sessionId, userId string) ([]*chatDomain.Message, error) {
+	rows, err := persistence.GetQ(ctx, r.q).SelectChatMessagesBySessionId(ctx, sessionId, userId)
 	if err != nil {
 		return nil, err
 	}
