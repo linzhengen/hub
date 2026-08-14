@@ -4,6 +4,8 @@
 
 **hub** 是一个开源的身份与访问管理平台，集成了 Go 后端、React 前端、Keycloak 认证以及 Kubernetes 就绪的基础设施。
 
+📖 **[文档站点](https://linzhengen.github.io/hub/)** — 使用指南、[API 浏览器](https://linzhengen.github.io/hub/api.html)（Swagger UI）与 [API 参考](https://linzhengen.github.io/hub/api-reference.html)。
+
 ## 截图
 
 | 登录 | 控制台 |
@@ -198,6 +200,7 @@ hub auth token
 
 ## 开发指南
 
+- [文档站点开发指南](docs/AGENTS.md)
 - [后端开发指南](server/AGENTS.md)
 - [前端开发指南](ui/web/AGENTS.md)
 - [Keycloak 主题开发指南](ui/keycloak-theme/AGENTS.md)

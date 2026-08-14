@@ -4,6 +4,8 @@
 
 **hub** は Go バックエンド・React フロントエンド・Keycloak 認証・Kubernetes 対応インフラを組み合わせたオープンソースの ID・アクセス管理プラットフォームです。
 
+📖 **[ドキュメント](https://linzhengen.github.io/hub/ja/)** — 各種ガイド、[API エクスプローラー](https://linzhengen.github.io/hub/api.html) (Swagger UI)、[API リファレンス](https://linzhengen.github.io/hub/api-reference.html)。
+
 ## スクリーンショット
 
 | ログイン | ダッシュボード |
@@ -198,6 +200,7 @@ hub auth token
 
 ## 開発ガイドライン
 
+- [ドキュメントサイト開発ガイド](docs/AGENTS.md)
 - [Backend 開発ガイド](server/AGENTS.md)
 - [Frontend 開発ガイド](ui/web/AGENTS.md)
 - [Keycloak Theme 開発ガイド](ui/keycloak-theme/AGENTS.md)
