@@ -104,6 +104,26 @@ single id `"a,b"`.
 - If the environment already ships a Chromium, point
   `PLAYWRIGHT_CHROMIUM_PATH` at it instead of downloading a matching build.
 
+### Markdown
+
+The assistant answers in Markdown, and `src/components/common/Markdown.tsx`
+renders it (`react-markdown` + `remark-gfm`). It is the only Markdown on the
+site.
+
+-   **Raw HTML is never rendered, and `rehype-raw` must not be added.**
+    `react-markdown` does not parse HTML into nodes without it, so there is no
+    sanitiser to get wrong or to fall behind - the unsafe path is simply not
+    built. That matters more than usual here: the assistant answers partly from
+    tool results, which carry group descriptions, resource metadata and user
+    names that other people wrote. `Markdown.test.tsx` is the guard.
+-   **Only the assistant's turns are rendered as Markdown.** The user typed
+    literal text, and parsing it would eat their underscores and reflow their
+    line breaks.
+-   **Styling goes through the `components` prop**, not a typography plugin: one
+    prose stylesheet for one component is not worth another dependency.
+-   The Chat route is lazy-loaded, so this lands in the Chat chunk (~53 kB
+    gzipped, up from ~6 kB) rather than the initial bundle.
+
 ### Dialogs
 
 - Never use the native `window.confirm` / `window.alert`. They do not follow the
