@@ -19,7 +19,15 @@ export class ApiError extends Error {
   }
 }
 
-export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+/**
+ * Sends a request and returns the raw {@link Response}.
+ *
+ * Everything a caller must not get wrong lives here - the bearer token, the
+ * error shape, and the 401 handling that clears the session and notifies the
+ * UI. Streaming callers need the body rather than a parsed object, so they take
+ * this and read `response.body` themselves instead of re-implementing any of it.
+ */
+export async function fetchApiResponse(endpoint: string, options: RequestInit = {}): Promise<Response> {
   const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -80,6 +88,12 @@ export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): 
     // その他のエラー
     throw new Error(message);
   }
+
+  return response;
+}
+
+export async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetchApiResponse(endpoint, options);
 
   // Handle 204 No Content
   if (response.status === 204) {

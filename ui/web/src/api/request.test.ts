@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ApiOperation } from '@/api/operations';
-import { userServiceOperations } from '@/api/operations';
-import { apiRequest, buildPath, buildQueryString } from '@/api/request';
+import { chatServiceOperations, userServiceOperations } from '@/api/operations';
+import { apiRequest, ApiStreamError, apiStream, buildPath, buildQueryString } from '@/api/request';
 import { API_BASE_URL } from '@/lib/api-client';
 
 const mockFetch = () =>
@@ -108,5 +108,106 @@ describe('生成された操作テーブル', () => {
       const placeholders = [...operation.path.matchAll(/\{(\w+)}/g)].map(([, name]) => name);
       expect(placeholders).toEqual([...operation.pathParams]);
     }
+  });
+});
+
+/** Builds a Response whose body streams the given chunks, as fetch would. */
+const mockStream = (chunks: readonly string[]) => {
+  const encoder = new TextEncoder();
+  const cancel = vi.fn().mockResolvedValue(undefined);
+  let i = 0;
+
+  const body = {
+    getReader: () => ({
+      read: vi.fn().mockImplementation(() => {
+        if (i >= chunks.length) return Promise.resolve({ done: true, value: undefined });
+        const value = encoder.encode(chunks[i]);
+        i += 1;
+        return Promise.resolve({ done: false, value });
+      }),
+      cancel,
+    }),
+  };
+
+  const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    body,
+  } as unknown as Response);
+
+  return { fetchSpy, cancel };
+};
+
+const collect = async <T>(stream: AsyncGenerator<T>): Promise<T[]> => {
+  const out: T[] = [];
+  for await (const message of stream) out.push(message);
+  return out;
+};
+
+interface Delta {
+  delta?: string;
+  done?: boolean;
+}
+
+describe('apiStream', () => {
+  it('grpc-gateway のラッパを剥がして 1 メッセージずつ返す', async () => {
+    mockStream(['{"result":{"delta":"He"}}\n{"result":{"delta":"llo"}}\n{"result":{"done":true}}\n']);
+
+    expect(await collect(apiStream<Delta>(chatServiceOperations.sendMessage, { path: { id: 's1' } }))).toEqual([
+      { delta: 'He' },
+      { delta: 'llo' },
+      { done: true },
+    ]);
+  });
+
+  it('チャンクの途中で切れた行を次のチャンクとつなぐ', async () => {
+    // ネットワークの区切りとメッセージの区切りは一致しないので、
+    // 行が 2 つのチャンクにまたがっても落としてはいけない。
+    mockStream(['{"result":{"del', 'ta":"He"}}\n{"result":{"delta":"llo"}}\n']);
+
+    expect(await collect(apiStream<Delta>(chatServiceOperations.sendMessage, { path: { id: 's1' } }))).toEqual([
+      { delta: 'He' },
+      { delta: 'llo' },
+    ]);
+  });
+
+  it('末尾の改行が無い最後のメッセージも返す', async () => {
+    mockStream(['{"result":{"delta":"Hi"}}']);
+
+    expect(await collect(apiStream<Delta>(chatServiceOperations.sendMessage, { path: { id: 's1' } }))).toEqual([
+      { delta: 'Hi' },
+    ]);
+  });
+
+  it('途中のエラーフレームを ApiStreamError として投げる', async () => {
+    mockStream(['{"result":{"delta":"Hi"}}\n{"error":{"message":"stream error","grpc_code":13,"http_code":500}}\n']);
+
+    const stream = apiStream<Delta>(chatServiceOperations.sendMessage, { path: { id: 's1' } });
+    await expect(collect(stream)).rejects.toThrow(ApiStreamError);
+  });
+
+  it('途中で読むのをやめたらレスポンスをキャンセルする', async () => {
+    const { cancel } = mockStream(['{"result":{"delta":"a"}}\n{"result":{"delta":"b"}}\n']);
+
+    for await (const _ of apiStream<Delta>(chatServiceOperations.sendMessage, { path: { id: 's1' } })) {
+      break;
+    }
+
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it('signal を fetch に渡す', async () => {
+    const { fetchSpy } = mockStream(['{"result":{"done":true}}\n']);
+    const controller = new AbortController();
+
+    await collect(
+      apiStream<Delta>(chatServiceOperations.sendMessage, { path: { id: 's1' }, signal: controller.signal }),
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      `${API_BASE_URL}/chat/sessions/s1/messages`,
+      expect.objectContaining({ method: 'POST', signal: controller.signal }),
+    );
   });
 });
