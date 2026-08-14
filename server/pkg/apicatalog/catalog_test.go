@@ -93,16 +93,6 @@ func TestPublicOperations(t *testing.T) {
 		}
 	}
 	assert.ElementsMatch(t, []string{
-		// ChatService declares public: true on every rpc. That had no effect
-		// while the service was missing from the catalog - the interceptor fell
-		// back to enforcing it - so registering the service is what makes the
-		// annotation live. Whether chat should stay open to every signed-in
-		// user is linzhengen/hub#117; this list follows the .proto until then.
-		"/ai.chat.v1.ChatService/CreateSession",
-		"/ai.chat.v1.ChatService/DeleteSession",
-		"/ai.chat.v1.ChatService/ListMessages",
-		"/ai.chat.v1.ChatService/ListSessions",
-		"/ai.chat.v1.ChatService/SendMessage",
 		"/user.v1.UserService/GetMe",
 		"/user.v1.UserService/GetMeMenus",
 		"/user.v1.UserService/SendMeVerifyEmail",

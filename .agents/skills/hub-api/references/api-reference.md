@@ -19,7 +19,7 @@ Create a new chat session for the authenticated user.
 
 - command: `hub chat create-session`
 - endpoint: `POST /api/v1/chat/sessions`
-- rbac: none, any authenticated caller may use this rpc
+- rbac: `CreateSession` on `api.ai.chat.v1.ChatService`
 
 | flag | field | in | type | rules |
 | --- | --- | --- | --- | --- |
@@ -31,7 +31,7 @@ Delete a chat session and all its messages.
 
 - command: `hub chat delete-session`
 - endpoint: `DELETE /api/v1/chat/sessions/{id}`
-- rbac: none, any authenticated caller may use this rpc
+- rbac: `DeleteSession` on `api.ai.chat.v1.ChatService`
 
 | flag | field | in | type | rules |
 | --- | --- | --- | --- | --- |
@@ -43,7 +43,7 @@ List messages in a chat session.
 
 - command: `hub chat list-messages`
 - endpoint: `GET /api/v1/chat/sessions/{id}/messages`
-- rbac: none, any authenticated caller may use this rpc
+- rbac: `ListMessages` on `api.ai.chat.v1.ChatService`
 
 | flag | field | in | type | rules |
 | --- | --- | --- | --- | --- |
@@ -55,7 +55,7 @@ List chat sessions belonging to the authenticated user.
 
 - command: `hub chat list-sessions`
 - endpoint: `GET /api/v1/chat/sessions`
-- rbac: none, any authenticated caller may use this rpc
+- rbac: `ListSessions` on `api.ai.chat.v1.ChatService`
 
 Takes no parameters.
 
@@ -65,7 +65,7 @@ Send a message and stream the assistant response.
 
 - command: `hub chat send-message`
 - endpoint: `POST /api/v1/chat/sessions/{id}/messages`
-- rbac: none, any authenticated caller may use this rpc
+- rbac: `SendMessage` on `api.ai.chat.v1.ChatService`
 
 | flag | field | in | type | rules |
 | --- | --- | --- | --- | --- |

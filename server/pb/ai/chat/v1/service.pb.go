@@ -499,13 +499,13 @@ const file_ai_chat_v1_service_proto_rawDesc = "" +
 	"\x13ListMessagesRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"G\n" +
 	"\x14ListMessagesResponse\x12/\n" +
-	"\bmessages\x18\x01 \x03(\v2\x13.ai.chat.v1.MessageR\bmessages2\x88\a\n" +
-	"\vChatService\x12\xb3\x01\n" +
-	"\rCreateSession\x12 .ai.chat.v1.CreateSessionRequest\x1a!.ai.chat.v1.CreateSessionResponse\"]\x8a\xa6\x1d9\b\x01\"5Create a new chat session for the authenticated user.\x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/chat/sessions\x12\xaf\x01\n" +
-	"\fListSessions\x12\x1f.ai.chat.v1.ListSessionsRequest\x1a .ai.chat.v1.ListSessionsResponse\"\\\x8a\xa6\x1d;\b\x01\"7List chat sessions belonging to the authenticated user.\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/chat/sessions\x12\xab\x01\n" +
-	"\rDeleteSession\x12 .ai.chat.v1.DeleteSessionRequest\x1a!.ai.chat.v1.DeleteSessionResponse\"U\x8a\xa6\x1d/\b\x01\"+Delete a chat session and all its messages.\x82\xd3\xe4\x93\x02\x1c*\x1a/api/v1/chat/sessions/{id}\x12\xb9\x01\n" +
-	"\vSendMessage\x12\x1e.ai.chat.v1.SendMessageRequest\x1a\x1f.ai.chat.v1.SendMessageResponse\"g\x8a\xa6\x1d5\b\x01\"1Send a message and stream the assistant response.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/chat/sessions/{id}/messages0\x01\x12\xa6\x01\n" +
-	"\fListMessages\x12\x1f.ai.chat.v1.ListMessagesRequest\x1a .ai.chat.v1.ListMessagesResponse\"S\x8a\xa6\x1d$\b\x01\" List messages in a chat session.\x82\xd3\xe4\x93\x02%\x12#/api/v1/chat/sessions/{id}/messagesB)Z'github.com/linzhengen/hub/pb/ai/chat/v1b\x06proto3"
+	"\bmessages\x18\x01 \x03(\v2\x13.ai.chat.v1.MessageR\bmessages2\xfe\x06\n" +
+	"\vChatService\x12\xb1\x01\n" +
+	"\rCreateSession\x12 .ai.chat.v1.CreateSessionRequest\x1a!.ai.chat.v1.CreateSessionResponse\"[\x8a\xa6\x1d7\"5Create a new chat session for the authenticated user.\x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/chat/sessions\x12\xad\x01\n" +
+	"\fListSessions\x12\x1f.ai.chat.v1.ListSessionsRequest\x1a .ai.chat.v1.ListSessionsResponse\"Z\x8a\xa6\x1d9\"7List chat sessions belonging to the authenticated user.\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/chat/sessions\x12\xa9\x01\n" +
+	"\rDeleteSession\x12 .ai.chat.v1.DeleteSessionRequest\x1a!.ai.chat.v1.DeleteSessionResponse\"S\x8a\xa6\x1d-\"+Delete a chat session and all its messages.\x82\xd3\xe4\x93\x02\x1c*\x1a/api/v1/chat/sessions/{id}\x12\xb7\x01\n" +
+	"\vSendMessage\x12\x1e.ai.chat.v1.SendMessageRequest\x1a\x1f.ai.chat.v1.SendMessageResponse\"e\x8a\xa6\x1d3\"1Send a message and stream the assistant response.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/chat/sessions/{id}/messages0\x01\x12\xa4\x01\n" +
+	"\fListMessages\x12\x1f.ai.chat.v1.ListMessagesRequest\x1a .ai.chat.v1.ListMessagesResponse\"Q\x8a\xa6\x1d\"\" List messages in a chat session.\x82\xd3\xe4\x93\x02%\x12#/api/v1/chat/sessions/{id}/messagesB)Z'github.com/linzhengen/hub/pb/ai/chat/v1b\x06proto3"
 
 var (
 	file_ai_chat_v1_service_proto_rawDescOnce sync.Once
