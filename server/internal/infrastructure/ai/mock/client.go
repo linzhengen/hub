@@ -53,6 +53,10 @@ func (c *client) Send(ctx context.Context, messages []*chatDomain.Message) (<-ch
 			return
 		}
 
+		if strings.Contains(prompt, ToolTrigger) {
+			c.announceTool(ctx, ch)
+		}
+
 		for _, part := range split(c.reply(ctx, prompt, turn)) {
 			if !c.pause(ctx) {
 				return
