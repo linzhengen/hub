@@ -104,10 +104,11 @@ func (uc auditUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*audi
 	var items []*audit.Entry
 	for rows.Next() {
 		var (
-			entry     audit.Entry
-			channel   string
-			sessionId sql.NullString
-			arguments []byte
+			entry      audit.Entry
+			channel    string
+			sessionId  sql.NullString
+			approvalId sql.NullString
+			arguments  []byte
 		)
 		if err := rows.Scan(
 			&entry.Id,
@@ -122,11 +123,13 @@ func (uc auditUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*audi
 			&entry.Error,
 			&entry.Client,
 			&entry.CreatedAt,
+			&approvalId,
 		); err != nil {
 			return nil, err
 		}
 		entry.Channel = audit.Channel(channel)
 		entry.SessionId = sessionId.String
+		entry.ApprovalId = approvalId.String
 		entry.Arguments = arguments
 		items = append(items, &entry)
 	}

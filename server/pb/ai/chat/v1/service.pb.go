@@ -330,7 +330,11 @@ type SendMessageResponse struct {
 	Done    bool                   `protobuf:"varint,2,opt,name=done,proto3" json:"done,omitempty"`
 	Message *Message               `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	// ToolCall is set instead of delta on the frames that report a lookup.
-	ToolCall      *ToolCall `protobuf:"bytes,4,opt,name=tool_call,json=toolCall,proto3" json:"tool_call,omitempty"`
+	ToolCall *ToolCall `protobuf:"bytes,4,opt,name=tool_call,json=toolCall,proto3" json:"tool_call,omitempty"`
+	// ToolProposal is set on the frame that stops the answer to ask permission
+	// for a change. It is the last frame of the stream; answer it with
+	// ConfirmToolCall.
+	ToolProposal  *ToolProposal `protobuf:"bytes,5,opt,name=tool_proposal,json=toolProposal,proto3" json:"tool_proposal,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -393,6 +397,146 @@ func (x *SendMessageResponse) GetToolCall() *ToolCall {
 	return nil
 }
 
+func (x *SendMessageResponse) GetToolProposal() *ToolProposal {
+	if x != nil {
+		return x.ToolProposal
+	}
+	return nil
+}
+
+type ConfirmToolCallRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The proposal being answered.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// True runs the proposed change; false declines it and lets the assistant
+	// answer around it. There is no third state: a proposal is answered once.
+	Approved      bool `protobuf:"varint,2,opt,name=approved,proto3" json:"approved,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfirmToolCallRequest) Reset() {
+	*x = ConfirmToolCallRequest{}
+	mi := &file_ai_chat_v1_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmToolCallRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmToolCallRequest) ProtoMessage() {}
+
+func (x *ConfirmToolCallRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_chat_v1_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmToolCallRequest.ProtoReflect.Descriptor instead.
+func (*ConfirmToolCallRequest) Descriptor() ([]byte, []int) {
+	return file_ai_chat_v1_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ConfirmToolCallRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ConfirmToolCallRequest) GetApproved() bool {
+	if x != nil {
+		return x.Approved
+	}
+	return false
+}
+
+// ConfirmToolCallResponse is the same frame as SendMessageResponse - the answer
+// carries on where it stopped, and may stop again on a further change.
+type ConfirmToolCallResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Delta         string                 `protobuf:"bytes,1,opt,name=delta,proto3" json:"delta,omitempty"`
+	Done          bool                   `protobuf:"varint,2,opt,name=done,proto3" json:"done,omitempty"`
+	Message       *Message               `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	ToolCall      *ToolCall              `protobuf:"bytes,4,opt,name=tool_call,json=toolCall,proto3" json:"tool_call,omitempty"`
+	ToolProposal  *ToolProposal          `protobuf:"bytes,5,opt,name=tool_proposal,json=toolProposal,proto3" json:"tool_proposal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfirmToolCallResponse) Reset() {
+	*x = ConfirmToolCallResponse{}
+	mi := &file_ai_chat_v1_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmToolCallResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmToolCallResponse) ProtoMessage() {}
+
+func (x *ConfirmToolCallResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_chat_v1_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmToolCallResponse.ProtoReflect.Descriptor instead.
+func (*ConfirmToolCallResponse) Descriptor() ([]byte, []int) {
+	return file_ai_chat_v1_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ConfirmToolCallResponse) GetDelta() string {
+	if x != nil {
+		return x.Delta
+	}
+	return ""
+}
+
+func (x *ConfirmToolCallResponse) GetDone() bool {
+	if x != nil {
+		return x.Done
+	}
+	return false
+}
+
+func (x *ConfirmToolCallResponse) GetMessage() *Message {
+	if x != nil {
+		return x.Message
+	}
+	return nil
+}
+
+func (x *ConfirmToolCallResponse) GetToolCall() *ToolCall {
+	if x != nil {
+		return x.ToolCall
+	}
+	return nil
+}
+
+func (x *ConfirmToolCallResponse) GetToolProposal() *ToolProposal {
+	if x != nil {
+		return x.ToolProposal
+	}
+	return nil
+}
+
 type ListMessagesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -402,7 +546,7 @@ type ListMessagesRequest struct {
 
 func (x *ListMessagesRequest) Reset() {
 	*x = ListMessagesRequest{}
-	mi := &file_ai_chat_v1_service_proto_msgTypes[8]
+	mi := &file_ai_chat_v1_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -414,7 +558,7 @@ func (x *ListMessagesRequest) String() string {
 func (*ListMessagesRequest) ProtoMessage() {}
 
 func (x *ListMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_chat_v1_service_proto_msgTypes[8]
+	mi := &file_ai_chat_v1_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -427,7 +571,7 @@ func (x *ListMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_ai_chat_v1_service_proto_rawDescGZIP(), []int{8}
+	return file_ai_chat_v1_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListMessagesRequest) GetId() string {
@@ -446,7 +590,7 @@ type ListMessagesResponse struct {
 
 func (x *ListMessagesResponse) Reset() {
 	*x = ListMessagesResponse{}
-	mi := &file_ai_chat_v1_service_proto_msgTypes[9]
+	mi := &file_ai_chat_v1_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +602,7 @@ func (x *ListMessagesResponse) String() string {
 func (*ListMessagesResponse) ProtoMessage() {}
 
 func (x *ListMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_chat_v1_service_proto_msgTypes[9]
+	mi := &file_ai_chat_v1_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +615,7 @@ func (x *ListMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_ai_chat_v1_service_proto_rawDescGZIP(), []int{9}
+	return file_ai_chat_v1_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListMessagesResponse) GetMessages() []*Message {
@@ -500,21 +644,32 @@ const file_ai_chat_v1_service_proto_rawDesc = "" +
 	"\x12SendMessageRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12$\n" +
 	"\acontent\x18\x02 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\x01\x18\x80@R\acontent\"\xa1\x01\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80@R\acontent\"\xe0\x01\n" +
 	"\x13SendMessageResponse\x12\x14\n" +
 	"\x05delta\x18\x01 \x01(\tR\x05delta\x12\x12\n" +
 	"\x04done\x18\x02 \x01(\bR\x04done\x12-\n" +
 	"\amessage\x18\x03 \x01(\v2\x13.ai.chat.v1.MessageR\amessage\x121\n" +
-	"\ttool_call\x18\x04 \x01(\v2\x14.ai.chat.v1.ToolCallR\btoolCall\"/\n" +
+	"\ttool_call\x18\x04 \x01(\v2\x14.ai.chat.v1.ToolCallR\btoolCall\x12=\n" +
+	"\rtool_proposal\x18\x05 \x01(\v2\x18.ai.chat.v1.ToolProposalR\ftoolProposal\"N\n" +
+	"\x16ConfirmToolCallRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x1a\n" +
+	"\bapproved\x18\x02 \x01(\bR\bapproved\"\xe4\x01\n" +
+	"\x17ConfirmToolCallResponse\x12\x14\n" +
+	"\x05delta\x18\x01 \x01(\tR\x05delta\x12\x12\n" +
+	"\x04done\x18\x02 \x01(\bR\x04done\x12-\n" +
+	"\amessage\x18\x03 \x01(\v2\x13.ai.chat.v1.MessageR\amessage\x121\n" +
+	"\ttool_call\x18\x04 \x01(\v2\x14.ai.chat.v1.ToolCallR\btoolCall\x12=\n" +
+	"\rtool_proposal\x18\x05 \x01(\v2\x18.ai.chat.v1.ToolProposalR\ftoolProposal\"/\n" +
 	"\x13ListMessagesRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"G\n" +
 	"\x14ListMessagesResponse\x12/\n" +
-	"\bmessages\x18\x01 \x03(\v2\x13.ai.chat.v1.MessageR\bmessages2\xfe\x06\n" +
+	"\bmessages\x18\x01 \x03(\v2\x13.ai.chat.v1.MessageR\bmessages2\xea\b\n" +
 	"\vChatService\x12\xb1\x01\n" +
 	"\rCreateSession\x12 .ai.chat.v1.CreateSessionRequest\x1a!.ai.chat.v1.CreateSessionResponse\"[\x8a\xa6\x1d7\"5Create a new chat session for the authenticated user.\x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/chat/sessions\x12\xad\x01\n" +
 	"\fListSessions\x12\x1f.ai.chat.v1.ListSessionsRequest\x1a .ai.chat.v1.ListSessionsResponse\"Z\x8a\xa6\x1d9\"7List chat sessions belonging to the authenticated user.\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/chat/sessions\x12\xa9\x01\n" +
 	"\rDeleteSession\x12 .ai.chat.v1.DeleteSessionRequest\x1a!.ai.chat.v1.DeleteSessionResponse\"S\x8a\xa6\x1d-\"+Delete a chat session and all its messages.\x82\xd3\xe4\x93\x02\x1c*\x1a/api/v1/chat/sessions/{id}\x12\xb7\x01\n" +
-	"\vSendMessage\x12\x1e.ai.chat.v1.SendMessageRequest\x1a\x1f.ai.chat.v1.SendMessageResponse\"e\x8a\xa6\x1d3\"1Send a message and stream the assistant response.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/chat/sessions/{id}/messages0\x01\x12\xa4\x01\n" +
+	"\vSendMessage\x12\x1e.ai.chat.v1.SendMessageRequest\x1a\x1f.ai.chat.v1.SendMessageResponse\"e\x8a\xa6\x1d3\"1Send a message and stream the assistant response.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/chat/sessions/{id}/messages0\x01\x12\xe9\x01\n" +
+	"\x0fConfirmToolCall\x12\".ai.chat.v1.ConfirmToolCallRequest\x1a#.ai.chat.v1.ConfirmToolCallResponse\"\x8a\x01\x8a\xa6\x1dX\"VApprove or decline a change the assistant proposed, and stream the rest of the answer.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/chat/proposals/{id}/confirm0\x01\x12\xa4\x01\n" +
 	"\fListMessages\x12\x1f.ai.chat.v1.ListMessagesRequest\x1a .ai.chat.v1.ListMessagesResponse\"Q\x8a\xa6\x1d\"\" List messages in a chat session.\x82\xd3\xe4\x93\x02%\x12#/api/v1/chat/sessions/{id}/messagesB)Z'github.com/linzhengen/hub/pb/ai/chat/v1b\x06proto3"
 
 var (
@@ -529,43 +684,52 @@ func file_ai_chat_v1_service_proto_rawDescGZIP() []byte {
 	return file_ai_chat_v1_service_proto_rawDescData
 }
 
-var file_ai_chat_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_ai_chat_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_ai_chat_v1_service_proto_goTypes = []any{
-	(*CreateSessionRequest)(nil),  // 0: ai.chat.v1.CreateSessionRequest
-	(*CreateSessionResponse)(nil), // 1: ai.chat.v1.CreateSessionResponse
-	(*ListSessionsRequest)(nil),   // 2: ai.chat.v1.ListSessionsRequest
-	(*ListSessionsResponse)(nil),  // 3: ai.chat.v1.ListSessionsResponse
-	(*DeleteSessionRequest)(nil),  // 4: ai.chat.v1.DeleteSessionRequest
-	(*DeleteSessionResponse)(nil), // 5: ai.chat.v1.DeleteSessionResponse
-	(*SendMessageRequest)(nil),    // 6: ai.chat.v1.SendMessageRequest
-	(*SendMessageResponse)(nil),   // 7: ai.chat.v1.SendMessageResponse
-	(*ListMessagesRequest)(nil),   // 8: ai.chat.v1.ListMessagesRequest
-	(*ListMessagesResponse)(nil),  // 9: ai.chat.v1.ListMessagesResponse
-	(*Session)(nil),               // 10: ai.chat.v1.Session
-	(*Message)(nil),               // 11: ai.chat.v1.Message
-	(*ToolCall)(nil),              // 12: ai.chat.v1.ToolCall
+	(*CreateSessionRequest)(nil),    // 0: ai.chat.v1.CreateSessionRequest
+	(*CreateSessionResponse)(nil),   // 1: ai.chat.v1.CreateSessionResponse
+	(*ListSessionsRequest)(nil),     // 2: ai.chat.v1.ListSessionsRequest
+	(*ListSessionsResponse)(nil),    // 3: ai.chat.v1.ListSessionsResponse
+	(*DeleteSessionRequest)(nil),    // 4: ai.chat.v1.DeleteSessionRequest
+	(*DeleteSessionResponse)(nil),   // 5: ai.chat.v1.DeleteSessionResponse
+	(*SendMessageRequest)(nil),      // 6: ai.chat.v1.SendMessageRequest
+	(*SendMessageResponse)(nil),     // 7: ai.chat.v1.SendMessageResponse
+	(*ConfirmToolCallRequest)(nil),  // 8: ai.chat.v1.ConfirmToolCallRequest
+	(*ConfirmToolCallResponse)(nil), // 9: ai.chat.v1.ConfirmToolCallResponse
+	(*ListMessagesRequest)(nil),     // 10: ai.chat.v1.ListMessagesRequest
+	(*ListMessagesResponse)(nil),    // 11: ai.chat.v1.ListMessagesResponse
+	(*Session)(nil),                 // 12: ai.chat.v1.Session
+	(*Message)(nil),                 // 13: ai.chat.v1.Message
+	(*ToolCall)(nil),                // 14: ai.chat.v1.ToolCall
+	(*ToolProposal)(nil),            // 15: ai.chat.v1.ToolProposal
 }
 var file_ai_chat_v1_service_proto_depIdxs = []int32{
-	10, // 0: ai.chat.v1.CreateSessionResponse.session:type_name -> ai.chat.v1.Session
-	10, // 1: ai.chat.v1.ListSessionsResponse.sessions:type_name -> ai.chat.v1.Session
-	11, // 2: ai.chat.v1.SendMessageResponse.message:type_name -> ai.chat.v1.Message
-	12, // 3: ai.chat.v1.SendMessageResponse.tool_call:type_name -> ai.chat.v1.ToolCall
-	11, // 4: ai.chat.v1.ListMessagesResponse.messages:type_name -> ai.chat.v1.Message
-	0,  // 5: ai.chat.v1.ChatService.CreateSession:input_type -> ai.chat.v1.CreateSessionRequest
-	2,  // 6: ai.chat.v1.ChatService.ListSessions:input_type -> ai.chat.v1.ListSessionsRequest
-	4,  // 7: ai.chat.v1.ChatService.DeleteSession:input_type -> ai.chat.v1.DeleteSessionRequest
-	6,  // 8: ai.chat.v1.ChatService.SendMessage:input_type -> ai.chat.v1.SendMessageRequest
-	8,  // 9: ai.chat.v1.ChatService.ListMessages:input_type -> ai.chat.v1.ListMessagesRequest
-	1,  // 10: ai.chat.v1.ChatService.CreateSession:output_type -> ai.chat.v1.CreateSessionResponse
-	3,  // 11: ai.chat.v1.ChatService.ListSessions:output_type -> ai.chat.v1.ListSessionsResponse
-	5,  // 12: ai.chat.v1.ChatService.DeleteSession:output_type -> ai.chat.v1.DeleteSessionResponse
-	7,  // 13: ai.chat.v1.ChatService.SendMessage:output_type -> ai.chat.v1.SendMessageResponse
-	9,  // 14: ai.chat.v1.ChatService.ListMessages:output_type -> ai.chat.v1.ListMessagesResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	12, // 0: ai.chat.v1.CreateSessionResponse.session:type_name -> ai.chat.v1.Session
+	12, // 1: ai.chat.v1.ListSessionsResponse.sessions:type_name -> ai.chat.v1.Session
+	13, // 2: ai.chat.v1.SendMessageResponse.message:type_name -> ai.chat.v1.Message
+	14, // 3: ai.chat.v1.SendMessageResponse.tool_call:type_name -> ai.chat.v1.ToolCall
+	15, // 4: ai.chat.v1.SendMessageResponse.tool_proposal:type_name -> ai.chat.v1.ToolProposal
+	13, // 5: ai.chat.v1.ConfirmToolCallResponse.message:type_name -> ai.chat.v1.Message
+	14, // 6: ai.chat.v1.ConfirmToolCallResponse.tool_call:type_name -> ai.chat.v1.ToolCall
+	15, // 7: ai.chat.v1.ConfirmToolCallResponse.tool_proposal:type_name -> ai.chat.v1.ToolProposal
+	13, // 8: ai.chat.v1.ListMessagesResponse.messages:type_name -> ai.chat.v1.Message
+	0,  // 9: ai.chat.v1.ChatService.CreateSession:input_type -> ai.chat.v1.CreateSessionRequest
+	2,  // 10: ai.chat.v1.ChatService.ListSessions:input_type -> ai.chat.v1.ListSessionsRequest
+	4,  // 11: ai.chat.v1.ChatService.DeleteSession:input_type -> ai.chat.v1.DeleteSessionRequest
+	6,  // 12: ai.chat.v1.ChatService.SendMessage:input_type -> ai.chat.v1.SendMessageRequest
+	8,  // 13: ai.chat.v1.ChatService.ConfirmToolCall:input_type -> ai.chat.v1.ConfirmToolCallRequest
+	10, // 14: ai.chat.v1.ChatService.ListMessages:input_type -> ai.chat.v1.ListMessagesRequest
+	1,  // 15: ai.chat.v1.ChatService.CreateSession:output_type -> ai.chat.v1.CreateSessionResponse
+	3,  // 16: ai.chat.v1.ChatService.ListSessions:output_type -> ai.chat.v1.ListSessionsResponse
+	5,  // 17: ai.chat.v1.ChatService.DeleteSession:output_type -> ai.chat.v1.DeleteSessionResponse
+	7,  // 18: ai.chat.v1.ChatService.SendMessage:output_type -> ai.chat.v1.SendMessageResponse
+	9,  // 19: ai.chat.v1.ChatService.ConfirmToolCall:output_type -> ai.chat.v1.ConfirmToolCallResponse
+	11, // 20: ai.chat.v1.ChatService.ListMessages:output_type -> ai.chat.v1.ListMessagesResponse
+	15, // [15:21] is the sub-list for method output_type
+	9,  // [9:15] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_ai_chat_v1_service_proto_init() }
@@ -580,7 +744,7 @@ func file_ai_chat_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_chat_v1_service_proto_rawDesc), len(file_ai_chat_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

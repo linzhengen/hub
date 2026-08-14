@@ -226,6 +226,77 @@ func (x *ToolCall) GetArguments() string {
 	return ""
 }
 
+// ToolProposal is a change the assistant wants to make and has not made.
+//
+// The stream that carries one ends with it: the change happens only if the
+// user answers ConfirmToolCall with approved = true, and until then nothing has
+// been written.
+//
+// name and arguments are the real operation and the real arguments rather than
+// a summary of them. "Add three users to a group" is not something a person can
+// meaningfully agree to; the operation and the ids are.
+type ToolProposal struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Name is the tool the assistant proposes to run, e.g. "add_users_to_group".
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// Arguments is the JSON object it proposes to pass, as it supplied it.
+	Arguments     string `protobuf:"bytes,3,opt,name=arguments,proto3" json:"arguments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ToolProposal) Reset() {
+	*x = ToolProposal{}
+	mi := &file_ai_chat_v1_model_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ToolProposal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ToolProposal) ProtoMessage() {}
+
+func (x *ToolProposal) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_chat_v1_model_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ToolProposal.ProtoReflect.Descriptor instead.
+func (*ToolProposal) Descriptor() ([]byte, []int) {
+	return file_ai_chat_v1_model_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ToolProposal) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ToolProposal) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ToolProposal) GetArguments() string {
+	if x != nil {
+		return x.Arguments
+	}
+	return ""
+}
+
 var File_ai_chat_v1_model_proto protoreflect.FileDescriptor
 
 const file_ai_chat_v1_model_proto_rawDesc = "" +
@@ -248,7 +319,11 @@ const file_ai_chat_v1_model_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"<\n" +
 	"\bToolCall\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1c\n" +
-	"\targuments\x18\x02 \x01(\tR\targumentsB)Z'github.com/linzhengen/hub/pb/ai/chat/v1b\x06proto3"
+	"\targuments\x18\x02 \x01(\tR\targuments\"P\n" +
+	"\fToolProposal\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
+	"\targuments\x18\x03 \x01(\tR\targumentsB)Z'github.com/linzhengen/hub/pb/ai/chat/v1b\x06proto3"
 
 var (
 	file_ai_chat_v1_model_proto_rawDescOnce sync.Once
@@ -262,16 +337,17 @@ func file_ai_chat_v1_model_proto_rawDescGZIP() []byte {
 	return file_ai_chat_v1_model_proto_rawDescData
 }
 
-var file_ai_chat_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_ai_chat_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_ai_chat_v1_model_proto_goTypes = []any{
 	(*Session)(nil),               // 0: ai.chat.v1.Session
 	(*Message)(nil),               // 1: ai.chat.v1.Message
 	(*ToolCall)(nil),              // 2: ai.chat.v1.ToolCall
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*ToolProposal)(nil),          // 3: ai.chat.v1.ToolProposal
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_ai_chat_v1_model_proto_depIdxs = []int32{
-	3, // 0: ai.chat.v1.Session.created_at:type_name -> google.protobuf.Timestamp
-	3, // 1: ai.chat.v1.Message.created_at:type_name -> google.protobuf.Timestamp
+	4, // 0: ai.chat.v1.Session.created_at:type_name -> google.protobuf.Timestamp
+	4, // 1: ai.chat.v1.Message.created_at:type_name -> google.protobuf.Timestamp
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -290,7 +366,7 @@ func file_ai_chat_v1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_chat_v1_model_proto_rawDesc), len(file_ai_chat_v1_model_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -10,6 +10,8 @@ export interface ApiOperation {
 
 /** Operations of ai.chat.v1.ChatService. */
 export const chatServiceOperations = {
+  /** Approve or decline a change the assistant proposed, and stream the rest of the answer. */
+  confirmToolCall: { method: 'POST', path: '/chat/proposals/{id}/confirm', pathParams: ['id'] },
   /** Create a new chat session for the authenticated user. */
   createSession: { method: 'POST', path: '/chat/sessions', pathParams: [] },
   /** Delete a chat session and all its messages. */

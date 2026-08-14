@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChatService_CreateSession_FullMethodName = "/ai.chat.v1.ChatService/CreateSession"
-	ChatService_ListSessions_FullMethodName  = "/ai.chat.v1.ChatService/ListSessions"
-	ChatService_DeleteSession_FullMethodName = "/ai.chat.v1.ChatService/DeleteSession"
-	ChatService_SendMessage_FullMethodName   = "/ai.chat.v1.ChatService/SendMessage"
-	ChatService_ListMessages_FullMethodName  = "/ai.chat.v1.ChatService/ListMessages"
+	ChatService_CreateSession_FullMethodName   = "/ai.chat.v1.ChatService/CreateSession"
+	ChatService_ListSessions_FullMethodName    = "/ai.chat.v1.ChatService/ListSessions"
+	ChatService_DeleteSession_FullMethodName   = "/ai.chat.v1.ChatService/DeleteSession"
+	ChatService_SendMessage_FullMethodName     = "/ai.chat.v1.ChatService/SendMessage"
+	ChatService_ConfirmToolCall_FullMethodName = "/ai.chat.v1.ChatService/ConfirmToolCall"
+	ChatService_ListMessages_FullMethodName    = "/ai.chat.v1.ChatService/ListMessages"
 )
 
 // ChatServiceClient is the client API for ChatService service.
@@ -34,6 +35,7 @@ type ChatServiceClient interface {
 	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 	DeleteSession(ctx context.Context, in *DeleteSessionRequest, opts ...grpc.CallOption) (*DeleteSessionResponse, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SendMessageResponse], error)
+	ConfirmToolCall(ctx context.Context, in *ConfirmToolCallRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ConfirmToolCallResponse], error)
 	ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error)
 }
 
@@ -94,6 +96,25 @@ func (c *chatServiceClient) SendMessage(ctx context.Context, in *SendMessageRequ
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ChatService_SendMessageClient = grpc.ServerStreamingClient[SendMessageResponse]
 
+func (c *chatServiceClient) ConfirmToolCall(ctx context.Context, in *ConfirmToolCallRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ConfirmToolCallResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ChatService_ServiceDesc.Streams[1], ChatService_ConfirmToolCall_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ConfirmToolCallRequest, ConfirmToolCallResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChatService_ConfirmToolCallClient = grpc.ServerStreamingClient[ConfirmToolCallResponse]
+
 func (c *chatServiceClient) ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListMessagesResponse)
@@ -112,6 +133,7 @@ type ChatServiceServer interface {
 	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	DeleteSession(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error)
 	SendMessage(*SendMessageRequest, grpc.ServerStreamingServer[SendMessageResponse]) error
+	ConfirmToolCall(*ConfirmToolCallRequest, grpc.ServerStreamingServer[ConfirmToolCallResponse]) error
 	ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error)
 }
 
@@ -133,6 +155,9 @@ func (UnimplementedChatServiceServer) DeleteSession(context.Context, *DeleteSess
 }
 func (UnimplementedChatServiceServer) SendMessage(*SendMessageRequest, grpc.ServerStreamingServer[SendMessageResponse]) error {
 	return status.Error(codes.Unimplemented, "method SendMessage not implemented")
+}
+func (UnimplementedChatServiceServer) ConfirmToolCall(*ConfirmToolCallRequest, grpc.ServerStreamingServer[ConfirmToolCallResponse]) error {
+	return status.Error(codes.Unimplemented, "method ConfirmToolCall not implemented")
 }
 func (UnimplementedChatServiceServer) ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMessages not implemented")
@@ -222,6 +247,17 @@ func _ChatService_SendMessage_Handler(srv interface{}, stream grpc.ServerStream)
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ChatService_SendMessageServer = grpc.ServerStreamingServer[SendMessageResponse]
 
+func _ChatService_ConfirmToolCall_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ConfirmToolCallRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChatServiceServer).ConfirmToolCall(m, &grpc.GenericServerStream[ConfirmToolCallRequest, ConfirmToolCallResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChatService_ConfirmToolCallServer = grpc.ServerStreamingServer[ConfirmToolCallResponse]
+
 func _ChatService_ListMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListMessagesRequest)
 	if err := dec(in); err != nil {
@@ -268,6 +304,11 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "SendMessage",
 			Handler:       _ChatService_SendMessage_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ConfirmToolCall",
+			Handler:       _ChatService_ConfirmToolCall_Handler,
 			ServerStreams: true,
 		},
 	},

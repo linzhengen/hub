@@ -25,6 +25,7 @@ type AuditLog struct {
 	Error       string
 	Client      string
 	CreatedAt   time.Time
+	ApprovalID  sql.NullString
 }
 
 type ChatMessage struct {
@@ -36,10 +37,22 @@ type ChatMessage struct {
 }
 
 type ChatSession struct {
-	ID        string
-	UserID    string
-	Title     string
-	CreatedAt time.Time
+	ID         string
+	UserID     string
+	Title      string
+	CreatedAt  time.Time
+	TokensUsed int64
+}
+
+type ChatToolProposal struct {
+	ID           string
+	SessionID    string
+	ToolName     string
+	Arguments    json.RawMessage
+	Continuation []byte
+	Status       string
+	CreatedAt    time.Time
+	DecidedAt    sql.NullTime
 }
 
 type Group struct {

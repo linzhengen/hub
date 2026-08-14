@@ -10,6 +10,9 @@ type Tool struct {
 	Name        string
 	Description string
 	InputSchema map[string]any
+	// Write is true for a tool that changes something. A write is never run on
+	// the model's say-so: the service pauses and asks the user first.
+	Write bool
 }
 
 // ToolBox is the set of operations the assistant can perform for a user.

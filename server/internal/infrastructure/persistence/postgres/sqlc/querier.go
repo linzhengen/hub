@@ -9,10 +9,13 @@ import (
 )
 
 type Querier interface {
+	// Adding rather than setting, so two streams on one session both count.
+	AddChatSessionTokens(ctx context.Context, arg AddChatSessionTokensParams) error
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (*AuditLog, error)
 	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (*ChatMessage, error)
 	CreateChatSession(ctx context.Context, arg CreateChatSessionParams) (*ChatSession, error)
+	CreateChatToolProposal(ctx context.Context, arg CreateChatToolProposalParams) (*ChatToolProposal, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) error
 	CreateGroupRole(ctx context.Context, arg CreateGroupRoleParams) error
 	CreatePermission(ctx context.Context, arg CreatePermissionParams) error
@@ -20,6 +23,9 @@ type Querier interface {
 	CreateRole(ctx context.Context, arg CreateRoleParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	CreateUserGroup(ctx context.Context, arg CreateUserGroupParams) error
+	// Deciding is conditional on the proposal still being pending, so two decisions
+	// racing cannot both run the change: the second updates no row.
+	DecideChatToolProposal(ctx context.Context, arg DecideChatToolProposalParams) (*ChatToolProposal, error)
 	DeleteChatSession(ctx context.Context, arg DeleteChatSessionParams) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
@@ -42,6 +48,9 @@ type Querier interface {
 	// returns no row, so it is indistinguishable from one that does not exist.
 	SelectChatSessionById(ctx context.Context, arg SelectChatSessionByIdParams) (*ChatSession, error)
 	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSession, error)
+	// Scoped by user_id through the session, for the same reason every other chat
+	// query is: a proposal belonging to someone else is absent, not refused.
+	SelectChatToolProposalById(ctx context.Context, arg SelectChatToolProposalByIdParams) (*ChatToolProposal, error)
 	SelectGroupById(ctx context.Context, id string) (*Group, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*Group, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRole, error)

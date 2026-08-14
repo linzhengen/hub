@@ -33,3 +33,20 @@ message ToolCall {
   // Arguments is the JSON object the assistant passed, as it supplied it.
   string arguments = 2;
 }
+
+// ToolProposal is a change the assistant wants to make and has not made.
+//
+// The stream that carries one ends with it: the change happens only if the
+// user answers ConfirmToolCall with approved = true, and until then nothing has
+// been written.
+//
+// name and arguments are the real operation and the real arguments rather than
+// a summary of them. "Add three users to a group" is not something a person can
+// meaningfully agree to; the operation and the ids are.
+message ToolProposal {
+  string id = 1;
+  // Name is the tool the assistant proposes to run, e.g. "add_users_to_group".
+  string name = 2;
+  // Arguments is the JSON object it proposes to pass, as it supplied it.
+  string arguments = 3;
+}
