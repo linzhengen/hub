@@ -25,9 +25,7 @@ func messageAskingFor(t *testing.T, text string, uses ...map[string]any) anthrop
 	if text != "" {
 		content = append(content, map[string]any{"type": "text", "text": text})
 	}
-	for _, use := range uses {
-		content = append(content, use)
-	}
+	content = append(content, uses...)
 	raw, err := json.Marshal(map[string]any{
 		"id":          "msg_1",
 		"type":        "message",
