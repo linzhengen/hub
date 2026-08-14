@@ -2,32 +2,29 @@
 // lets "Try it out" reach an API that is not this origin: the published site is
 // static, so the base URL and the bearer token come from the two inputs above
 // and never leave the browser.
+//
+// The endpoint is remembered across visits; the token deliberately is not. It
+// is a live credential for someone's hub instance, so it stays in the form
+// field and is gone when the tab closes.
 (() => {
   const container = document.getElementById('swagger-ui');
   const baseInput = document.getElementById('api-base');
   const tokenInput = document.getElementById('api-token');
   const urls = JSON.parse(container.dataset.specs);
 
-  const KEYS = { base: 'hub-docs.api-base', token: 'hub-docs.api-token' };
-  const load = (key) => {
+  const BASE_KEY = 'hub-docs.api-base';
+  try {
+    baseInput.value = window.localStorage.getItem(BASE_KEY) ?? '';
+  } catch {
+    /* storage blocked: the endpoint simply is not remembered */
+  }
+  baseInput.addEventListener('change', () => {
     try {
-      return window.localStorage.getItem(key) ?? '';
+      window.localStorage.setItem(BASE_KEY, baseInput.value.trim());
     } catch {
-      return '';
+      /* as above */
     }
-  };
-  const save = (key, value) => {
-    try {
-      window.localStorage.setItem(key, value);
-    } catch {
-      /* private browsing: the value simply is not remembered */
-    }
-  };
-
-  baseInput.value = load(KEYS.base);
-  tokenInput.value = load(KEYS.token);
-  baseInput.addEventListener('change', () => save(KEYS.base, baseInput.value.trim()));
-  tokenInput.addEventListener('change', () => save(KEYS.token, tokenInput.value.trim()));
+  });
 
   SwaggerUIBundle({
     domNode: container,

@@ -18,8 +18,9 @@
   </label>
 </div>
 <p class="explorer-note">
-  Both values stay in this browser (<code>localStorage</code>) and are only used
-  by <em>Try it out</em>. A remote server must allow this origin with CORS;
-  against a local <code>make dev</code> stack, use the base URL above.
+  Both values stay in this browser and are only used by <em>Try it out</em>. The
+  endpoint is remembered; the token is not stored and is gone when you close the
+  tab. A remote server must allow this origin with CORS; against a local
+  <code>make dev</code> stack, use the base URL above.
 </p>
 <div id="swagger-ui" data-specs='{{SPECS}}'></div>

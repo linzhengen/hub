@@ -57,10 +57,11 @@ const NAV = {
 const escapeHtml = (s) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+// slug builds a heading id. It is given the heading's plain text, never its
+// rendered HTML, so there is no markup to strip here.
 const slug = (s) =>
   s
     .toLowerCase()
-    .replace(/<[^>]*>/g, '')
     .replace(/[^\p{L}\p{N}\s-]/gu, '')
     .trim()
     .replace(/\s+/g, '-');
@@ -90,7 +91,9 @@ function markdown() {
       },
       heading({ tokens, depth }) {
         const text = this.parser.parseInline(tokens);
-        const base = slug(text) || `section-${depth}`;
+        // textRenderer yields the heading without any markup, which is what the
+        // id is derived from.
+        const base = slug(this.parser.parseInline(tokens, this.parser.textRenderer)) || `section-${depth}`;
         const count = (seen.get(base) ?? 0) + 1;
         seen.set(base, count);
         const id = count === 1 ? base : `${base}-${count}`;
