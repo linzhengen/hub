@@ -29,6 +29,13 @@ import (
 	// Importing the generated packages registers their descriptors with
 	// protoregistry.GlobalFiles, which is what the catalog is built from. They
 	// are blank imports because only the registration side effect is wanted.
+	//
+	// A service missing from this list is not a compile error and not a runtime
+	// error: it silently loses its RBAC rule, its CLI command, its row in the
+	// web client's operation table and its entry in the agent reference.
+	// TestDefaultCoversEveryService reads proto/ and fails when one is missing,
+	// so add the import here when you add a service.
+	_ "github.com/linzhengen/hub/server/pb/ai/chat/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/group/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/resource/v1"

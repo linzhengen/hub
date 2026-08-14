@@ -11,6 +11,67 @@ Every operation below is reachable three ways:
 `rbac` is the permission the caller needs: the verb (`action`) on the
 resource identifier. A role granting `*` on `api.*` covers everything.
 
+## ai.chat.v1.ChatService
+
+### CreateSession
+
+Create a new chat session for the authenticated user.
+
+- command: `hub chat create-session`
+- endpoint: `POST /api/v1/chat/sessions`
+- rbac: none, any authenticated caller may use this rpc
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--title` | `title` | body | string | length <= 255 |
+
+### DeleteSession
+
+Delete a chat session and all its messages.
+
+- command: `hub chat delete-session`
+- endpoint: `DELETE /api/v1/chat/sessions/{id}`
+- rbac: none, any authenticated caller may use this rpc
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### ListMessages
+
+List messages in a chat session.
+
+- command: `hub chat list-messages`
+- endpoint: `GET /api/v1/chat/sessions/{id}/messages`
+- rbac: none, any authenticated caller may use this rpc
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### ListSessions
+
+List chat sessions belonging to the authenticated user.
+
+- command: `hub chat list-sessions`
+- endpoint: `GET /api/v1/chat/sessions`
+- rbac: none, any authenticated caller may use this rpc
+
+Takes no parameters.
+
+### SendMessage
+
+Send a message and stream the assistant response.
+
+- command: `hub chat send-message`
+- endpoint: `POST /api/v1/chat/sessions/{id}/messages`
+- rbac: none, any authenticated caller may use this rpc
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--content` | `content` | body | string | length 1..8192 |
+
 ## system.group.v1.GroupService
 
 ### AddRolesToGroup
