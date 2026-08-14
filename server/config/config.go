@@ -29,8 +29,25 @@ type EnvConfig struct {
 }
 
 type Anthropic struct {
-	APIKey string `env:"ANTHROPIC_API_KEY,required"`
+	// APIKey is required for the real client, but not when Mock is on: local
+	// development would otherwise be blocked on an Anthropic account.
+	APIKey string `env:"ANTHROPIC_API_KEY"`
 	Model  string `env:"ANTHROPIC_MODEL,default=claude-sonnet-4-6"`
+	// Mock swaps the Anthropic client for a scripted one that needs neither a
+	// key nor network access. See internal/infrastructure/ai/mock.
+	Mock bool `env:"ANTHROPIC_MOCK,default=false"`
+	// MockDelay is the pause the mock leaves between streamed deltas, so the
+	// chat UI can be seen filling in rather than appearing at once.
+	MockDelay time.Duration `env:"ANTHROPIC_MOCK_DELAY,default=25ms"`
+}
+
+// Validate keeps the API key mandatory for the real client while letting the
+// mock backend run without one.
+func (a Anthropic) Validate() error {
+	if !a.Mock && a.APIKey == "" {
+		return errors.New("ANTHROPIC_API_KEY is required unless ANTHROPIC_MOCK=true")
+	}
+	return nil
 }
 
 type Grpc struct {
@@ -120,6 +137,16 @@ type KeyCloak struct {
 	AdminUser    string `env:"KEYCLOAK_ADMIN_USER,default=admin"`
 	AdminPass    string `env:"KEYCLOAK_ADMIN_PASS,default=admin"`
 	AdminRealm   string `env:"KEYCLOAK_ADMIN_REALM,default=master"`
+}
+
+// Validate runs every embedded section's own check. It has to be spelled out:
+// with more than one embedded Validate, a promoted call would be ambiguous, and
+// a section whose check nobody calls is a section that silently does nothing.
+func (c EnvConfig) Validate() error {
+	if err := c.CORS.Validate(); err != nil {
+		return err
+	}
+	return c.Anthropic.Validate()
 }
 
 func New(ctx context.Context) EnvConfig {

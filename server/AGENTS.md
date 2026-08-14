@@ -108,6 +108,24 @@ The project relies heavily on code generation to reduce boilerplate and ensure c
 
 -   **Source:** Configuration is loaded from environment variables.
 -   **File:** The structure of the configuration is defined in `config/config.go` using the `github.com/sethvargo/go-envconfig` library. This file shows all available configuration options (e.g., database connection, Keycloak settings, gRPC port).
+-   **Validation:** `EnvConfig.Validate` runs each section's own `Validate`. A new
+    section's check has to be added there by hand - a promoted call would be
+    ambiguous once more than one section has one, and a check nobody calls is a
+    check that does not exist.
+
+### AI chat backend
+
+`chat.Service` has two implementations and `ANTHROPIC_MOCK` picks between them:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `ANTHROPIC_MOCK` | `false` | `true` swaps the Anthropic client for `internal/infrastructure/ai/mock`, which streams a scripted reply. `server/.env.local` sets it, so `make dev` needs no key and no network. |
+| `ANTHROPIC_MOCK_DELAY` | `25ms` | Pause between streamed deltas, so the UI is seen filling in. |
+| `ANTHROPIC_API_KEY` | - | Required unless `ANTHROPIC_MOCK=true`; the config refuses to start otherwise. |
+| `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Model id, echoed by the mock so a screenshot says which backend answered. |
+
+Sending a message containing `!error` makes the mock fail the stream, which is
+how the client's error path is exercised without breaking the real API.
 
 ## 8. Commands & Entrypoints
 
