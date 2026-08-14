@@ -8,6 +8,20 @@ export interface ApiOperation {
   readonly pathParams: readonly string[];
 }
 
+/** Operations of ai.chat.v1.ChatService. */
+export const chatServiceOperations = {
+  /** Create a new chat session for the authenticated user. */
+  createSession: { method: 'POST', path: '/chat/sessions', pathParams: [] },
+  /** Delete a chat session and all its messages. */
+  deleteSession: { method: 'DELETE', path: '/chat/sessions/{id}', pathParams: ['id'] },
+  /** List messages in a chat session. */
+  listMessages: { method: 'GET', path: '/chat/sessions/{id}/messages', pathParams: ['id'] },
+  /** List chat sessions belonging to the authenticated user. */
+  listSessions: { method: 'GET', path: '/chat/sessions', pathParams: [] },
+  /** Send a message and stream the assistant response. */
+  sendMessage: { method: 'POST', path: '/chat/sessions/{id}/messages', pathParams: ['id'] },
+} as const satisfies Record<string, ApiOperation>;
+
 /** Operations of system.group.v1.GroupService. */
 export const groupServiceOperations = {
   /** Grant roles to a group, keeping the roles it already has. */

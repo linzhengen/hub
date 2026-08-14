@@ -1,6 +1,11 @@
 package apicatalog_test
 
 import (
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,14 +14,56 @@ import (
 	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
 
+// The catalog is built from protoregistry.GlobalFiles, which only knows the
+// generated packages something imported. That list used to be checked against a
+// hand-written one here, so forgetting the blank import and forgetting the line
+// in this test were the same mistake - which is how ai.chat.v1.ChatService came
+// to be absent from the RBAC rules, the CLI, the web client's operation table
+// and the agent reference at once, with every test still green.
+//
+// Reading proto/ instead means the expectation cannot be forgotten: a service
+// declared in a .proto but not imported by catalog.go fails here.
 func TestDefaultCoversEveryService(t *testing.T) {
-	assert.ElementsMatch(t, []string{
-		"system.group.v1.GroupService",
-		"system.permission.v1.PermissionService",
-		"system.resource.v1.ResourceService",
-		"system.role.v1.RoleService",
-		"user.v1.UserService",
-	}, apicatalog.Default().Services())
+	declared, err := servicesDeclaredInProtos(filepath.Join("..", "..", "proto"))
+	require.NoError(t, err)
+	require.NotEmpty(t, declared, "no .proto declared a service; the path is probably wrong")
+
+	assert.ElementsMatch(t, declared, apicatalog.Default().Services(),
+		"every service declared in proto/ needs a blank import in catalog.go")
+}
+
+var (
+	protoPackage = regexp.MustCompile(`(?m)^package\s+([\w.]+)\s*;`)
+	protoService = regexp.MustCompile(`(?m)^service\s+(\w+)\s*\{`)
+)
+
+// servicesDeclaredInProtos returns the fully qualified name of every service
+// declared under root. It reads the .proto files rather than the descriptors so
+// that it cannot share the omission it is checking for.
+func servicesDeclaredInProtos(root string) ([]string, error) {
+	var services []string
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || filepath.Ext(path) != ".proto" {
+			return err
+		}
+		source, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		names := protoService.FindAllStringSubmatch(string(source), -1)
+		if len(names) == 0 {
+			return nil
+		}
+		pkg := protoPackage.FindStringSubmatch(string(source))
+		if pkg == nil {
+			return fmt.Errorf("%s declares a service but no package", path)
+		}
+		for _, name := range names {
+			services = append(services, pkg[1]+"."+name[1])
+		}
+		return nil
+	})
+	return services, err
 }
 
 func TestOperationCarriesRestMappingAndRbacRule(t *testing.T) {
@@ -46,6 +93,16 @@ func TestPublicOperations(t *testing.T) {
 		}
 	}
 	assert.ElementsMatch(t, []string{
+		// ChatService declares public: true on every rpc. That had no effect
+		// while the service was missing from the catalog - the interceptor fell
+		// back to enforcing it - so registering the service is what makes the
+		// annotation live. Whether chat should stay open to every signed-in
+		// user is linzhengen/hub#117; this list follows the .proto until then.
+		"/ai.chat.v1.ChatService/CreateSession",
+		"/ai.chat.v1.ChatService/DeleteSession",
+		"/ai.chat.v1.ChatService/ListMessages",
+		"/ai.chat.v1.ChatService/ListSessions",
+		"/ai.chat.v1.ChatService/SendMessage",
 		"/user.v1.UserService/GetMe",
 		"/user.v1.UserService/GetMeMenus",
 		"/user.v1.UserService/SendMeVerifyEmail",
