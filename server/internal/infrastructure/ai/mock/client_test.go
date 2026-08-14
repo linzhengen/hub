@@ -23,7 +23,7 @@ func collect(t *testing.T, ch <-chan chatDomain.Delta) (string, []chatDomain.Del
 }
 
 func TestSendStreamsTheWholeReplyThenDone(t *testing.T) {
-	svc := mockInfra.New("claude-mock", 0)
+	svc := mockInfra.New("claude-mock", 0, nil)
 
 	ch, err := svc.Send(context.Background(), []*chatDomain.Message{
 		{Role: chatDomain.RoleUser, Content: "hello there"},
@@ -42,7 +42,7 @@ func TestSendStreamsTheWholeReplyThenDone(t *testing.T) {
 }
 
 func TestSendCountsTurns(t *testing.T) {
-	svc := mockInfra.New("claude-mock", 0)
+	svc := mockInfra.New("claude-mock", 0, nil)
 
 	ch, err := svc.Send(context.Background(), []*chatDomain.Message{
 		{Role: chatDomain.RoleUser, Content: "first"},
@@ -58,7 +58,7 @@ func TestSendCountsTurns(t *testing.T) {
 }
 
 func TestSendReportsAnErrorWhenTheTriggerIsPresent(t *testing.T) {
-	svc := mockInfra.New("claude-mock", 0)
+	svc := mockInfra.New("claude-mock", 0, nil)
 
 	ch, err := svc.Send(context.Background(), []*chatDomain.Message{
 		{Role: chatDomain.RoleUser, Content: "please !error now"},
@@ -73,7 +73,7 @@ func TestSendReportsAnErrorWhenTheTriggerIsPresent(t *testing.T) {
 }
 
 func TestSendStopsWhenTheContextIsCancelled(t *testing.T) {
-	svc := mockInfra.New("claude-mock", 0)
+	svc := mockInfra.New("claude-mock", 0, nil)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	ch, err := svc.Send(ctx, []*chatDomain.Message{
@@ -88,7 +88,7 @@ func TestSendStopsWhenTheContextIsCancelled(t *testing.T) {
 }
 
 func TestSendWithoutAUserMessage(t *testing.T) {
-	svc := mockInfra.New("claude-mock", 0)
+	svc := mockInfra.New("claude-mock", 0, nil)
 
 	ch, err := svc.Send(context.Background(), nil)
 	require.NoError(t, err)

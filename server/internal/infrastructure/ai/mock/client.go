@@ -19,16 +19,23 @@ import (
 // message that contains it.
 const ErrorTrigger = "!error"
 
+// ToolTrigger makes the mock call a tool before answering, so the tool path -
+// permission filtering, dispatch, redaction - can be exercised without an API
+// key. The real model decides for itself when to call one; the mock cannot, so
+// it is asked explicitly.
+const ToolTrigger = "!tool"
+
 type client struct {
 	model string
 	delay time.Duration
+	tools chatDomain.ToolBox
 }
 
 // New returns a chat.Service that streams a scripted reply. delay is the pause
 // between deltas; it makes the stream observable in the browser and can be set
 // to zero in tests.
-func New(model string, delay time.Duration) chatDomain.Service {
-	return &client{model: model, delay: delay}
+func New(model string, delay time.Duration, tools chatDomain.ToolBox) chatDomain.Service {
+	return &client{model: model, delay: delay, tools: tools}
 }
 
 func (c *client) Send(ctx context.Context, messages []*chatDomain.Message) (<-chan chatDomain.Delta, error) {
@@ -46,7 +53,7 @@ func (c *client) Send(ctx context.Context, messages []*chatDomain.Message) (<-ch
 			return
 		}
 
-		for _, part := range split(c.reply(prompt, turn)) {
+		for _, part := range split(c.reply(ctx, prompt, turn)) {
 			if !c.pause(ctx) {
 				return
 			}
@@ -63,7 +70,7 @@ func (c *client) Send(ctx context.Context, messages []*chatDomain.Message) (<-ch
 // reply is deliberately made of Markdown - headings, a list, a fenced block -
 // because the chat UI has to render all of it and a plain sentence would not
 // exercise that.
-func (c *client) reply(prompt string, turn int) string {
+func (c *client) reply(ctx context.Context, prompt string, turn int) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "**%s (mock)** ・ turn %d\n\n", c.model, turn)
 
@@ -77,12 +84,47 @@ func (c *client) reply(prompt string, turn int) string {
 
 	b.WriteString("This answer comes from the mock LLM backend, not from Anthropic. ")
 	b.WriteString("It streams in several deltas so the client behaves exactly as it does against the real API.\n\n")
+	if strings.Contains(prompt, ToolTrigger) {
+		b.WriteString(c.callFirstTool(ctx))
+		b.WriteString("\n\n")
+	}
+
 	b.WriteString("- Send a message containing `" + ErrorTrigger + "` to make the stream fail.\n")
+	b.WriteString("- Send a message containing `" + ToolTrigger + "` to make it call a tool.\n")
 	b.WriteString("- Set `ANTHROPIC_MOCK_DELAY` to change how fast the deltas arrive.\n")
 	b.WriteString("- Talk to the real API instead:\n\n")
 	b.WriteString("```sh\nANTHROPIC_MOCK=false ANTHROPIC_API_KEY=sk-ant-... make dev\n```\n")
 
 	return b.String()
+}
+
+// callFirstTool runs the first tool the caller is allowed to use and reports
+// what came back, which is enough to see that listing, permission filtering,
+// dispatch and redaction all work end to end.
+func (c *client) callFirstTool(ctx context.Context) string {
+	if c.tools == nil {
+		return "No tool box is wired up."
+	}
+	tools, err := c.tools.Tools(ctx)
+	if err != nil {
+		return fmt.Sprintf("Listing tools failed: %v", err)
+	}
+	if len(tools) == 0 {
+		return "You are not permitted to call any tool."
+	}
+
+	names := make([]string, len(tools))
+	for i, tool := range tools {
+		names[i] = tool.Name
+	}
+
+	result, err := c.tools.Call(ctx, tools[0].Name, nil)
+	if err != nil {
+		return fmt.Sprintf("Tools you may call: %s\n\nCalling `%s` failed: %v",
+			strings.Join(names, ", "), tools[0].Name, err)
+	}
+	return fmt.Sprintf("Tools you may call: %s\n\n`%s` returned:\n\n```json\n%s\n```",
+		strings.Join(names, ", "), tools[0].Name, result)
 }
 
 // pause waits between deltas, reporting whether the stream should continue.

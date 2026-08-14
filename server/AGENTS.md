@@ -125,7 +125,44 @@ The project relies heavily on code generation to reduce boilerplate and ensure c
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Model id, echoed by the mock so a screenshot says which backend answered. |
 
 Sending a message containing `!error` makes the mock fail the stream, which is
-how the client's error path is exercised without breaking the real API.
+how the client's error path is exercised without breaking the real API, and
+`!tool` makes it call a tool (below).
+
+### Chat tools
+
+`internal/infrastructure/ai/tool` lets the assistant answer from hub's own data
+instead of from memory. It is **read-only**; writes arrive with an approval flow
+separately (linzhengen/hub#125).
+
+-   **What is exposed** is the `exposed` allow list in `toolbox.go`, written out
+    by gRPC method path. It is deliberately not a rule such as "anything called
+    `Get*`", so adding an rpc to the API never silently hands it to a model.
+-   **What a tool looks like** comes from `pkg/apicatalog`: the summary from the
+    proto annotation becomes the description, and the request fields become the
+    JSON Schema, constraints included.
+-   **Who may call it** is checked twice. `Tools` filters the list with
+    `auth.Service.Enforce` so the model is not offered work the user cannot do,
+    and `Call` dispatches through `UnaryAuthzInterceptor`, which is what
+    actually holds - a permission can be revoked between the two.
+-   **How it is dispatched**: in-process, through the generated
+    `ServiceDesc.Methods[i].Handler`, with the server's own authorization and
+    validation interceptors passed in. There is therefore **one** implementation
+    of "may this user do this" and **one** of "is this request well formed", and
+    a tool call goes through both. No HTTP request is made and no bearer token
+    is held, which is why this is not routed back through the REST gateway.
+    **Do not reimplement `Enforce` or protovalidate here.**
+-   **What comes back** is protojson with the `hidden` fields removed at any
+    depth - `email` above all. Answering "who is in the admin group" needs a
+    name, not an address, and the address is the field most directly usable for
+    contacting or impersonating someone. Retention of what *is* sent is a
+    separate question, settled by the Anthropic data-retention configuration.
+-   **Prompt injection**: tool results carry text other users wrote - group
+    descriptions, resource metadata, user names. The system prompt frames them
+    as data rather than instructions. Keep that framing when editing it.
+
+`maxToolRounds` in the Claude client bounds how many times the model may call
+tools before it has to answer. Two rounds is the normal case ("find the group,
+then read its members"), so a single round is not enough.
 
 ## 8. Commands & Entrypoints
 
