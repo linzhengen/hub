@@ -47,7 +47,7 @@ func TestEnvConfig_ValidateRunsEverySection(t *testing.T) {
 	}
 
 	badCORS := valid
-	badCORS.CORS.AllowCredentials = true
+	badCORS.AllowCredentials = true
 	if err := badCORS.Validate(); err == nil {
 		t.Error("Validate() = nil, want the CORS error")
 	}

@@ -83,7 +83,7 @@ func TestSendStopsWhenTheContextIsCancelled(t *testing.T) {
 	cancel()
 
 	// The channel must still be closed, otherwise the use case's reader leaks.
-	for range ch { //nolint:revive // draining is the point
+	for range ch {
 	}
 }
 

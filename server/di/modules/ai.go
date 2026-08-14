@@ -18,11 +18,11 @@ func ProvideAI(c *dig.Container) {
 	// infrastructure
 	must(c.Provide(chatInfra.New))
 	must(c.Provide(func(cfg config.EnvConfig) chat.Service {
-		if cfg.Anthropic.Mock {
+		if cfg.Mock {
 			logger.Infof("AI chat is using the mock LLM backend (ANTHROPIC_MOCK=true); no request reaches Anthropic")
-			return mockInfra.New(cfg.Anthropic.Model, cfg.Anthropic.MockDelay)
+			return mockInfra.New(cfg.Model, cfg.MockDelay)
 		}
-		return claudeInfra.New(cfg.Anthropic.APIKey, cfg.Anthropic.Model)
+		return claudeInfra.New(cfg.APIKey, cfg.Model)
 	}))
 	// usecase
 	must(c.Provide(aiUseCase.NewChatUseCase))
