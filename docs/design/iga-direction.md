@@ -160,17 +160,17 @@ rpc は `CreateAccessRequest` / `ListAccessRequests` / `CancelAccessRequest` /
 
 ## 4. 実装順
 
-| # | 内容 | 依存 |
-|:--|:--|:--|
-| 1 | 期限付き付与（schema + `Policy.ExpiresAt` + `Enforce` + API） | — |
-| 2 | 権限の逆引き / explain API | — |
-| 3 | アクセス申請・承認ドメイン（proto + domain + usecase） | 1 |
-| 4 | 申請・承認の Web UI | 3 |
-| 5 | AI 連携（`CreateAccessRequest` を提案可能に、`Decide` を遮断、explain を read ツールに） | 2, 3 |
-| 6 | サービスアカウント + API トークン | — |
+| # | Issue | 内容 | 依存 |
+|:--|:--|:--|:--|
+| 1 | [#132](https://github.com/linzhengen/hub/issues/132) | 期限付き付与（schema + `Policy.ExpiresAt` + `Enforce` + API） | — |
+| 2 | [#133](https://github.com/linzhengen/hub/issues/133) | 権限の逆引き / explain API | — |
+| 3 | [#134](https://github.com/linzhengen/hub/issues/134) | アクセス申請・承認ドメイン（proto + domain + usecase） | #132 |
+| 4 | [#135](https://github.com/linzhengen/hub/issues/135) | 申請・承認の Web UI | #134 |
+| 5 | [#136](https://github.com/linzhengen/hub/issues/136) | AI 連携（`CreateAccessRequest` を提案可能に、`Decide` を遮断、explain を read ツールに） | #133, #134 |
+| 6 | [#137](https://github.com/linzhengen/hub/issues/137) | サービスアカウント + API トークン | — |
 
-1 と 2 は互いに独立で、どちらも既存の面を壊さずに入る。
-3 以降は 1 の上に積む。
+#132 と #133 は互いに独立で、どちらも既存の面を壊さずに入る。
+#134 以降は #132 の上に積む。
 
 ## 5. 今回は扱わないもの
 
