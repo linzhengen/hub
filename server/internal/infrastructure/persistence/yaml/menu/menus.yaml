@@ -20,6 +20,16 @@ menus:
     metadata:
       icon: "UserIcon"
     status: "Active"
+  - id: "00000000-0000-0000-3000-000000000000"
+    name: "AI Chat"
+    type: "menu"
+    path: "/chat"
+    component: "Chat"
+    displayOrder: 3
+    description: ""
+    metadata:
+      icon: "ChatIcon"
+    status: "Active"
   - id: "00000000-0000-0000-9000-000000000000"
     name: "システム管理"
     type: "menu"

@@ -15,41 +15,26 @@ service ChatService {
       post: "/api/v1/chat/sessions"
       body: "*"
     };
-    option (hub.annotations.v1.method_rule) = {
-      public: true
-      summary: "Create a new chat session for the authenticated user."
-    };
+    option (hub.annotations.v1.method_rule) = {summary: "Create a new chat session for the authenticated user."};
   }
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {
     option (google.api.http) = {get: "/api/v1/chat/sessions"};
-    option (hub.annotations.v1.method_rule) = {
-      public: true
-      summary: "List chat sessions belonging to the authenticated user."
-    };
+    option (hub.annotations.v1.method_rule) = {summary: "List chat sessions belonging to the authenticated user."};
   }
   rpc DeleteSession(DeleteSessionRequest) returns (DeleteSessionResponse) {
     option (google.api.http) = {delete: "/api/v1/chat/sessions/{id}"};
-    option (hub.annotations.v1.method_rule) = {
-      public: true
-      summary: "Delete a chat session and all its messages."
-    };
+    option (hub.annotations.v1.method_rule) = {summary: "Delete a chat session and all its messages."};
   }
   rpc SendMessage(SendMessageRequest) returns (stream SendMessageResponse) {
     option (google.api.http) = {
       post: "/api/v1/chat/sessions/{id}/messages"
       body: "*"
     };
-    option (hub.annotations.v1.method_rule) = {
-      public: true
-      summary: "Send a message and stream the assistant response."
-    };
+    option (hub.annotations.v1.method_rule) = {summary: "Send a message and stream the assistant response."};
   }
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {
     option (google.api.http) = {get: "/api/v1/chat/sessions/{id}/messages"};
-    option (hub.annotations.v1.method_rule) = {
-      public: true
-      summary: "List messages in a chat session."
-    };
+    option (hub.annotations.v1.method_rule) = {summary: "List messages in a chat session."};
   }
 }
 
