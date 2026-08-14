@@ -94,7 +94,7 @@ func (cl *client) converse(ctx context.Context, params anthropic.MessageNewParam
 		}
 
 		params.Messages = append(params.Messages, message.ToParam())
-		results := cl.runTools(ctx, message)
+		results := cl.runTools(ctx, message, ch)
 		if len(results) == 0 {
 			// Nothing to feed back would make the next round identical, so stop
 			// rather than spin.
@@ -145,7 +145,11 @@ func (cl *client) stream(
 // A refusal or a bad argument comes back as a tool_result marked as an error
 // rather than ending the conversation: the model is expected to read it and
 // either correct itself or tell the user it cannot do that.
-func (cl *client) runTools(ctx context.Context, message anthropic.Message) []anthropic.ContentBlockParamUnion {
+func (cl *client) runTools(
+	ctx context.Context,
+	message anthropic.Message,
+	ch chan<- chatDomain.Delta,
+) []anthropic.ContentBlockParamUnion {
 	var results []anthropic.ContentBlockParamUnion
 	for _, block := range message.Content {
 		use, ok := block.AsAny().(anthropic.ToolUseBlock)
@@ -158,6 +162,13 @@ func (cl *client) runTools(ctx context.Context, message anthropic.Message) []ant
 		}
 
 		logger.Infof("claude tool call: %s", use.Name)
+		// Announced before the call, not after: the point is to explain the
+		// pause while it happens.
+		send(ctx, ch, chatDomain.Delta{Tool: &chatDomain.ToolCall{
+			Name:      use.Name,
+			Arguments: string(use.Input),
+		}})
+
 		result, err := cl.tools.Call(ctx, use.Name, use.Input)
 		if err != nil {
 			results = append(results, anthropic.NewToolResultBlock(use.ID, err.Error(), true))

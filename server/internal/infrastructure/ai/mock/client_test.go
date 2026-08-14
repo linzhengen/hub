@@ -97,3 +97,53 @@ func TestSendWithoutAUserMessage(t *testing.T) {
 	require.NotEmpty(t, text)
 	require.True(t, deltas[len(deltas)-1].Done)
 }
+
+// stubTools is the smallest tool box that reports one tool.
+type stubTools struct{}
+
+func (stubTools) Tools(context.Context) ([]chatDomain.Tool, error) {
+	return []chatDomain.Tool{{Name: "list_user"}}, nil
+}
+
+func (stubTools) Call(context.Context, string, []byte) (string, error) {
+	return `{"users":[]}`, nil
+}
+
+// The mock exists so the client's tool display can be built without an API key,
+// which only works if it actually emits the frame. It did not, once: the call
+// was missing and nothing failed except an "unused method" lint.
+func TestSendAnnouncesToolsWhenTheTriggerIsPresent(t *testing.T) {
+	svc := mockInfra.New("claude-mock", 0, stubTools{})
+
+	ch, err := svc.Send(context.Background(), []*chatDomain.Message{
+		{Role: chatDomain.RoleUser, Content: "please !tool now"},
+	})
+	require.NoError(t, err)
+
+	text, deltas := collect(t, ch)
+
+	var tools []*chatDomain.ToolCall
+	for _, d := range deltas {
+		if d.Tool != nil {
+			tools = append(tools, d.Tool)
+			require.Empty(t, d.Text, "a tool frame carries no text, so it cannot corrupt the answer")
+		}
+	}
+	require.Len(t, tools, 1)
+	require.Equal(t, "list_user", tools[0].Name)
+	require.Contains(t, text, "list_user", "the reply also reports what it called")
+}
+
+func TestSendDoesNotAnnounceToolsWithoutTheTrigger(t *testing.T) {
+	svc := mockInfra.New("claude-mock", 0, stubTools{})
+
+	ch, err := svc.Send(context.Background(), []*chatDomain.Message{
+		{Role: chatDomain.RoleUser, Content: "just talk to me"},
+	})
+	require.NoError(t, err)
+
+	_, deltas := collect(t, ch)
+	for _, d := range deltas {
+		require.Nil(t, d.Tool)
+	}
+}

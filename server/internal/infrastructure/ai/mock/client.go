@@ -53,6 +53,10 @@ func (c *client) Send(ctx context.Context, messages []*chatDomain.Message) (<-ch
 			return
 		}
 
+		if strings.Contains(prompt, ToolTrigger) {
+			c.announceTool(ctx, ch)
+		}
+
 		for _, part := range split(c.reply(ctx, prompt, turn)) {
 			if !c.pause(ctx) {
 				return
@@ -96,6 +100,22 @@ func (c *client) reply(ctx context.Context, prompt string, turn int) string {
 	b.WriteString("```sh\nANTHROPIC_MOCK=false ANTHROPIC_API_KEY=sk-ant-... make dev\n```\n")
 
 	return b.String()
+}
+
+// announceTool emits the same frame the real client emits before a lookup, so
+// the client's tool display can be built and tested without an API key.
+func (c *client) announceTool(ctx context.Context, ch chan<- chatDomain.Delta) {
+	if c.tools == nil {
+		return
+	}
+	tools, err := c.tools.Tools(ctx)
+	if err != nil || len(tools) == 0 {
+		return
+	}
+	send(ctx, ch, chatDomain.Delta{Tool: &chatDomain.ToolCall{
+		Name:      tools[0].Name,
+		Arguments: "{}",
+	}})
 }
 
 // callFirstTool runs the first tool the caller is allowed to use and reports

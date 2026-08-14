@@ -57,10 +57,17 @@ func (h *chatHandler) SendMessage(req *pbchatv1.SendMessageRequest, stream pbcha
 		if delta.Error != nil {
 			return status.Errorf(codes.Internal, "stream error: %v", delta.Error)
 		}
-		if err := stream.Send(&pbchatv1.SendMessageResponse{
+		response := &pbchatv1.SendMessageResponse{
 			Delta: delta.Text,
 			Done:  delta.Done,
-		}); err != nil {
+		}
+		if delta.Tool != nil {
+			response.ToolCall = &pbchatv1.ToolCall{
+				Name:      delta.Tool.Name,
+				Arguments: delta.Tool.Arguments,
+			}
+		}
+		if err := stream.Send(response); err != nil {
 			return err
 		}
 		if delta.Done {

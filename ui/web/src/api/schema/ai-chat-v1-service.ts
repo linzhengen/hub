@@ -95,6 +95,7 @@ export interface components {
             delta?: string;
             done?: boolean;
             message?: components["schemas"]["v1Message"];
+            toolCall?: components["schemas"]["v1ToolCall"];
         };
         v1Session: {
             /** Format: date-time */
@@ -102,6 +103,20 @@ export interface components {
             id?: string;
             title?: string;
             userId?: string;
+        };
+        /**
+         * @description ToolCall reports that the assistant looked something up while answering, so
+         *     the client can say what it is doing rather than sit silent through a pause.
+         *
+         *     It carries what was asked, not what came back: the arguments explain the
+         *     pause ("looking up the admin group") while a result would put data on screen
+         *     that the answer itself is about to summarise anyway.
+         */
+        v1ToolCall: {
+            /** @description Arguments is the JSON object the assistant passed, as it supplied it. */
+            arguments?: string;
+            /** @description Name is the tool the assistant called, e.g. "list_user". */
+            name?: string;
         };
     };
     responses: never;

@@ -70,6 +70,8 @@ message SendMessageResponse {
   string delta = 1;
   bool done = 2;
   Message message = 3;
+  // ToolCall is set instead of delta on the frames that report a lookup.
+  ToolCall tool_call = 4;
 }
 
 message ListMessagesRequest {

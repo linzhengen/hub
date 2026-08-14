@@ -1,9 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { chatService } from '@/services/chat';
-import type { Message } from '@/services/chat';
+import type { Message, ToolCall } from '@/services/chat';
 
 export const chatMessagesQueryKey = (sessionId: string) => ['chatMessages', sessionId];
+
+/** The turn in flight, tagged with the session it belongs to. */
+interface InFlight {
+  sessionId: string;
+  content: string;
+  answer: string;
+  /** The lookups reported so far, oldest first. */
+  tools: ToolCall[];
+}
+
+/** A failed turn, tagged the same way. */
+interface Failure {
+  sessionId: string;
+  message: string;
+}
 
 /**
  * Holds one session's conversation, including the answer still being streamed.
@@ -14,19 +29,6 @@ export const chatMessagesQueryKey = (sessionId: string) => ['chatMessages', sess
  * both are dropped and the query is refetched, so the rendered history always
  * settles on what the server actually stored.
  */
-/** The turn in flight, tagged with the session it belongs to. */
-interface InFlight {
-  sessionId: string;
-  content: string;
-  answer: string;
-}
-
-/** A failed turn, tagged the same way. */
-interface Failure {
-  sessionId: string;
-  message: string;
-}
-
 export const useChatConversation = (sessionId: string | null) => {
   const queryClient = useQueryClient();
   const [inFlight, setInFlight] = useState<InFlight | null>(null);
@@ -58,15 +60,22 @@ export const useChatConversation = (sessionId: string | null) => {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      setInFlight({ sessionId, content, answer: '' });
+      setInFlight({ sessionId, content, answer: '', tools: [] });
       setFailure(null);
 
       try {
         let answer = '';
+        const tools: ToolCall[] = [];
         for await (const response of chatService.sendMessage(sessionId, content, controller.signal)) {
+          // A frame reports either a piece of the answer or a lookup, never
+          // both, so the two accumulate independently.
+          if (response.toolCall) {
+            tools.push(response.toolCall);
+            setInFlight({ sessionId, content, answer, tools: [...tools] });
+          }
           if (response.delta) {
             answer += response.delta;
-            setInFlight({ sessionId, content, answer });
+            setInFlight({ sessionId, content, answer, tools: [...tools] });
           }
           if (response.done) break;
         }
@@ -103,6 +112,8 @@ export const useChatConversation = (sessionId: string | null) => {
     pendingContent: active?.content ?? null,
     /** The answer so far. Empty until the first delta arrives. */
     streamingText: active?.answer ?? '',
+    /** The lookups made while answering, oldest first. */
+    toolCalls: active?.tools ?? [],
     isStreaming: active !== null,
     error: activeFailure?.message ?? null,
     send,

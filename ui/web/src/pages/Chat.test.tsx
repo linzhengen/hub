@@ -108,6 +108,31 @@ describe('Chat', () => {
     expect(await screen.findByText('simulated upstream failure')).toBeTruthy();
   });
 
+  it('ツールを呼んでいる間その内容を表示する', async () => {
+    let release: (() => void) | undefined;
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    sendMessage.mockReturnValue(
+      (async function* () {
+        yield { toolCall: { name: 'list_group', arguments: '{"groupName":"admin"}' } };
+        await blocked;
+        yield { done: true };
+      })() as ReturnType<typeof chatService.sendMessage>,
+    );
+
+    renderChat();
+    await screen.findByText('First chat');
+
+    fireEvent.change(await screen.findByLabelText('Message'), { target: { value: 'admin には誰がいる?' } });
+    fireEvent.click(screen.getByRole('button', { name: /send/i }));
+
+    expect(await screen.findByText('list_group')).toBeTruthy();
+    expect(await screen.findByText('{"groupName":"admin"}')).toBeTruthy();
+
+    release?.();
+  });
+
   it('空のままでは送信できない', async () => {
     renderChat();
     await screen.findByText('First chat');
