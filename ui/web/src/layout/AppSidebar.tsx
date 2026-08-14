@@ -161,6 +161,7 @@ const AppSidebar: React.FC = () => {
       dynamicNavItems ??
       [
         { icon: <GridIcon />, name: "Dashboard", path: "/dashboard" },
+        { icon: <ChatIcon />, name: "AI Chat", path: "/chat" },
         { icon: <UserIcon />, name: "Users", path: "/users" },
         {
           name: "Systems",
