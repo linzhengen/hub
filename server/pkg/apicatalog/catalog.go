@@ -36,6 +36,7 @@ import (
 	// TestDefaultCoversEveryService reads proto/ and fails when one is missing,
 	// so add the import here when you add a service.
 	_ "github.com/linzhengen/hub/server/pb/ai/chat/v1"
+	_ "github.com/linzhengen/hub/server/pb/system/audit/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/group/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/resource/v1"

@@ -22,6 +22,12 @@ export const chatServiceOperations = {
   sendMessage: { method: 'POST', path: '/chat/sessions/{id}/messages', pathParams: ['id'] },
 } as const satisfies Record<string, ApiOperation>;
 
+/** Operations of system.audit.v1.AuditService. */
+export const auditServiceOperations = {
+  /** List recorded changes to users, groups, roles, permissions and resources, newest first. */
+  listAuditLog: { method: 'GET', path: '/audit-logs', pathParams: [] },
+} as const satisfies Record<string, ApiOperation>;
+
 /** Operations of system.group.v1.GroupService. */
 export const groupServiceOperations = {
   /** Grant roles to a group, keeping the roles it already has. */

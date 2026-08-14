@@ -164,6 +164,50 @@ separately (linzhengen/hub#125).
 tools before it has to answer. Two rounds is the normal case ("find the group,
 then read its members"), so a single round is not enough.
 
+## 7.1 Audit log
+
+`audit_logs` records every attempt to change the authorization graph: who made
+it, by which route, what they asked for and whether it was allowed. Without it
+there is no way to answer "why is this person in the admin group", which is the
+question asked first whenever something is wrong.
+
+-   **Where it is recorded** is `UnaryAuditInterceptor`, one interceptor rather
+    than a line in each use case. Every path into the API - REST gateway, gRPC,
+    the `hub` CLI, the assistant's tools - dispatches through the same chain, so
+    there is nowhere for a change to go unrecorded. A use case that forgot to
+    call a recorder would be silent, and silence is what the log has to rule
+    out.
+-   **The actor is always a person.** The assistant is a *channel*, never an
+    actor: a tool call it makes is recorded against the user it was answering,
+    with `channel = ai_chat` and the chat session id. "The AI did it" answers
+    nothing, so nothing may record it that way.
+-   **What is recorded** is the `audited` map in `interceptor/audit.go`, written
+    out by gRPC method path, and `notAudited` holds the mutating rpcs
+    deliberately left out with the reason. `UnclassifiedMutations` reports any
+    mutating rpc in neither; `TestEveryMutationIsClassified` fails on one and the
+    server logs one at startup. **Adding a mutating rpc means adding it to one
+    of the two maps.**
+-   **Refused attempts are recorded too**, which is why the interceptor runs
+    *before* authorization. Someone trying to grant themselves admin and being
+    told no is exactly the event worth having.
+-   **A change and its record commit together.** The interceptor opens the
+    transaction the use cases below join, so a failed record rolls the change
+    back rather than leaving it unexplained. A failed *attempt* is recorded
+    outside that transaction, since it was rolled back.
+-   **Secrets never reach it**: the `secret` list is stripped from the recorded
+    arguments at any depth. Add to that list, not to a per-message exception.
+-   **Reading it** is `ListAuditLog` - `hub api call GET /api/v1/audit-logs`, or
+    from the assistant, which has the same read-only tool. Filters: actor,
+    resource, action, target, channel and a time range.
+-   **Not covered**: `cli seed`, `cli resource-import`, migrations and hand-run
+    SQL do not pass through gRPC and so are not recorded. They are operator
+    actions on the box rather than API calls, and the deployment's own access
+    controls are what accounts for them.
+
+Adding the service means its RBAC resource has to exist: run `cli
+resource-import` on an existing install, or nobody can be granted
+`ListAuditLog`.
+
 ## 8. Commands & Entrypoints
 
 The `cmd/` directory contains multiple entrypoints for the application:

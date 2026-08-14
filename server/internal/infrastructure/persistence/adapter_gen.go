@@ -11,6 +11,22 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+// AuditLogModel represents a AuditLog in the database
+type AuditLogModel struct {
+	ID          string
+	ActorUserID string
+	Channel     string
+	AiSessionID string
+	Resource    string
+	Action      string
+	TargetID    string
+	Arguments   json.RawMessage
+	Succeeded   bool
+	Error       string
+	Client      string
+	CreatedAt   time.Time
+}
+
 // ChatMessageModel represents a ChatMessage in the database
 type ChatMessageModel struct {
 	ID        string
@@ -127,6 +143,7 @@ type Querier interface {
 	WithTx(tx *sql.Tx) Querier
 
 	AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error
+	CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string) (*AuditLogModel, error)
 	CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error)
 	CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error)
 	CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string) error
@@ -198,6 +215,39 @@ func (p *PostgreSQLQuerier) AddPermissionToRole(ctx context.Context, RoleID stri
 		RoleID:       RoleID,
 		PermissionID: PermissionID,
 	})
+
+}
+
+func (p *PostgreSQLQuerier) CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string) (*AuditLogModel, error) {
+	row, err := p.q.CreateAuditLog(ctx, postgressqlc.CreateAuditLogParams{
+		ActorUserID: ActorUserID,
+		Channel:     Channel,
+		AiSessionID: sql.NullString{String: AiSessionID, Valid: AiSessionID != ""},
+		Resource:    Resource,
+		Action:      Action,
+		TargetID:    TargetID,
+		Arguments:   Arguments,
+		Succeeded:   Succeeded,
+		Error:       Error,
+		Client:      Client,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &AuditLogModel{
+		ID:          row.ID,
+		ActorUserID: row.ActorUserID,
+		Channel:     row.Channel,
+		AiSessionID: row.AiSessionID.String,
+		Resource:    row.Resource,
+		Action:      row.Action,
+		TargetID:    row.TargetID,
+		Arguments:   row.Arguments,
+		Succeeded:   row.Succeeded,
+		Error:       row.Error,
+		Client:      row.Client,
+		CreatedAt:   row.CreatedAt,
+	}, nil
 
 }
 

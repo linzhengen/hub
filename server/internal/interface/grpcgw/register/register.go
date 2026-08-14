@@ -10,6 +10,7 @@ import (
 
 	"github.com/linzhengen/hub/server/config"
 	pbchatv1 "github.com/linzhengen/hub/server/pb/ai/chat/v1"
+	pbauditv1 "github.com/linzhengen/hub/server/pb/system/audit/v1"
 	pbgrouupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
@@ -34,6 +35,7 @@ func New(
 	mux := runtime.NewServeMux(muxOpts...)
 	must(pbuserv1.RegisterUserServiceHandler(ctx, mux, conn))
 	must(pbrolev1.RegisterRoleServiceHandler(ctx, mux, conn))
+	must(pbauditv1.RegisterAuditServiceHandler(ctx, mux, conn))
 	must(pbpermissionv1.RegisterPermissionServiceHandler(ctx, mux, conn))
 	must(pbresourcev1.RegisterResourceServiceHandler(ctx, mux, conn))
 	must(pbgrouupv1.RegisterGroupServiceHandler(ctx, mux, conn))

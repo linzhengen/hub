@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
+	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (*AuditLog, error)
 	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (*ChatMessage, error)
 	CreateChatSession(ctx context.Context, arg CreateChatSessionParams) (*ChatSession, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) error

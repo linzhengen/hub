@@ -46,6 +46,9 @@ var exposed = map[string]bool{
 	"/system.permission.v1.PermissionService/GetPermission":  true,
 	"/system.resource.v1.ResourceService/ListResource":       true,
 	"/system.resource.v1.ResourceService/GetResource":        true,
+	// The audit log answers "who added them to that group, and when" without
+	// anyone having to write SQL, which is the question it exists for.
+	"/system.audit.v1.AuditService/ListAuditLog": true,
 }
 
 // hidden lists response fields the assistant never needs, removed from every

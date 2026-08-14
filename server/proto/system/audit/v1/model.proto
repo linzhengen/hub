@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package system.audit.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/audit/v1";
+
+// Channel is the route a recorded change arrived by: CHANNEL_API is the user
+// calling the API themselves (the console, the hub CLI, or a direct request),
+// and CHANNEL_AI_CHAT is the assistant calling it while answering them, with
+// session_id saying in which conversation.
+//
+// The per-value comments this would normally carry are left out on purpose: the
+// OpenAPI generator renders them into a description that the web client's
+// schema generator cannot parse.
+enum Channel {
+  CHANNEL_UNSPECIFIED = 0;
+  CHANNEL_API = 1;
+  CHANNEL_AI_CHAT = 2;
+}
+
+// AuditLog is one recorded attempt to change the authorization graph.
+//
+// The actor is always a person. A change the assistant made is recorded against
+// the user it was answering, with channel telling them apart.
+message AuditLog {
+  string id = 1;
+  string actor_user_id = 2;
+  Channel channel = 3;
+  // The chat session the assistant was answering in. Empty for every other
+  // channel.
+  string session_id = 4;
+  // The RBAC resource and verb of the operation, so a record reads the same way
+  // a permission does.
+  string resource = 5;
+  string action = 6;
+  // The entity that was changed, when the operation names one.
+  string target_id = 7;
+  // The request as it arrived, as JSON, with secrets removed.
+  string arguments = 8;
+  // False for an attempt that was refused or failed. Those are recorded too.
+  bool succeeded = 9;
+  string error = 10;
+  // What the caller said it was - a user agent. Unverified.
+  string client = 11;
+  google.protobuf.Timestamp created_at = 12;
+}

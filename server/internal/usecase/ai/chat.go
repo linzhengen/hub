@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/linzhengen/hub/server/internal/domain/ai/chat"
+	"github.com/linzhengen/hub/server/internal/domain/audit"
 	"github.com/linzhengen/hub/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/server/pkg/logger"
 )
@@ -116,6 +117,15 @@ func (uc *chatUseCase) SendMessage(ctx context.Context, sessionId, content strin
 		logger.Errorf("SendMessage load history: %v", err)
 		return nil, err
 	}
+
+	// Everything the assistant does from here runs on the user's behalf, so the
+	// context carries which conversation asked. Any tool call it makes is
+	// recorded against this user with the ai_chat channel and this session id -
+	// the assistant is the route, the user is still the actor.
+	ctx = audit.NewContext(ctx, audit.Source{
+		Channel:   audit.ChannelAIChat,
+		SessionId: sessionId,
+	})
 
 	upstream, err := uc.svc.Send(ctx, history)
 	if err != nil {
