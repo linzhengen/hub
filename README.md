@@ -4,6 +4,8 @@
 
 **hub** is an open-source identity and access management platform built with a Go backend, React frontend, Keycloak authentication, and Kubernetes-ready infrastructure.
 
+📖 **[Documentation](https://linzhengen.github.io/hub/)** — guides, the [API explorer](https://linzhengen.github.io/hub/api.html) (Swagger UI) and the [API reference](https://linzhengen.github.io/hub/api-reference.html).
+
 ## Screenshots
 
 | Login | Dashboard |
@@ -198,6 +200,7 @@ hub auth token
 
 ## Development Guidelines
 
+- [Documentation Site Guide](docs/AGENTS.md)
 - [Backend Guide](server/AGENTS.md)
 - [Frontend Guide](ui/web/AGENTS.md)
 - [Keycloak Theme Guide](ui/keycloak-theme/AGENTS.md)

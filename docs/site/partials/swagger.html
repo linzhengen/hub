@@ -1,0 +1,26 @@
+<div class="prose">
+  <h1 id="api-explorer">API explorer</h1>
+  <p class="explorer-intro">
+    Every operation below comes from the OpenAPI documents in
+    <code>server/openapi/</code>, which <code>make gen</code> derives from the
+    <code>.proto</code> files the server routes on. Pick a service in the
+    <em>Select a definition</em> box.
+  </p>
+</div>
+<div class="explorer-controls">
+  <label class="explorer-field">
+    <span class="explorer-label">API base URL</span>
+    <input id="api-base" type="url" placeholder="http://localhost:9090" spellcheck="false" />
+  </label>
+  <label class="explorer-field">
+    <span class="explorer-label">Bearer token <code>hub auth token</code></span>
+    <input id="api-token" type="password" placeholder="eyJhbGciOi…" spellcheck="false" />
+  </label>
+</div>
+<p class="explorer-note">
+  Both values stay in this browser and are only used by <em>Try it out</em>. The
+  endpoint is remembered; the token is not stored and is gone when you close the
+  tab. A remote server must allow this origin with CORS; against a local
+  <code>make dev</code> stack, use the base URL above.
+</p>
+<div id="swagger-ui" data-specs='{{SPECS}}'></div>

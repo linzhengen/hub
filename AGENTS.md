@@ -12,6 +12,7 @@ The codebase is split into:
 - **Keycloak Theme** (`/ui/keycloak-theme`): Custom themes for Keycloak.
 - **Infrastructure (Terraform)** (`/infra/tf`): IaC using Terraform.
 - **Infrastructure (Kubernetes)** (`/infra/k8s`): Kubernetes manifests and overlays.
+- **Documentation site** (`/docs`): the GitHub Pages site — guides, the Swagger API explorer and the generated API reference.
 
 ## Backend Workflow
 
@@ -33,6 +34,14 @@ The codebase is split into:
 - Use `--dry-run` before anything destructive.
 - The `hub-api` agent skill (`.agents/skills/hub-api`) documents all of this for
   AI agents.
+
+## Documentation Workflow
+
+- Read `docs/AGENTS.md` for details.
+- `cd docs && pnpm serve` builds and serves the site locally.
+- The guides are Markdown in `docs/site/`; the API explorer and the API
+  reference are assembled at build time from `server/openapi/` and the
+  reference `make gen` writes. Do not copy either into the site by hand.
 
 ## Frontend Workflow
 

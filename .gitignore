@@ -111,3 +111,6 @@ ui/web/.playwright/
 # protoc-gen-openapiv2 intermediates; cmd/openapi223 converts these into the
 # committed openapi/**/service.yaml
 server/openapi/**/*.swagger.json
+
+# Documentation site build output; `docs/build.mjs` regenerates it
+docs/_site/

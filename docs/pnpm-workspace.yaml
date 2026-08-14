@@ -1,0 +1,8 @@
+# pnpm settings for docs. pnpm 11 reads them from here rather than from the
+# "pnpm" field of package.json.
+
+# swagger-ui-dist depends on @scarf/scarf, whose install script reports
+# analytics home. The site only needs the files in the package, so the script is
+# declined rather than left undecided - pnpm fails the install in CI otherwise.
+allowBuilds:
+  "@scarf/scarf": false
