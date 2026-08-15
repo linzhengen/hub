@@ -85,6 +85,35 @@ Send a message and stream the assistant response.
 | `--id` | `id` | path | string | uuid |
 | `--content` | `content` | body | string | length 1..8192 |
 
+## system.access.v1.AccessService
+
+### ExplainUserAccess
+
+Explain whether a user is allowed an operation, listing every route that allows it.
+
+- command: `hub access explain-user-access`
+- endpoint: `GET /api/v1/access/explain`
+- rbac: `ExplainUserAccess` on `api.system.access.v1.AccessService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--user-id` | `userId` | query | string | uuid |
+| `--resource` | `resource` | query | string | length 1..255 |
+| `--action` | `action` | query | string | length 1..255 |
+
+### ListPrincipalsForOperation
+
+List the users allowed an operation, with the routes that allow it.
+
+- command: `hub access list-principals-for-operation`
+- endpoint: `GET /api/v1/access/principals`
+- rbac: `ListPrincipalsForOperation` on `api.system.access.v1.AccessService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--resource` | `resource` | query | string | length 1..255 |
+| `--action` | `action` | query | string | length 1..255 |
+
 ## system.audit.v1.AuditService
 
 ### ListAuditLog

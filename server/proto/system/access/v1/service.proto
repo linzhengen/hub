@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package system.access.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "hub/annotations/v1/annotations.proto";
+import "system/access/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/access/v1";
+
+// AccessService reads the authorization graph the other system services edit,
+// and answers questions about it that a list of users, groups and roles cannot:
+// why somebody is allowed something, and who else is.
+//
+// It reaches the same decision the authorization interceptor does, through the
+// same pattern matching, and reports the reasons behind it. Nothing here
+// changes a permission.
+service AccessService {
+  rpc ExplainUserAccess(ExplainUserAccessRequest) returns (ExplainUserAccessResponse) {
+    option (google.api.http) = {get: "/api/v1/access/explain"};
+    option (hub.annotations.v1.method_rule) = {summary: "Explain whether a user is allowed an operation, listing every route that allows it."};
+  }
+  rpc ListPrincipalsForOperation(ListPrincipalsForOperationRequest) returns (ListPrincipalsForOperationResponse) {
+    option (google.api.http) = {get: "/api/v1/access/principals"};
+    option (hub.annotations.v1.method_rule) = {summary: "List the users allowed an operation, with the routes that allow it."};
+  }
+}
+
+message ExplainUserAccessRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // The resource and verb as the server enforces them - `api.user.v1.UserService`
+  // and `ListUser` - not a REST path. `hub api describe <rpc>` prints the pair
+  // for any operation.
+  string resource = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  string action = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+}
+
+message ExplainUserAccessResponse {
+  // Allowed is the answer the authorization interceptor would give the same
+  // question. It is exactly `paths` being non-empty, carried explicitly so a
+  // caller reading only this field cannot misread an empty list.
+  bool allowed = 1;
+  repeated AccessPath paths = 2;
+}
+
+message ListPrincipalsForOperationRequest {
+  string resource = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  string action = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+}
+
+message ListPrincipalsForOperationResponse {
+  repeated Principal principals = 1;
+}

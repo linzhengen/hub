@@ -40,3 +40,62 @@ func (r *Repository) FindUserAuthorizedPolicies(ctx context.Context, userId stri
 func (r *Repository) Revision(ctx context.Context) (int64, error) {
 	return persistence.GetQ(ctx, r.q).SelectRbacRevision(ctx)
 }
+
+func (r *Repository) FindUserAccessPaths(ctx context.Context, userId string) ([]auth.AccessPath, error) {
+	rows, err := persistence.GetQ(ctx, r.q).SelectUserAccessPath(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	paths := make([]auth.AccessPath, 0, len(rows))
+	for _, row := range rows {
+		paths = append(paths, auth.AccessPath{
+			GroupId:      row.GroupID,
+			GroupName:    row.GroupName,
+			RoleId:       row.RoleID,
+			RoleName:     row.RoleName,
+			PermissionId: row.PermissionID,
+			Object:       row.Identifier,
+			Action:       row.Verb,
+		})
+	}
+	return paths, nil
+}
+
+func (r *Repository) FindAccessPaths(ctx context.Context) ([]auth.AccessPath, error) {
+	rows, err := persistence.GetQ(ctx, r.q).SelectAccessPath(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	paths := make([]auth.AccessPath, 0, len(rows))
+	for _, row := range rows {
+		paths = append(paths, auth.AccessPath{
+			GroupId:      row.GroupID,
+			GroupName:    row.GroupName,
+			RoleId:       row.RoleID,
+			RoleName:     row.RoleName,
+			PermissionId: row.PermissionID,
+			Object:       row.Identifier,
+			Action:       row.Verb,
+		})
+	}
+	return paths, nil
+}
+
+func (r *Repository) FindMemberships(ctx context.Context) ([]auth.Membership, error) {
+	rows, err := persistence.GetQ(ctx, r.q).SelectMembership(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	memberships := make([]auth.Membership, 0, len(rows))
+	for _, row := range rows {
+		memberships = append(memberships, auth.Membership{
+			UserId:   row.ID,
+			Username: row.Username,
+			GroupId:  row.GroupID,
+		})
+	}
+	return memberships, nil
+}

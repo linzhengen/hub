@@ -9,6 +9,166 @@ import (
 	"context"
 )
 
+const selectAccessPaths = `-- name: SelectAccessPaths :many
+SELECT g.id     AS group_id,
+       g.name   AS group_name,
+       r.id     AS role_id,
+       r.name   AS role_name,
+       p.id     AS permission_id,
+       res.identifier,
+       p.verb
+FROM "groups" AS g
+         INNER JOIN group_roles AS gr ON g.id = gr.group_id
+         INNER JOIN roles AS r ON r.id = gr.role_id
+         INNER JOIN role_permissions AS rp ON gr.role_id = rp.role_id
+         INNER JOIN permissions AS p ON rp.permission_id = p.id
+         INNER JOIN resources AS res ON p.resource_id = res.id AND res.status = 'Active'
+WHERE g.status = 'Active'
+ORDER BY g.name, r.name, res.identifier, p.verb
+`
+
+type SelectAccessPathsRow struct {
+	GroupID      string
+	GroupName    string
+	RoleID       string
+	RoleName     string
+	PermissionID string
+	Identifier   string
+	Verb         string
+}
+
+func (q *Queries) SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectAccessPaths)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*SelectAccessPathsRow{}
+	for rows.Next() {
+		var i SelectAccessPathsRow
+		if err := rows.Scan(
+			&i.GroupID,
+			&i.GroupName,
+			&i.RoleID,
+			&i.RoleName,
+			&i.PermissionID,
+			&i.Identifier,
+			&i.Verb,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectMemberships = `-- name: SelectMemberships :many
+SELECT u.id,
+       u.username,
+       ug.group_id
+FROM users AS u
+         INNER JOIN user_groups AS ug ON u.id = ug.user_id
+WHERE u.status = 'Active'
+ORDER BY u.username, u.id
+`
+
+type SelectMembershipsRow struct {
+	ID       string
+	Username string
+	GroupID  string
+}
+
+func (q *Queries) SelectMemberships(ctx context.Context) ([]*SelectMembershipsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectMemberships)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*SelectMembershipsRow{}
+	for rows.Next() {
+		var i SelectMembershipsRow
+		if err := rows.Scan(&i.ID, &i.Username, &i.GroupID); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectUserAccessPaths = `-- name: SelectUserAccessPaths :many
+SELECT g.id     AS group_id,
+       g.name   AS group_name,
+       r.id     AS role_id,
+       r.name   AS role_name,
+       p.id     AS permission_id,
+       res.identifier,
+       p.verb
+FROM users AS u
+         INNER JOIN user_groups AS ug ON u.id = ug.user_id
+         INNER JOIN "groups" AS g ON g.id = ug.group_id AND g.status = 'Active'
+         INNER JOIN group_roles AS gr ON ug.group_id = gr.group_id
+         INNER JOIN roles AS r ON r.id = gr.role_id
+         INNER JOIN role_permissions AS rp ON gr.role_id = rp.role_id
+         INNER JOIN permissions AS p ON rp.permission_id = p.id
+         INNER JOIN resources AS res ON p.resource_id = res.id AND res.status = 'Active'
+WHERE u.id = $1
+  AND u.status = 'Active'
+ORDER BY g.name, r.name, res.identifier, p.verb
+`
+
+type SelectUserAccessPathsRow struct {
+	GroupID      string
+	GroupName    string
+	RoleID       string
+	RoleName     string
+	PermissionID string
+	Identifier   string
+	Verb         string
+}
+
+func (q *Queries) SelectUserAccessPaths(ctx context.Context, id string) ([]*SelectUserAccessPathsRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectUserAccessPaths, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*SelectUserAccessPathsRow{}
+	for rows.Next() {
+		var i SelectUserAccessPathsRow
+		if err := rows.Scan(
+			&i.GroupID,
+			&i.GroupName,
+			&i.RoleID,
+			&i.RoleName,
+			&i.PermissionID,
+			&i.Identifier,
+			&i.Verb,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectUserAuthorizedPolices = `-- name: SelectUserAuthorizedPolices :many
 SELECT u.id, res.identifier, p.verb
 FROM users AS u

@@ -90,6 +90,26 @@ func (r *cachingRepository) FindUserAuthorizedPolicies(ctx context.Context, user
 	return policies, nil
 }
 
+// The explain queries are not memoised, and pass straight through.
+//
+// They exist to be read by a person asking why the graph is the way it is,
+// which happens rarely and never in the path of a guarded request. Caching them
+// would add a second thing that can be stale for no saving, and a stale
+// explanation is worse than a slow one: it would disagree with the decision it
+// is supposed to be explaining.
+
+func (r *cachingRepository) FindUserAccessPaths(ctx context.Context, userId string) ([]auth.AccessPath, error) {
+	return r.inner.FindUserAccessPaths(ctx, userId)
+}
+
+func (r *cachingRepository) FindAccessPaths(ctx context.Context) ([]auth.AccessPath, error) {
+	return r.inner.FindAccessPaths(ctx)
+}
+
+func (r *cachingRepository) FindMemberships(ctx context.Context) ([]auth.Membership, error) {
+	return r.inner.FindMemberships(ctx)
+}
+
 // syncRevision re-reads the RBAC revision if the last read has gone stale, and
 // empties the cache when the number has moved.
 func (r *cachingRepository) syncRevision(ctx context.Context) error {

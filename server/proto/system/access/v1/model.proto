@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package system.access.v1;
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/access/v1";
+
+// AccessPath is one route by which a user is allowed an operation: the group
+// they belong to, the role that group holds, and the permission that role
+// grants.
+//
+// A user often holds the same access by more than one route. Every route is
+// reported rather than the first one found, because revoking one of three is
+// not a revocation, and noticing that is the reason to ask.
+message AccessPath {
+  string group_id = 1;
+  string group_name = 2;
+  string role_id = 3;
+  string role_name = 4;
+  string permission_id = 5;
+  // The resource identifier and verb the permission itself names, patterns
+  // included: a route granted through `api.*` reports `api.*`, not the
+  // operation that was asked about. A wildcard grant is the thing most worth
+  // seeing here, so it is not resolved away.
+  string resource = 6;
+  string action = 7;
+}
+
+// Principal is a user allowed an operation, with every route that allows it.
+message Principal {
+  string user_id = 1;
+  string username = 2;
+  repeated AccessPath paths = 3;
+}

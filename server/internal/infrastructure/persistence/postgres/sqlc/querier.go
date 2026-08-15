@@ -41,6 +41,7 @@ type Querier interface {
 	IsUserInGroup(ctx context.Context, arg IsUserInGroupParams) (bool, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, arg RemovePermissionFromRoleParams) error
+	SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRow, error)
 	SelectChatMessagesBySessionId(ctx context.Context, arg SelectChatMessagesBySessionIdParams) ([]*ChatMessage, error)
 	// Scoping every lookup by user_id keeps a session private to its owner even if
 	// a caller reaches the repository without going through the use case, which is
@@ -54,6 +55,7 @@ type Querier interface {
 	SelectGroupById(ctx context.Context, id string) (*Group, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*Group, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRole, error)
+	SelectMemberships(ctx context.Context) ([]*SelectMembershipsRow, error)
 	SelectPermissionById(ctx context.Context, id string) (*Permission, error)
 	SelectPermissionByResourceId(ctx context.Context, resourceID string) ([]*Permission, error)
 	SelectPermissionForUpdate(ctx context.Context, id string) (*Permission, error)
@@ -64,6 +66,7 @@ type Querier interface {
 	SelectRoleById(ctx context.Context, id string) (*Role, error)
 	SelectRoleForUpdate(ctx context.Context, id string) (*Role, error)
 	SelectRolePermissionByRoleId(ctx context.Context, roleID string) ([]*RolePermission, error)
+	SelectUserAccessPaths(ctx context.Context, id string) ([]*SelectUserAccessPathsRow, error)
 	SelectUserAuthorizedPolices(ctx context.Context, id string) ([]*SelectUserAuthorizedPolicesRow, error)
 	SelectUserById(ctx context.Context, id string) (*User, error)
 	SelectUserForUpdate(ctx context.Context, id string) (*User, error)

@@ -1,0 +1,151 @@
+components:
+    schemas:
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1AccessPath:
+            description: |-
+                AccessPath is one route by which a user is allowed an operation: the group
+                they belong to, the role that group holds, and the permission that role
+                grants.
+
+                A user often holds the same access by more than one route. Every route is
+                reported rather than the first one found, because revoking one of three is
+                not a revocation, and noticing that is the reason to ask.
+            properties:
+                action:
+                    type: string
+                groupId:
+                    type: string
+                groupName:
+                    type: string
+                permissionId:
+                    type: string
+                resource:
+                    description: |-
+                        The resource identifier and verb the permission itself names, patterns
+                        included: a route granted through `api.*` reports `api.*`, not the
+                        operation that was asked about. A wildcard grant is the thing most worth
+                        seeing here, so it is not resolved away.
+                    type: string
+                roleId:
+                    type: string
+                roleName:
+                    type: string
+            type: object
+        v1ExplainUserAccessResponse:
+            properties:
+                allowed:
+                    description: |-
+                        Allowed is the answer the authorization interceptor would give the same
+                        question. It is exactly `paths` being non-empty, carried explicitly so a
+                        caller reading only this field cannot misread an empty list.
+                    type: boolean
+                paths:
+                    items:
+                        $ref: '#/components/schemas/v1AccessPath'
+                    type: array
+            type: object
+        v1ListPrincipalsForOperationResponse:
+            properties:
+                principals:
+                    items:
+                        $ref: '#/components/schemas/v1Principal'
+                    type: array
+            type: object
+        v1Principal:
+            description: Principal is a user allowed an operation, with every route that allows it.
+            properties:
+                paths:
+                    items:
+                        $ref: '#/components/schemas/v1AccessPath'
+                    type: array
+                userId:
+                    type: string
+                username:
+                    type: string
+            type: object
+info:
+    title: system/access/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/access/explain:
+        get:
+            operationId: AccessService_ExplainUserAccess
+            parameters:
+                - in: query
+                  name: userId
+                  schema:
+                    type: string
+                - description: |-
+                    The resource and verb as the server enforces them - `api.user.v1.UserService`
+                    and `ListUser` - not a REST path. `hub api describe <rpc>` prints the pair
+                    for any operation.
+                  in: query
+                  name: resource
+                  schema:
+                    type: string
+                - in: query
+                  name: action
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ExplainUserAccessResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AccessService
+    /api/v1/access/principals:
+        get:
+            operationId: AccessService_ListPrincipalsForOperation
+            parameters:
+                - in: query
+                  name: resource
+                  schema:
+                    type: string
+                - in: query
+                  name: action
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListPrincipalsForOperationResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AccessService
+tags:
+    - name: AccessService
