@@ -1,8 +1,12 @@
 package usergroup
 
+import "time"
+
 type UserGroup struct {
 	UserId  string
 	GroupId string
+	// ExpiresAt is when the user leaves the group, nil when they do not.
+	ExpiresAt *time.Time
 }
 
 type UserGroups []*UserGroup

@@ -72,6 +72,7 @@ type GroupModel struct {
 type GroupRoleModel struct {
 	GroupID   string
 	RoleID    string
+	ExpiresAt sql.NullTime
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -136,31 +137,37 @@ type SelectAccessPathsModel struct {
 	PermissionID string
 	Identifier   string
 	Verb         string
+	ExpiresAt    sql.NullTime
 }
 
 // SelectMembershipsModel represents a SelectMemberships in the database
 type SelectMembershipsModel struct {
-	ID       string
-	Username string
-	GroupID  string
+	ID        string
+	Username  string
+	GroupID   string
+	ExpiresAt sql.NullTime
 }
 
 // SelectUserAccessPathsModel represents a SelectUserAccessPaths in the database
 type SelectUserAccessPathsModel struct {
-	GroupID      string
-	GroupName    string
-	RoleID       string
-	RoleName     string
-	PermissionID string
-	Identifier   string
-	Verb         string
+	GroupID        string
+	GroupName      string
+	RoleID         string
+	RoleName       string
+	PermissionID   string
+	Identifier     string
+	Verb           string
+	GroupExpiresAt sql.NullTime
+	RoleExpiresAt  sql.NullTime
 }
 
 // SelectUserAuthorizedPolicesModel represents a SelectUserAuthorizedPolices in the database
 type SelectUserAuthorizedPolicesModel struct {
-	ID         string
-	Identifier string
-	Verb       string
+	ID             string
+	Identifier     string
+	Verb           string
+	GroupExpiresAt sql.NullTime
+	RoleExpiresAt  sql.NullTime
 }
 
 // UserModel represents a User in the database
@@ -177,6 +184,7 @@ type UserModel struct {
 type UserGroupModel struct {
 	UserID    string
 	GroupID   string
+	ExpiresAt sql.NullTime
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -192,12 +200,12 @@ type Querier interface {
 	CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error)
 	CreateChatToolProposal(ctx context.Context, SessionID string, ToolName string, Arguments json.RawMessage, Continuation []byte) (*ChatToolProposalModel, error)
 	CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string) error
-	CreateGroupRole(ctx context.Context, GroupID string, RoleID string) error
+	CreateGroupRole(ctx context.Context, GroupID string, RoleID string, ExpiresAt sql.NullTime) error
 	CreatePermission(ctx context.Context, ID string, Verb string, ResourceID string, Description string) error
 	CreateResource(ctx context.Context, ID string, ParentID string, Name string, Identifier string, Type string, Path string, Component string, DisplayOrder int32, Description string, Metadata map[string]string, Status string) error
 	CreateRole(ctx context.Context, ID string, Name string, Description string) error
 	CreateUser(ctx context.Context, ID string, Username string, Email string, Status string) error
-	CreateUserGroup(ctx context.Context, UserID string, GroupID string) error
+	CreateUserGroup(ctx context.Context, UserID string, GroupID string, ExpiresAt sql.NullTime) error
 	DecideChatToolProposal(ctx context.Context, ID string, Status string) (*ChatToolProposalModel, error)
 	DeleteChatSession(ctx context.Context, ID string, UserID string) error
 	DeleteGroup(ctx context.Context, id string) error
@@ -381,10 +389,11 @@ func (p *PostgreSQLQuerier) CreateGroup(ctx context.Context, ID string, Name str
 
 }
 
-func (p *PostgreSQLQuerier) CreateGroupRole(ctx context.Context, GroupID string, RoleID string) error {
+func (p *PostgreSQLQuerier) CreateGroupRole(ctx context.Context, GroupID string, RoleID string, ExpiresAt sql.NullTime) error {
 	return p.q.CreateGroupRole(ctx, postgressqlc.CreateGroupRoleParams{
-		GroupID: GroupID,
-		RoleID:  RoleID,
+		GroupID:   GroupID,
+		RoleID:    RoleID,
+		ExpiresAt: ExpiresAt,
 	})
 
 }
@@ -436,10 +445,11 @@ func (p *PostgreSQLQuerier) CreateUser(ctx context.Context, ID string, Username 
 
 }
 
-func (p *PostgreSQLQuerier) CreateUserGroup(ctx context.Context, UserID string, GroupID string) error {
+func (p *PostgreSQLQuerier) CreateUserGroup(ctx context.Context, UserID string, GroupID string, ExpiresAt sql.NullTime) error {
 	return p.q.CreateUserGroup(ctx, postgressqlc.CreateUserGroupParams{
-		UserID:  UserID,
-		GroupID: GroupID,
+		UserID:    UserID,
+		GroupID:   GroupID,
+		ExpiresAt: ExpiresAt,
 	})
 
 }
@@ -581,6 +591,7 @@ func (p *PostgreSQLQuerier) SelectAccessPath(ctx context.Context) ([]*SelectAcce
 			PermissionID: row.PermissionID,
 			Identifier:   row.Identifier,
 			Verb:         row.Verb,
+			ExpiresAt:    row.ExpiresAt,
 		}
 	}
 	return res, nil
@@ -709,6 +720,7 @@ func (p *PostgreSQLQuerier) SelectGroupRoleByGroupId(ctx context.Context, groupI
 		res[i] = &GroupRoleModel{
 			GroupID:   row.GroupID,
 			RoleID:    row.RoleID,
+			ExpiresAt: row.ExpiresAt,
 			CreatedAt: row.CreatedAt,
 			UpdatedAt: row.UpdatedAt,
 		}
@@ -725,9 +737,10 @@ func (p *PostgreSQLQuerier) SelectMembership(ctx context.Context) ([]*SelectMemb
 	res := make([]*SelectMembershipsModel, len(rows))
 	for i, row := range rows {
 		res[i] = &SelectMembershipsModel{
-			ID:       row.ID,
-			Username: row.Username,
-			GroupID:  row.GroupID,
+			ID:        row.ID,
+			Username:  row.Username,
+			GroupID:   row.GroupID,
+			ExpiresAt: row.ExpiresAt,
 		}
 	}
 	return res, nil
@@ -932,13 +945,15 @@ func (p *PostgreSQLQuerier) SelectUserAccessPath(ctx context.Context, id string)
 	res := make([]*SelectUserAccessPathsModel, len(rows))
 	for i, row := range rows {
 		res[i] = &SelectUserAccessPathsModel{
-			GroupID:      row.GroupID,
-			GroupName:    row.GroupName,
-			RoleID:       row.RoleID,
-			RoleName:     row.RoleName,
-			PermissionID: row.PermissionID,
-			Identifier:   row.Identifier,
-			Verb:         row.Verb,
+			GroupID:        row.GroupID,
+			GroupName:      row.GroupName,
+			RoleID:         row.RoleID,
+			RoleName:       row.RoleName,
+			PermissionID:   row.PermissionID,
+			Identifier:     row.Identifier,
+			Verb:           row.Verb,
+			GroupExpiresAt: row.GroupExpiresAt,
+			RoleExpiresAt:  row.RoleExpiresAt,
 		}
 	}
 	return res, nil
@@ -953,9 +968,11 @@ func (p *PostgreSQLQuerier) SelectUserAuthorizedPolicies(ctx context.Context, id
 	res := make([]*SelectUserAuthorizedPolicesModel, len(rows))
 	for i, row := range rows {
 		res[i] = &SelectUserAuthorizedPolicesModel{
-			ID:         row.ID,
-			Identifier: row.Identifier,
-			Verb:       row.Verb,
+			ID:             row.ID,
+			Identifier:     row.Identifier,
+			Verb:           row.Verb,
+			GroupExpiresAt: row.GroupExpiresAt,
+			RoleExpiresAt:  row.RoleExpiresAt,
 		}
 	}
 	return res, nil
@@ -1004,6 +1021,7 @@ func (p *PostgreSQLQuerier) SelectUserGroupByGroupId(ctx context.Context, groupI
 		res[i] = &UserGroupModel{
 			UserID:    row.UserID,
 			GroupID:   row.GroupID,
+			ExpiresAt: row.ExpiresAt,
 			CreatedAt: row.CreatedAt,
 			UpdatedAt: row.UpdatedAt,
 		}
@@ -1022,6 +1040,7 @@ func (p *PostgreSQLQuerier) SelectUserGroupByUserId(ctx context.Context, userID 
 		res[i] = &UserGroupModel{
 			UserID:    row.UserID,
 			GroupID:   row.GroupID,
+			ExpiresAt: row.ExpiresAt,
 			CreatedAt: row.CreatedAt,
 			UpdatedAt: row.UpdatedAt,
 		}

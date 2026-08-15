@@ -85,6 +85,16 @@ func channelPbToDomain(c pbv1.Channel) audit.Channel {
 	}
 }
 
+// timestampPbToTimePtr maps an absent expiry to nil, which is how every layer
+// below spells "this grant does not end".
+func timestampPbToTimePtr(ts *timestamppb.Timestamp) *time.Time {
+	if ts == nil {
+		return nil
+	}
+	t := ts.AsTime()
+	return &t
+}
+
 func timestampPbToTime(ts *timestamppb.Timestamp) time.Time {
 	if ts == nil {
 		return time.Time{}

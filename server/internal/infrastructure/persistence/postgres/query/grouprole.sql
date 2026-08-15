@@ -6,10 +6,12 @@ WHERE group_id = $1;
 -- name: CreateGroupRole :exec
 INSERT INTO group_roles (group_id,
                          role_id,
+                         expires_at,
                          created_at,
                          updated_at)
 VALUES ($1,
         $2,
+        sqlc.narg(expires_at),
         now(),
         now());
 

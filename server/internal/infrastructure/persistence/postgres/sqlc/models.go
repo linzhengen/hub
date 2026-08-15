@@ -67,6 +67,7 @@ type Group struct {
 type GroupRole struct {
 	GroupID   string
 	RoleID    string
+	ExpiresAt sql.NullTime
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -129,6 +130,7 @@ type User struct {
 type UserGroup struct {
 	UserID    string
 	GroupID   string
+	ExpiresAt sql.NullTime
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

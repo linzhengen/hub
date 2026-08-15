@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // Service defines the interface for authorization service
@@ -22,12 +23,22 @@ type Service interface {
 
 type service struct {
 	authRepo Repository
+	now      func() time.Time
 }
 
 // NewService creates a new authorization service
 func NewService(authRepo Repository) Service {
+	return NewServiceWithClock(authRepo, time.Now)
+}
+
+// NewServiceWithClock is NewService with the clock supplied, so a test can put
+// a decision either side of an expiry without sleeping. The clock is read at
+// the moment of the decision, never when the policies were fetched: that is
+// what stops a warm cache from serving a grant that has since lapsed.
+func NewServiceWithClock(authRepo Repository, now func() time.Time) Service {
 	return &service{
 		authRepo: authRepo,
+		now:      now,
 	}
 }
 
@@ -37,8 +48,9 @@ func (s *service) Enforce(ctx context.Context, req Request) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to get user polices: %w", err)
 	}
+	now := s.now()
 	for _, policy := range policies {
-		if allows(policy.Object, policy.Action, req) {
+		if allows(policy.Object, policy.Action, policy.ExpiresAt, req, now) {
 			return true, nil
 		}
 	}
@@ -51,7 +63,7 @@ func (s *service) Explain(ctx context.Context, req Request) ([]AccessPath, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user access paths: %w", err)
 	}
-	return matching(paths, req), nil
+	return matching(paths, req, s.now()), nil
 }
 
 // PrincipalsFor returns the users allowed the request.
@@ -63,8 +75,9 @@ func (s *service) PrincipalsFor(ctx context.Context, req Request) ([]Principal, 
 
 	// Narrow the graph before the people: a group that grants nothing relevant
 	// needs none of its members looked at.
+	now := s.now()
 	byGroup := map[string][]AccessPath{}
-	for _, path := range matching(paths, req) {
+	for _, path := range matching(paths, req, now) {
 		byGroup[path.GroupId] = append(byGroup[path.GroupId], path)
 	}
 	if len(byGroup) == 0 {
@@ -82,9 +95,13 @@ func (s *service) PrincipalsFor(ctx context.Context, req Request) ([]Principal, 
 	var order []string
 	for _, membership := range memberships {
 		granted, ok := byGroup[membership.GroupId]
-		if !ok {
+		if !ok || expired(membership.ExpiresAt, now) {
 			continue
 		}
+		// A route is live only while every edge of it is, and the membership is
+		// an edge the path query never saw. Reporting the earlier of the two is
+		// what makes the answer say when the access really ends.
+		granted = withExpiry(granted, membership.ExpiresAt)
 		principal, seen := principals[membership.UserId]
 		if !seen {
 			principal = &Principal{UserId: membership.UserId, Username: membership.Username}
@@ -102,14 +119,33 @@ func (s *service) PrincipalsFor(ctx context.Context, req Request) ([]Principal, 
 }
 
 // matching keeps the paths that allow req, by the rule Enforce decides with.
-func matching(paths []AccessPath, req Request) []AccessPath {
+func matching(paths []AccessPath, req Request, now time.Time) []AccessPath {
 	var allowed []AccessPath
 	for _, path := range paths {
-		if allows(path.Object, path.Action, req) {
+		if allows(path.Object, path.Action, path.ExpiresAt, req, now) {
 			allowed = append(allowed, path)
 		}
 	}
 	return allowed
+}
+
+// withExpiry brings each path forward to expiry when that is the earlier of the
+// two. A nil expiry is "never", so it never brings anything forward.
+func withExpiry(paths []AccessPath, expiry *time.Time) []AccessPath {
+	if expiry == nil {
+		return paths
+	}
+	narrowed := make([]AccessPath, 0, len(paths))
+	for _, path := range paths {
+		path.ExpiresAt = Earliest(path.ExpiresAt, expiry)
+		narrowed = append(narrowed, path)
+	}
+	return narrowed
+}
+
+// expired reports whether a grant has lapsed by now. A nil expiry never has.
+func expired(expiresAt *time.Time, now time.Time) bool {
+	return expiresAt != nil && !now.Before(*expiresAt)
 }
 
 // allows reports whether a grant of object and action covers req.
@@ -118,8 +154,10 @@ func matching(paths []AccessPath, req Request) []AccessPath {
 // an answer and its explanation cannot disagree about what a pattern means.
 // Splitting them would let `api.*` be enforced one way and explained another,
 // and the explanation is only worth having if it is the same rule.
-func allows(object, action string, req Request) bool {
-	return matchString(object, req.Object) && matchString(action, req.Action)
+func allows(object, action string, expiresAt *time.Time, req Request, now time.Time) bool {
+	return !expired(expiresAt, now) &&
+		matchString(object, req.Object) &&
+		matchString(action, req.Action)
 }
 
 // matchString reports whether str satisfies a policy pattern. `*` stands for

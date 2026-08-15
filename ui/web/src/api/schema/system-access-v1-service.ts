@@ -62,6 +62,13 @@ export interface components {
          */
         v1AccessPath: {
             action?: string;
+            /**
+             * Format: date-time
+             * @description When this route lapses, unset when no edge of it expires. It is the
+             *     earliest expiry along the route: the access ends when the first of the
+             *     memberships and grants behind it does.
+             */
+            expiresAt?: string;
             groupId?: string;
             groupName?: string;
             permissionId?: string;

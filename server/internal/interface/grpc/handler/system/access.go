@@ -2,6 +2,9 @@ package system
 
 import (
 	"context"
+	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/linzhengen/hub/server/internal/domain/auth"
 	"github.com/linzhengen/hub/server/internal/usecase/system"
@@ -49,6 +52,15 @@ func (h accessHandler) ListPrincipalsForOperation(
 	return &pbv1.ListPrincipalsForOperationResponse{Principals: pbPrincipals}, nil
 }
 
+// expiresAtToPb leaves the field absent for a route that does not end, rather
+// than sending a zero time that a reader would have to know to ignore.
+func expiresAtToPb(t *time.Time) *timestamppb.Timestamp {
+	if t == nil {
+		return nil
+	}
+	return timestamppb.New(*t)
+}
+
 func accessPathsDomainToPb(paths []auth.AccessPath) []*pbv1.AccessPath {
 	pbPaths := make([]*pbv1.AccessPath, 0, len(paths))
 	for _, path := range paths {
@@ -60,6 +72,7 @@ func accessPathsDomainToPb(paths []auth.AccessPath) []*pbv1.AccessPath {
 			PermissionId: path.PermissionId,
 			Resource:     path.Object,
 			Action:       path.Action,
+			ExpiresAt:    expiresAtToPb(path.ExpiresAt),
 		})
 	}
 	return pbPaths

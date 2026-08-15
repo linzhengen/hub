@@ -30,6 +30,13 @@ components:
             properties:
                 action:
                     type: string
+                expiresAt:
+                    description: |-
+                        When this route lapses, unset when no edge of it expires. It is the
+                        earliest expiry along the route: the access ends when the first of the
+                        memberships and grants behind it does.
+                    format: date-time
+                    type: string
                 groupId:
                     type: string
                 groupName:

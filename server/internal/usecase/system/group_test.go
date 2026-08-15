@@ -69,8 +69,8 @@ func (m *MockGroupRoleRepository) FindByGroupId(ctx context.Context, groupId str
 	return args.Get(0).(grouprole.GroupRoles), args.Error(1)
 }
 
-func (m *MockGroupRoleRepository) AssignRole(ctx context.Context, groupId, roleId string) error {
-	args := m.Called(ctx, groupId, roleId)
+func (m *MockGroupRoleRepository) AssignRole(ctx context.Context, groupId, roleId string, expiresAt *time.Time) error {
+	args := m.Called(ctx, groupId, roleId, expiresAt)
 	return args.Error(0)
 }
 
@@ -94,8 +94,8 @@ func (m *MockUserGroupRepository) FindByUserId(ctx context.Context, userId strin
 	return args.Get(0).(usergroup.UserGroups), args.Error(1)
 }
 
-func (m *MockUserGroupRepository) AssignGroup(ctx context.Context, userId, groupId string) error {
-	args := m.Called(ctx, userId, groupId)
+func (m *MockUserGroupRepository) AssignGroup(ctx context.Context, userId, groupId string, expiresAt *time.Time) error {
+	args := m.Called(ctx, userId, groupId, expiresAt)
 	return args.Error(0)
 }
 
@@ -109,8 +109,8 @@ func (m *MockUserGroupRepository) Upsert(ctx context.Context, userId string, gro
 	return args.Error(0)
 }
 
-func (m *MockUserGroupRepository) AddUsersToGroup(ctx context.Context, groupID string, userIDs []string) error {
-	args := m.Called(ctx, groupID, userIDs)
+func (m *MockUserGroupRepository) AddUsersToGroup(ctx context.Context, groupID string, userIDs []string, expiresAt *time.Time) error {
+	args := m.Called(ctx, groupID, userIDs, expiresAt)
 	return args.Error(0)
 }
 
@@ -139,10 +139,10 @@ func TestGroupUseCase_AddUsersToGroup(t *testing.T) {
 		transRepo:     mockTransRepo,
 	}
 
-	mockUserGroupRepo.On("AddUsersToGroup", ctx, groupID, userIDs).Return(nil)
+	mockUserGroupRepo.On("AddUsersToGroup", ctx, groupID, userIDs, (*time.Time)(nil)).Return(nil)
 	mockGroupRepo.On("FindOne", ctx, groupID).Return(&group.Group{Id: groupID}, nil)
 
-	_, err := uc.AddUsers(ctx, groupID, userIDs)
+	_, err := uc.AddUsers(ctx, groupID, userIDs, nil)
 
 	assert.NoError(t, err)
 	mockUserGroupRepo.AssertExpectations(t)
@@ -190,11 +190,11 @@ func TestGroupUseCase_AddRoles(t *testing.T) {
 		transRepo:     mockTransRepo,
 	}
 
-	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role1").Return(nil).Once()
-	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role2").Return(nil).Once()
+	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role1", (*time.Time)(nil)).Return(nil).Once()
+	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role2", (*time.Time)(nil)).Return(nil).Once()
 	mockGroupRepo.On("FindOne", ctx, groupID).Return(&group.Group{Id: groupID}, nil)
 
-	_, err := uc.AddRoles(ctx, groupID, []string{"role1", "role2"})
+	_, err := uc.AddRoles(ctx, groupID, []string{"role1", "role2"}, nil)
 
 	assert.NoError(t, err)
 	mockGroupRoleRepo.AssertExpectations(t)
@@ -241,12 +241,12 @@ func TestGroupUseCase_AddRolesStopsAtTheFirstFailure(t *testing.T) {
 		transRepo:     mockTransRepo,
 	}
 
-	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role1").Return(errors.New("assign failed")).Once()
+	mockGroupRoleRepo.On("AssignRole", ctx, groupID, "role1", (*time.Time)(nil)).Return(errors.New("assign failed")).Once()
 
-	_, err := uc.AddRoles(ctx, groupID, []string{"role1", "role2"})
+	_, err := uc.AddRoles(ctx, groupID, []string{"role1", "role2"}, nil)
 
 	assert.Error(t, err)
-	mockGroupRoleRepo.AssertNotCalled(t, "AssignRole", ctx, groupID, "role2")
+	mockGroupRoleRepo.AssertNotCalled(t, "AssignRole", ctx, groupID, "role2", (*time.Time)(nil))
 	mockGroupRepo.AssertNotCalled(t, "FindOne", ctx, groupID)
 }
 

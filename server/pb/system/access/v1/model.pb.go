@@ -9,6 +9,7 @@ package v1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -39,8 +40,12 @@ type AccessPath struct {
 	// included: a route granted through `api.*` reports `api.*`, not the
 	// operation that was asked about. A wildcard grant is the thing most worth
 	// seeing here, so it is not resolved away.
-	Resource      string `protobuf:"bytes,6,opt,name=resource,proto3" json:"resource,omitempty"`
-	Action        string `protobuf:"bytes,7,opt,name=action,proto3" json:"action,omitempty"`
+	Resource string `protobuf:"bytes,6,opt,name=resource,proto3" json:"resource,omitempty"`
+	Action   string `protobuf:"bytes,7,opt,name=action,proto3" json:"action,omitempty"`
+	// When this route lapses, unset when no edge of it expires. It is the
+	// earliest expiry along the route: the access ends when the first of the
+	// memberships and grants behind it does.
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -124,6 +129,13 @@ func (x *AccessPath) GetAction() string {
 	return ""
 }
 
+func (x *AccessPath) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
 // Principal is a user allowed an operation, with every route that allows it.
 type Principal struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -189,7 +201,7 @@ var File_system_access_v1_model_proto protoreflect.FileDescriptor
 
 const file_system_access_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x1csystem/access/v1/model.proto\x12\x10system.access.v1\"\xd5\x01\n" +
+	"\x1csystem/access/v1/model.proto\x12\x10system.access.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa4\x02\n" +
 	"\n" +
 	"AccessPath\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\tR\agroupId\x12\x1d\n" +
@@ -199,7 +211,10 @@ const file_system_access_v1_model_proto_rawDesc = "" +
 	"\trole_name\x18\x04 \x01(\tR\broleName\x12#\n" +
 	"\rpermission_id\x18\x05 \x01(\tR\fpermissionId\x12\x1a\n" +
 	"\bresource\x18\x06 \x01(\tR\bresource\x12\x16\n" +
-	"\x06action\x18\a \x01(\tR\x06action\"t\n" +
+	"\x06action\x18\a \x01(\tR\x06action\x12>\n" +
+	"\n" +
+	"expires_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampH\x00R\texpiresAt\x88\x01\x01B\r\n" +
+	"\v_expires_at\"t\n" +
 	"\tPrincipal\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x122\n" +
@@ -219,16 +234,18 @@ func file_system_access_v1_model_proto_rawDescGZIP() []byte {
 
 var file_system_access_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_system_access_v1_model_proto_goTypes = []any{
-	(*AccessPath)(nil), // 0: system.access.v1.AccessPath
-	(*Principal)(nil),  // 1: system.access.v1.Principal
+	(*AccessPath)(nil),            // 0: system.access.v1.AccessPath
+	(*Principal)(nil),             // 1: system.access.v1.Principal
+	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
 }
 var file_system_access_v1_model_proto_depIdxs = []int32{
-	0, // 0: system.access.v1.Principal.paths:type_name -> system.access.v1.AccessPath
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 0: system.access.v1.AccessPath.expires_at:type_name -> google.protobuf.Timestamp
+	0, // 1: system.access.v1.Principal.paths:type_name -> system.access.v1.AccessPath
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_system_access_v1_model_proto_init() }
@@ -236,6 +253,7 @@ func file_system_access_v1_model_proto_init() {
 	if File_system_access_v1_model_proto != nil {
 		return
 	}
+	file_system_access_v1_model_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

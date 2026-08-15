@@ -7,26 +7,30 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createUserGroup = `-- name: CreateUserGroup :exec
 INSERT INTO user_groups (user_id,
                          group_id,
+                         expires_at,
                          created_at,
                          updated_at)
 VALUES ($1,
         $2,
+        $3,
         now(),
         now())
 `
 
 type CreateUserGroupParams struct {
-	UserID  string
-	GroupID string
+	UserID    string
+	GroupID   string
+	ExpiresAt sql.NullTime
 }
 
 func (q *Queries) CreateUserGroup(ctx context.Context, arg CreateUserGroupParams) error {
-	_, err := q.db.ExecContext(ctx, createUserGroup, arg.UserID, arg.GroupID)
+	_, err := q.db.ExecContext(ctx, createUserGroup, arg.UserID, arg.GroupID, arg.ExpiresAt)
 	return err
 }
 
@@ -84,7 +88,7 @@ func (q *Queries) RemoveAllUsersFromGroup(ctx context.Context, groupID string) e
 }
 
 const selectUserGroupByGroupId = `-- name: SelectUserGroupByGroupId :many
-SELECT user_id, group_id, created_at, updated_at
+SELECT user_id, group_id, expires_at, created_at, updated_at
 FROM user_groups
 WHERE group_id = $1
 `
@@ -101,6 +105,7 @@ func (q *Queries) SelectUserGroupByGroupId(ctx context.Context, groupID string) 
 		if err := rows.Scan(
 			&i.UserID,
 			&i.GroupID,
+			&i.ExpiresAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -118,7 +123,7 @@ func (q *Queries) SelectUserGroupByGroupId(ctx context.Context, groupID string) 
 }
 
 const selectUserGroupByUserId = `-- name: SelectUserGroupByUserId :many
-SELECT user_id, group_id, created_at, updated_at
+SELECT user_id, group_id, expires_at, created_at, updated_at
 FROM user_groups
 WHERE user_id = $1
 `
@@ -135,6 +140,7 @@ func (q *Queries) SelectUserGroupByUserId(ctx context.Context, userID string) ([
 		if err := rows.Scan(
 			&i.UserID,
 			&i.GroupID,
+			&i.ExpiresAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

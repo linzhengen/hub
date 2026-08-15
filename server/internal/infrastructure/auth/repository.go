@@ -2,10 +2,21 @@ package auth
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/linzhengen/hub/server/internal/domain/auth"
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 )
+
+// expiry turns the nullable column into the domain's "nil means never".
+func expiry(v sql.NullTime) *time.Time {
+	if !v.Valid {
+		return nil
+	}
+	t := v.Time
+	return &t
+}
 
 // Repository is the implementation of the auth.Repository interface
 type Repository struct {
@@ -28,9 +39,10 @@ func (r *Repository) FindUserAuthorizedPolicies(ctx context.Context, userId stri
 	var policies []auth.Policy
 	for _, row := range rows {
 		policies = append(policies, auth.Policy{
-			Subject: row.ID,
-			Object:  row.Identifier,
-			Action:  row.Verb,
+			Subject:   row.ID,
+			Object:    row.Identifier,
+			Action:    row.Verb,
+			ExpiresAt: auth.Earliest(expiry(row.GroupExpiresAt), expiry(row.RoleExpiresAt)),
 		})
 	}
 
@@ -57,6 +69,7 @@ func (r *Repository) FindUserAccessPaths(ctx context.Context, userId string) ([]
 			PermissionId: row.PermissionID,
 			Object:       row.Identifier,
 			Action:       row.Verb,
+			ExpiresAt:    auth.Earliest(expiry(row.GroupExpiresAt), expiry(row.RoleExpiresAt)),
 		})
 	}
 	return paths, nil
@@ -78,6 +91,7 @@ func (r *Repository) FindAccessPaths(ctx context.Context) ([]auth.AccessPath, er
 			PermissionId: row.PermissionID,
 			Object:       row.Identifier,
 			Action:       row.Verb,
+			ExpiresAt:    expiry(row.ExpiresAt),
 		})
 	}
 	return paths, nil
@@ -92,9 +106,10 @@ func (r *Repository) FindMemberships(ctx context.Context) ([]auth.Membership, er
 	memberships := make([]auth.Membership, 0, len(rows))
 	for _, row := range rows {
 		memberships = append(memberships, auth.Membership{
-			UserId:   row.ID,
-			Username: row.Username,
-			GroupId:  row.GroupID,
+			UserId:    row.ID,
+			Username:  row.Username,
+			GroupId:   row.GroupID,
+			ExpiresAt: expiry(row.ExpiresAt),
 		})
 	}
 	return memberships, nil
