@@ -85,6 +85,13 @@ func TestOperationCarriesRestMappingAndRbacRule(t *testing.T) {
 // data — it just avoids a 403 that would leave the sidebar blank for brand-new
 // users.  SendMeVerifyEmail is safe to make public because it always sends to
 // the authenticated user's own address; no target id is accepted.
+//
+// CreateAccessRequest and CancelAccessRequest are public because needing a
+// permission in order to ask for one is a deadlock: the people who most need to
+// request access are the ones who have none.  Neither grants anything.  Raising
+// a request only adds a pending row that a different person has to approve -
+// DecideAccessRequest is not public, and refuses the requester - and cancelling
+// is refused to anyone who is not the requester.
 func TestPublicOperations(t *testing.T) {
 	var public []string
 	for _, op := range apicatalog.Default().Operations() {
@@ -93,6 +100,8 @@ func TestPublicOperations(t *testing.T) {
 		}
 	}
 	assert.ElementsMatch(t, []string{
+		"/system.access.v1.AccessRequestService/CreateAccessRequest",
+		"/system.access.v1.AccessRequestService/CancelAccessRequest",
 		"/user.v1.UserService/GetMe",
 		"/user.v1.UserService/GetMeMenus",
 		"/user.v1.UserService/SendMeVerifyEmail",

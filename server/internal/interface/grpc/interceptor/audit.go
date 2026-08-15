@@ -29,32 +29,33 @@ import (
 // the judgement is made when the rpc is added rather than discovered missing
 // during an investigation.
 var audited = map[string]bool{
-	"/user.v1.UserService/CreateUser":                          true,
-	"/user.v1.UserService/UpdateUser":                          true,
-	"/user.v1.UserService/DeleteUser":                          true,
-	"/user.v1.UserService/UpdateMe":                            true,
-	"/user.v1.UserService/AddGroupsToUser":                     true,
-	"/user.v1.UserService/RemoveGroupsFromUser":                true,
-	"/system.group.v1.GroupService/CreateGroup":                true,
-	"/system.group.v1.GroupService/UpdateGroup":                true,
-	"/system.group.v1.GroupService/DeleteGroup":                true,
-	"/system.group.v1.GroupService/AddRolesToGroup":            true,
-	"/system.group.v1.GroupService/RemoveRolesFromGroup":       true,
-	"/system.group.v1.GroupService/AddUsersToGroup":            true,
-	"/system.group.v1.GroupService/RemoveUsersFromGroup":       true,
-	"/system.role.v1.RoleService/CreateRole":                   true,
-	"/system.role.v1.RoleService/UpdateRole":                   true,
-	"/system.role.v1.RoleService/DeleteRole":                   true,
-	"/system.role.v1.RoleService/AddPermissionsToRole":         true,
-	"/system.role.v1.RoleService/RemovePermissionsFromRole":    true,
-	"/system.permission.v1.PermissionService/CreatePermission": true,
-	"/system.permission.v1.PermissionService/UpdatePermission": true,
-	"/system.permission.v1.PermissionService/DeletePermission": true,
-	"/system.resource.v1.ResourceService/CreateResource":       true,
-	"/system.resource.v1.ResourceService/UpdateResource":       true,
-	"/system.resource.v1.ResourceService/DeleteResource":       true,
-	"/system.resource.v1.ResourceService/CreateMenuResource":   true,
-	"/system.resource.v1.ResourceService/UpdateMenuResource":   true,
+	"/system.access.v1.AccessRequestService/DecideAccessRequest": true,
+	"/user.v1.UserService/CreateUser":                            true,
+	"/user.v1.UserService/UpdateUser":                            true,
+	"/user.v1.UserService/DeleteUser":                            true,
+	"/user.v1.UserService/UpdateMe":                              true,
+	"/user.v1.UserService/AddGroupsToUser":                       true,
+	"/user.v1.UserService/RemoveGroupsFromUser":                  true,
+	"/system.group.v1.GroupService/CreateGroup":                  true,
+	"/system.group.v1.GroupService/UpdateGroup":                  true,
+	"/system.group.v1.GroupService/DeleteGroup":                  true,
+	"/system.group.v1.GroupService/AddRolesToGroup":              true,
+	"/system.group.v1.GroupService/RemoveRolesFromGroup":         true,
+	"/system.group.v1.GroupService/AddUsersToGroup":              true,
+	"/system.group.v1.GroupService/RemoveUsersFromGroup":         true,
+	"/system.role.v1.RoleService/CreateRole":                     true,
+	"/system.role.v1.RoleService/UpdateRole":                     true,
+	"/system.role.v1.RoleService/DeleteRole":                     true,
+	"/system.role.v1.RoleService/AddPermissionsToRole":           true,
+	"/system.role.v1.RoleService/RemovePermissionsFromRole":      true,
+	"/system.permission.v1.PermissionService/CreatePermission":   true,
+	"/system.permission.v1.PermissionService/UpdatePermission":   true,
+	"/system.permission.v1.PermissionService/DeletePermission":   true,
+	"/system.resource.v1.ResourceService/CreateResource":         true,
+	"/system.resource.v1.ResourceService/UpdateResource":         true,
+	"/system.resource.v1.ResourceService/DeleteResource":         true,
+	"/system.resource.v1.ResourceService/CreateMenuResource":     true,
+	"/system.resource.v1.ResourceService/UpdateMenuResource":     true,
 }
 
 // notAudited lists the mutating rpcs deliberately left out, so that leaving one
@@ -71,12 +72,19 @@ var audited = map[string]bool{
 // change, as its approval_id; a decline is recorded on the proposal row, which
 // keeps its status and the time it was decided. A record here would duplicate
 // the first and add nothing to the second.
+// Raising and withdrawing a request are excluded because the request row is
+// itself the record: it keeps who asked, for whom, why, when, and what became
+// of it, and unlike a log entry it is what the decision is made from. A second
+// copy in audit_logs would say less and drift. The decision is audited, because
+// that is the point at which the graph changes.
 var notAudited = map[string]bool{
-	"/ai.chat.v1.ChatService/CreateSession":   true,
-	"/ai.chat.v1.ChatService/DeleteSession":   true,
-	"/ai.chat.v1.ChatService/SendMessage":     true,
-	"/ai.chat.v1.ChatService/ConfirmToolCall": true,
-	"/user.v1.UserService/SendMeVerifyEmail":  true,
+	"/system.access.v1.AccessRequestService/CreateAccessRequest": true,
+	"/system.access.v1.AccessRequestService/CancelAccessRequest": true,
+	"/ai.chat.v1.ChatService/CreateSession":                      true,
+	"/ai.chat.v1.ChatService/DeleteSession":                      true,
+	"/ai.chat.v1.ChatService/SendMessage":                        true,
+	"/ai.chat.v1.ChatService/ConfirmToolCall":                    true,
+	"/user.v1.UserService/SendMeVerifyEmail":                     true,
 }
 
 // UnclassifiedMutations returns the mutating rpcs that appear in neither

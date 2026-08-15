@@ -22,6 +22,120 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// RequestStatus is where an access request has got to. A request is decided
+// once; there is no route back to pending.
+//
+// The per-value comments this would normally carry are left out on purpose: the
+// OpenAPI generator renders them into a description that the web client's
+// schema generator cannot parse.
+type RequestStatus int32
+
+const (
+	RequestStatus_REQUEST_STATUS_UNSPECIFIED RequestStatus = 0
+	RequestStatus_REQUEST_STATUS_PENDING     RequestStatus = 1
+	RequestStatus_REQUEST_STATUS_APPROVED    RequestStatus = 2
+	RequestStatus_REQUEST_STATUS_REJECTED    RequestStatus = 3
+	RequestStatus_REQUEST_STATUS_CANCELLED   RequestStatus = 4
+)
+
+// Enum value maps for RequestStatus.
+var (
+	RequestStatus_name = map[int32]string{
+		0: "REQUEST_STATUS_UNSPECIFIED",
+		1: "REQUEST_STATUS_PENDING",
+		2: "REQUEST_STATUS_APPROVED",
+		3: "REQUEST_STATUS_REJECTED",
+		4: "REQUEST_STATUS_CANCELLED",
+	}
+	RequestStatus_value = map[string]int32{
+		"REQUEST_STATUS_UNSPECIFIED": 0,
+		"REQUEST_STATUS_PENDING":     1,
+		"REQUEST_STATUS_APPROVED":    2,
+		"REQUEST_STATUS_REJECTED":    3,
+		"REQUEST_STATUS_CANCELLED":   4,
+	}
+)
+
+func (x RequestStatus) Enum() *RequestStatus {
+	p := new(RequestStatus)
+	*p = x
+	return p
+}
+
+func (x RequestStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RequestStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_system_access_v1_model_proto_enumTypes[0].Descriptor()
+}
+
+func (RequestStatus) Type() protoreflect.EnumType {
+	return &file_system_access_v1_model_proto_enumTypes[0]
+}
+
+func (x RequestStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RequestStatus.Descriptor instead.
+func (RequestStatus) EnumDescriptor() ([]byte, []int) {
+	return file_system_access_v1_model_proto_rawDescGZIP(), []int{0}
+}
+
+// RequestOrigin is the surface a request came in by.
+type RequestOrigin int32
+
+const (
+	RequestOrigin_REQUEST_ORIGIN_UNSPECIFIED RequestOrigin = 0
+	RequestOrigin_REQUEST_ORIGIN_CONSOLE     RequestOrigin = 1
+	RequestOrigin_REQUEST_ORIGIN_CLI         RequestOrigin = 2
+	RequestOrigin_REQUEST_ORIGIN_AI_CHAT     RequestOrigin = 3
+)
+
+// Enum value maps for RequestOrigin.
+var (
+	RequestOrigin_name = map[int32]string{
+		0: "REQUEST_ORIGIN_UNSPECIFIED",
+		1: "REQUEST_ORIGIN_CONSOLE",
+		2: "REQUEST_ORIGIN_CLI",
+		3: "REQUEST_ORIGIN_AI_CHAT",
+	}
+	RequestOrigin_value = map[string]int32{
+		"REQUEST_ORIGIN_UNSPECIFIED": 0,
+		"REQUEST_ORIGIN_CONSOLE":     1,
+		"REQUEST_ORIGIN_CLI":         2,
+		"REQUEST_ORIGIN_AI_CHAT":     3,
+	}
+)
+
+func (x RequestOrigin) Enum() *RequestOrigin {
+	p := new(RequestOrigin)
+	*p = x
+	return p
+}
+
+func (x RequestOrigin) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (RequestOrigin) Descriptor() protoreflect.EnumDescriptor {
+	return file_system_access_v1_model_proto_enumTypes[1].Descriptor()
+}
+
+func (RequestOrigin) Type() protoreflect.EnumType {
+	return &file_system_access_v1_model_proto_enumTypes[1]
+}
+
+func (x RequestOrigin) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use RequestOrigin.Descriptor instead.
+func (RequestOrigin) EnumDescriptor() ([]byte, []int) {
+	return file_system_access_v1_model_proto_rawDescGZIP(), []int{1}
+}
+
 // AccessPath is one route by which a user is allowed an operation: the group
 // they belong to, the role that group holds, and the permission that role
 // grants.
@@ -197,6 +311,168 @@ func (x *Principal) GetPaths() []*AccessPath {
 	return nil
 }
 
+// AccessRequest is one person asking for another to be put in a group, and
+// somebody else agreeing.
+//
+// requester and subject are separate because the interesting requests are made
+// on somebody else's behalf: a manager for a report, the assistant for whoever
+// it is answering.
+type AccessRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RequesterUserId string                 `protobuf:"bytes,2,opt,name=requester_user_id,json=requesterUserId,proto3" json:"requester_user_id,omitempty"`
+	SubjectUserId   string                 `protobuf:"bytes,3,opt,name=subject_user_id,json=subjectUserId,proto3" json:"subject_user_id,omitempty"`
+	GroupId         string                 `protobuf:"bytes,4,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	Reason          string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	// The term asked for, unset for "permanently". On approval it becomes the
+	// membership's expiry, so a request for a week grants a week.
+	RequestedUntil *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=requested_until,json=requestedUntil,proto3,oneof" json:"requested_until,omitempty"`
+	Status         RequestStatus          `protobuf:"varint,7,opt,name=status,proto3,enum=system.access.v1.RequestStatus" json:"status,omitempty"`
+	// Which surface raised this. REQUEST_ORIGIN_AI_CHAT is the one that changes
+	// how it should be read: the assistant can neither exceed anyone's
+	// permissions nor decide anything, but it composes requests out of text other
+	// people wrote, so an approver needs to know one came from a conversation.
+	Origin RequestOrigin `protobuf:"varint,8,opt,name=origin,proto3,enum=system.access.v1.RequestOrigin" json:"origin,omitempty"`
+	// The chat session the assistant raised this in. Empty for every other
+	// origin.
+	SessionId       string                 `protobuf:"bytes,9,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	DecidedByUserId string                 `protobuf:"bytes,10,opt,name=decided_by_user_id,json=decidedByUserId,proto3" json:"decided_by_user_id,omitempty"`
+	DecidedAt       *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=decided_at,json=decidedAt,proto3,oneof" json:"decided_at,omitempty"`
+	DecisionComment string                 `protobuf:"bytes,12,opt,name=decision_comment,json=decisionComment,proto3" json:"decision_comment,omitempty"`
+	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *AccessRequest) Reset() {
+	*x = AccessRequest{}
+	mi := &file_system_access_v1_model_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AccessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AccessRequest) ProtoMessage() {}
+
+func (x *AccessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_model_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AccessRequest.ProtoReflect.Descriptor instead.
+func (*AccessRequest) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_model_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AccessRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AccessRequest) GetRequesterUserId() string {
+	if x != nil {
+		return x.RequesterUserId
+	}
+	return ""
+}
+
+func (x *AccessRequest) GetSubjectUserId() string {
+	if x != nil {
+		return x.SubjectUserId
+	}
+	return ""
+}
+
+func (x *AccessRequest) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
+}
+
+func (x *AccessRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *AccessRequest) GetRequestedUntil() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RequestedUntil
+	}
+	return nil
+}
+
+func (x *AccessRequest) GetStatus() RequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RequestStatus_REQUEST_STATUS_UNSPECIFIED
+}
+
+func (x *AccessRequest) GetOrigin() RequestOrigin {
+	if x != nil {
+		return x.Origin
+	}
+	return RequestOrigin_REQUEST_ORIGIN_UNSPECIFIED
+}
+
+func (x *AccessRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *AccessRequest) GetDecidedByUserId() string {
+	if x != nil {
+		return x.DecidedByUserId
+	}
+	return ""
+}
+
+func (x *AccessRequest) GetDecidedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DecidedAt
+	}
+	return nil
+}
+
+func (x *AccessRequest) GetDecisionComment() string {
+	if x != nil {
+		return x.DecisionComment
+	}
+	return ""
+}
+
+func (x *AccessRequest) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *AccessRequest) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
 var File_system_access_v1_model_proto protoreflect.FileDescriptor
 
 const file_system_access_v1_model_proto_rawDesc = "" +
@@ -218,7 +494,40 @@ const file_system_access_v1_model_proto_rawDesc = "" +
 	"\tPrincipal\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x122\n" +
-	"\x05paths\x18\x03 \x03(\v2\x1c.system.access.v1.AccessPathR\x05pathsB6Z4github.com/linzhengen/hub/server/pb/system/access/v1b\x06proto3"
+	"\x05paths\x18\x03 \x03(\v2\x1c.system.access.v1.AccessPathR\x05paths\"\xb2\x05\n" +
+	"\rAccessRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12*\n" +
+	"\x11requester_user_id\x18\x02 \x01(\tR\x0frequesterUserId\x12&\n" +
+	"\x0fsubject_user_id\x18\x03 \x01(\tR\rsubjectUserId\x12\x19\n" +
+	"\bgroup_id\x18\x04 \x01(\tR\agroupId\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\x12H\n" +
+	"\x0frequested_until\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x0erequestedUntil\x88\x01\x01\x127\n" +
+	"\x06status\x18\a \x01(\x0e2\x1f.system.access.v1.RequestStatusR\x06status\x127\n" +
+	"\x06origin\x18\b \x01(\x0e2\x1f.system.access.v1.RequestOriginR\x06origin\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\t \x01(\tR\tsessionId\x12+\n" +
+	"\x12decided_by_user_id\x18\n" +
+	" \x01(\tR\x0fdecidedByUserId\x12>\n" +
+	"\n" +
+	"decided_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampH\x01R\tdecidedAt\x88\x01\x01\x12)\n" +
+	"\x10decision_comment\x18\f \x01(\tR\x0fdecisionComment\x129\n" +
+	"\n" +
+	"created_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAtB\x12\n" +
+	"\x10_requested_untilB\r\n" +
+	"\v_decided_at*\xa3\x01\n" +
+	"\rRequestStatus\x12\x1e\n" +
+	"\x1aREQUEST_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16REQUEST_STATUS_PENDING\x10\x01\x12\x1b\n" +
+	"\x17REQUEST_STATUS_APPROVED\x10\x02\x12\x1b\n" +
+	"\x17REQUEST_STATUS_REJECTED\x10\x03\x12\x1c\n" +
+	"\x18REQUEST_STATUS_CANCELLED\x10\x04*\x7f\n" +
+	"\rRequestOrigin\x12\x1e\n" +
+	"\x1aREQUEST_ORIGIN_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16REQUEST_ORIGIN_CONSOLE\x10\x01\x12\x16\n" +
+	"\x12REQUEST_ORIGIN_CLI\x10\x02\x12\x1a\n" +
+	"\x16REQUEST_ORIGIN_AI_CHAT\x10\x03B6Z4github.com/linzhengen/hub/server/pb/system/access/v1b\x06proto3"
 
 var (
 	file_system_access_v1_model_proto_rawDescOnce sync.Once
@@ -232,20 +541,30 @@ func file_system_access_v1_model_proto_rawDescGZIP() []byte {
 	return file_system_access_v1_model_proto_rawDescData
 }
 
-var file_system_access_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_system_access_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_system_access_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_system_access_v1_model_proto_goTypes = []any{
-	(*AccessPath)(nil),            // 0: system.access.v1.AccessPath
-	(*Principal)(nil),             // 1: system.access.v1.Principal
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+	(RequestStatus)(0),            // 0: system.access.v1.RequestStatus
+	(RequestOrigin)(0),            // 1: system.access.v1.RequestOrigin
+	(*AccessPath)(nil),            // 2: system.access.v1.AccessPath
+	(*Principal)(nil),             // 3: system.access.v1.Principal
+	(*AccessRequest)(nil),         // 4: system.access.v1.AccessRequest
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
 }
 var file_system_access_v1_model_proto_depIdxs = []int32{
-	2, // 0: system.access.v1.AccessPath.expires_at:type_name -> google.protobuf.Timestamp
-	0, // 1: system.access.v1.Principal.paths:type_name -> system.access.v1.AccessPath
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	5, // 0: system.access.v1.AccessPath.expires_at:type_name -> google.protobuf.Timestamp
+	2, // 1: system.access.v1.Principal.paths:type_name -> system.access.v1.AccessPath
+	5, // 2: system.access.v1.AccessRequest.requested_until:type_name -> google.protobuf.Timestamp
+	0, // 3: system.access.v1.AccessRequest.status:type_name -> system.access.v1.RequestStatus
+	1, // 4: system.access.v1.AccessRequest.origin:type_name -> system.access.v1.RequestOrigin
+	5, // 5: system.access.v1.AccessRequest.decided_at:type_name -> google.protobuf.Timestamp
+	5, // 6: system.access.v1.AccessRequest.created_at:type_name -> google.protobuf.Timestamp
+	5, // 7: system.access.v1.AccessRequest.updated_at:type_name -> google.protobuf.Timestamp
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_system_access_v1_model_proto_init() }
@@ -254,18 +573,20 @@ func file_system_access_v1_model_proto_init() {
 		return
 	}
 	file_system_access_v1_model_proto_msgTypes[0].OneofWrappers = []any{}
+	file_system_access_v1_model_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_system_access_v1_model_proto_rawDesc), len(file_system_access_v1_model_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   2,
+			NumEnums:      2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_system_access_v1_model_proto_goTypes,
 		DependencyIndexes: file_system_access_v1_model_proto_depIdxs,
+		EnumInfos:         file_system_access_v1_model_proto_enumTypes,
 		MessageInfos:      file_system_access_v1_model_proto_msgTypes,
 	}.Build()
 	File_system_access_v1_model_proto = out.File

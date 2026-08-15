@@ -1,5 +1,17 @@
 components:
     schemas:
+        AccessRequestServiceCancelAccessRequestBody:
+            type: object
+        AccessRequestServiceDecideAccessRequestBody:
+            properties:
+                approved:
+                    description: |-
+                        True performs the grant; false records the refusal. There is no third
+                        state: a request is decided once.
+                    type: boolean
+                comment:
+                    type: string
+            type: object
         protobufAny:
             additionalProperties: {}
             properties:
@@ -55,6 +67,88 @@ components:
                 roleName:
                     type: string
             type: object
+        v1AccessRequest:
+            description: |-
+                AccessRequest is one person asking for another to be put in a group, and
+                somebody else agreeing.
+
+                requester and subject are separate because the interesting requests are made
+                on somebody else's behalf: a manager for a report, the assistant for whoever
+                it is answering.
+            properties:
+                createdAt:
+                    format: date-time
+                    type: string
+                decidedAt:
+                    format: date-time
+                    type: string
+                decidedByUserId:
+                    type: string
+                decisionComment:
+                    type: string
+                groupId:
+                    type: string
+                id:
+                    type: string
+                origin:
+                    $ref: '#/components/schemas/v1RequestOrigin'
+                reason:
+                    type: string
+                requestedUntil:
+                    description: |-
+                        The term asked for, unset for "permanently". On approval it becomes the
+                        membership's expiry, so a request for a week grants a week.
+                    format: date-time
+                    type: string
+                requesterUserId:
+                    type: string
+                sessionId:
+                    description: |-
+                        The chat session the assistant raised this in. Empty for every other
+                        origin.
+                    type: string
+                status:
+                    $ref: '#/components/schemas/v1RequestStatus'
+                subjectUserId:
+                    type: string
+                updatedAt:
+                    format: date-time
+                    type: string
+            type: object
+        v1CancelAccessRequestResponse:
+            properties:
+                accessRequest:
+                    $ref: '#/components/schemas/v1AccessRequest'
+            type: object
+        v1CreateAccessRequestRequest:
+            properties:
+                groupId:
+                    type: string
+                reason:
+                    description: |-
+                        Why. Required, because a request nobody explained is a request nobody can
+                        judge.
+                    type: string
+                requestedUntil:
+                    description: |-
+                        How long for. Leave it unset to ask permanently, which is a bigger ask and
+                        reads as one on the approval screen.
+                    format: date-time
+                    type: string
+                subjectUserId:
+                    description: Who the access is for. Leave it unset to ask for yourself.
+                    type: string
+            type: object
+        v1CreateAccessRequestResponse:
+            properties:
+                accessRequest:
+                    $ref: '#/components/schemas/v1AccessRequest'
+            type: object
+        v1DecideAccessRequestResponse:
+            properties:
+                accessRequest:
+                    $ref: '#/components/schemas/v1AccessRequest'
+            type: object
         v1ExplainUserAccessResponse:
             properties:
                 allowed:
@@ -67,6 +161,16 @@ components:
                     items:
                         $ref: '#/components/schemas/v1AccessPath'
                     type: array
+            type: object
+        v1ListAccessRequestsResponse:
+            properties:
+                accessRequests:
+                    items:
+                        $ref: '#/components/schemas/v1AccessRequest'
+                    type: array
+                total:
+                    format: int64
+                    type: string
             type: object
         v1ListPrincipalsForOperationResponse:
             properties:
@@ -87,11 +191,174 @@ components:
                 username:
                     type: string
             type: object
+        v1RequestOrigin:
+            default: REQUEST_ORIGIN_UNSPECIFIED
+            description: RequestOrigin is the surface a request came in by.
+            enum:
+                - REQUEST_ORIGIN_UNSPECIFIED
+                - REQUEST_ORIGIN_CONSOLE
+                - REQUEST_ORIGIN_CLI
+                - REQUEST_ORIGIN_AI_CHAT
+            type: string
+        v1RequestStatus:
+            default: REQUEST_STATUS_UNSPECIFIED
+            description: |-
+                RequestStatus is where an access request has got to. A request is decided
+                once; there is no route back to pending.
+
+                The per-value comments this would normally carry are left out on purpose: the
+                OpenAPI generator renders them into a description that the web client's
+                schema generator cannot parse.
+            enum:
+                - REQUEST_STATUS_UNSPECIFIED
+                - REQUEST_STATUS_PENDING
+                - REQUEST_STATUS_APPROVED
+                - REQUEST_STATUS_REJECTED
+                - REQUEST_STATUS_CANCELLED
+            type: string
 info:
     title: system/access/v1/service.proto
     version: version not set
 openapi: 3.0.3
 paths:
+    /api/v1/access-requests:
+        get:
+            operationId: AccessRequestService_ListAccessRequests
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: requesterUserId
+                  schema:
+                    type: string
+                - in: query
+                  name: subjectUserId
+                  schema:
+                    type: string
+                - in: query
+                  name: groupId
+                  schema:
+                    type: string
+                - in: query
+                  name: status
+                  schema:
+                    default: REQUEST_STATUS_UNSPECIFIED
+                    enum:
+                        - REQUEST_STATUS_UNSPECIFIED
+                        - REQUEST_STATUS_PENDING
+                        - REQUEST_STATUS_APPROVED
+                        - REQUEST_STATUS_REJECTED
+                        - REQUEST_STATUS_CANCELLED
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListAccessRequestsResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AccessRequestService
+        post:
+            operationId: AccessRequestService_CreateAccessRequest
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateAccessRequestRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateAccessRequestResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AccessRequestService
+    /api/v1/access-requests/{id}/cancel:
+        post:
+            operationId: AccessRequestService_CancelAccessRequest
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AccessRequestServiceCancelAccessRequestBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CancelAccessRequestResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AccessRequestService
+    /api/v1/access-requests/{id}/decide:
+        post:
+            operationId: AccessRequestService_DecideAccessRequest
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AccessRequestServiceDecideAccessRequestBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DecideAccessRequestResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AccessRequestService
     /api/v1/access/explain:
         get:
             operationId: AccessService_ExplainUserAccess
@@ -156,3 +423,4 @@ paths:
                 - AccessService
 tags:
     - name: AccessService
+    - name: AccessRequestService
