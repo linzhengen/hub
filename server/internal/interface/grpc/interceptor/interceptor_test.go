@@ -93,6 +93,17 @@ func (m *MockAuthService) Enforce(ctx context.Context, req auth.Request) (bool, 
 	return args.Bool(0), args.Error(1)
 }
 
+// The interceptor only enforces; the explain half is here to satisfy the
+// interface.
+
+func (m *MockAuthService) Explain(_ context.Context, _ auth.Request) ([]auth.AccessPath, error) {
+	return nil, nil
+}
+
+func (m *MockAuthService) PrincipalsFor(_ context.Context, _ auth.Request) ([]auth.Principal, error) {
+	return nil, nil
+}
+
 // Mock gRPC server stream
 type MockServerStream struct {
 	mock.Mock

@@ -33,6 +33,21 @@ func (r *countingRepository) FindUserAuthorizedPolicies(_ context.Context, userI
 	return r.policies, nil
 }
 
+// The explain queries pass straight through the cache, so the counting
+// repository only has to satisfy the interface for them.
+
+func (r *countingRepository) FindUserAccessPaths(_ context.Context, _ string) ([]auth.AccessPath, error) {
+	return nil, r.err
+}
+
+func (r *countingRepository) FindAccessPaths(_ context.Context) ([]auth.AccessPath, error) {
+	return nil, r.err
+}
+
+func (r *countingRepository) FindMemberships(_ context.Context) ([]auth.Membership, error) {
+	return nil, r.err
+}
+
 func (r *countingRepository) Revision(_ context.Context) (int64, error) {
 	r.revisionCalls++
 	if r.revisionErr != nil {

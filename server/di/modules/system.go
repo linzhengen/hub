@@ -33,6 +33,7 @@ func ProvideSystem(c *dig.Container) {
 	must(c.Provide(apiInfra.New))
 	must(c.Provide(menuInfra.New))
 	// usecase
+	must(c.Provide(system.NewAccessUseCase))
 	must(c.Provide(system.NewAuditUseCase))
 	must(c.Provide(system.NewGroupUseCase))
 	must(c.Provide(system.NewPermissionUseCase))
@@ -40,6 +41,7 @@ func ProvideSystem(c *dig.Container) {
 	must(c.Provide(system.NewRoleUseCase))
 	must(c.Provide(develop.NewResourceUseCase))
 	// interface (gRPC)
+	must(c.Provide(systemHandler.NewAccessHandler))
 	must(c.Provide(systemHandler.NewAuditHandler))
 	must(c.Provide(systemHandler.NewGroupHandler))
 	must(c.Provide(systemHandler.NewPermissionHandler))

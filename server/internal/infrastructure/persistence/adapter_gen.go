@@ -127,6 +127,35 @@ type RolePermissionModel struct {
 	UpdatedAt    time.Time
 }
 
+// SelectAccessPathsModel represents a SelectAccessPaths in the database
+type SelectAccessPathsModel struct {
+	GroupID      string
+	GroupName    string
+	RoleID       string
+	RoleName     string
+	PermissionID string
+	Identifier   string
+	Verb         string
+}
+
+// SelectMembershipsModel represents a SelectMemberships in the database
+type SelectMembershipsModel struct {
+	ID       string
+	Username string
+	GroupID  string
+}
+
+// SelectUserAccessPathsModel represents a SelectUserAccessPaths in the database
+type SelectUserAccessPathsModel struct {
+	GroupID      string
+	GroupName    string
+	RoleID       string
+	RoleName     string
+	PermissionID string
+	Identifier   string
+	Verb         string
+}
+
 // SelectUserAuthorizedPolicesModel represents a SelectUserAuthorizedPolices in the database
 type SelectUserAuthorizedPolicesModel struct {
 	ID         string
@@ -185,6 +214,7 @@ type Querier interface {
 	IsUserInGroup(ctx context.Context, UserID string, GroupID string) (bool, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, RoleID string, PermissionID string) error
+	SelectAccessPath(ctx context.Context) ([]*SelectAccessPathsModel, error)
 	SelectChatMessagesBySessionId(ctx context.Context, SessionID string, UserID string) ([]*ChatMessageModel, error)
 	SelectChatSessionById(ctx context.Context, ID string, UserID string) (*ChatSessionModel, error)
 	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSessionModel, error)
@@ -192,6 +222,7 @@ type Querier interface {
 	SelectGroupById(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRoleModel, error)
+	SelectMembership(ctx context.Context) ([]*SelectMembershipsModel, error)
 	SelectPermissionById(ctx context.Context, id string) (*PermissionModel, error)
 	SelectPermissionByResourceId(ctx context.Context, resourceID string) ([]*PermissionModel, error)
 	SelectPermissionForUpdate(ctx context.Context, id string) (*PermissionModel, error)
@@ -202,6 +233,7 @@ type Querier interface {
 	SelectRoleById(ctx context.Context, id string) (*RoleModel, error)
 	SelectRoleForUpdate(ctx context.Context, id string) (*RoleModel, error)
 	SelectRolePermissionByRoleId(ctx context.Context, roleID string) ([]*RolePermissionModel, error)
+	SelectUserAccessPath(ctx context.Context, id string) ([]*SelectUserAccessPathsModel, error)
 	SelectUserAuthorizedPolicies(ctx context.Context, id string) ([]*SelectUserAuthorizedPolicesModel, error)
 	SelectUserById(ctx context.Context, id string) (*UserModel, error)
 	SelectUserForUpdate(ctx context.Context, id string) (*UserModel, error)
@@ -534,6 +566,27 @@ func (p *PostgreSQLQuerier) RemovePermissionFromRole(ctx context.Context, RoleID
 
 }
 
+func (p *PostgreSQLQuerier) SelectAccessPath(ctx context.Context) ([]*SelectAccessPathsModel, error) {
+	rows, err := p.q.SelectAccessPaths(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*SelectAccessPathsModel, len(rows))
+	for i, row := range rows {
+		res[i] = &SelectAccessPathsModel{
+			GroupID:      row.GroupID,
+			GroupName:    row.GroupName,
+			RoleID:       row.RoleID,
+			RoleName:     row.RoleName,
+			PermissionID: row.PermissionID,
+			Identifier:   row.Identifier,
+			Verb:         row.Verb,
+		}
+	}
+	return res, nil
+
+}
+
 func (p *PostgreSQLQuerier) SelectChatMessagesBySessionId(ctx context.Context, SessionID string, UserID string) ([]*ChatMessageModel, error) {
 	rows, err := p.q.SelectChatMessagesBySessionId(ctx, postgressqlc.SelectChatMessagesBySessionIdParams{
 		SessionID: SessionID,
@@ -658,6 +711,23 @@ func (p *PostgreSQLQuerier) SelectGroupRoleByGroupId(ctx context.Context, groupI
 			RoleID:    row.RoleID,
 			CreatedAt: row.CreatedAt,
 			UpdatedAt: row.UpdatedAt,
+		}
+	}
+	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectMembership(ctx context.Context) ([]*SelectMembershipsModel, error) {
+	rows, err := p.q.SelectMemberships(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*SelectMembershipsModel, len(rows))
+	for i, row := range rows {
+		res[i] = &SelectMembershipsModel{
+			ID:       row.ID,
+			Username: row.Username,
+			GroupID:  row.GroupID,
 		}
 	}
 	return res, nil
@@ -848,6 +918,27 @@ func (p *PostgreSQLQuerier) SelectRolePermissionByRoleId(ctx context.Context, ro
 			PermissionID: row.PermissionID,
 			CreatedAt:    row.CreatedAt,
 			UpdatedAt:    row.UpdatedAt,
+		}
+	}
+	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectUserAccessPath(ctx context.Context, id string) ([]*SelectUserAccessPathsModel, error) {
+	rows, err := p.q.SelectUserAccessPaths(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*SelectUserAccessPathsModel, len(rows))
+	for i, row := range rows {
+		res[i] = &SelectUserAccessPathsModel{
+			GroupID:      row.GroupID,
+			GroupName:    row.GroupName,
+			RoleID:       row.RoleID,
+			RoleName:     row.RoleName,
+			PermissionID: row.PermissionID,
+			Identifier:   row.Identifier,
+			Verb:         row.Verb,
 		}
 	}
 	return res, nil

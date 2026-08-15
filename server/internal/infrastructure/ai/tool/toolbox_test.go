@@ -37,6 +37,17 @@ func (s authStub) Enforce(_ context.Context, req auth.Request) (bool, error) {
 	return s.allow[req.Action], nil
 }
 
+// The tool box asks only whether a call is allowed, never why, so the explain
+// half of the service is here to satisfy the interface.
+
+func (s authStub) Explain(_ context.Context, _ auth.Request) ([]auth.AccessPath, error) {
+	return nil, nil
+}
+
+func (s authStub) PrincipalsFor(_ context.Context, _ auth.Request) ([]auth.Principal, error) {
+	return nil, nil
+}
+
 // userServer is a stand-in for the real UserServiceServer, returning one user
 // with an email so the redaction can be observed.
 type userServer struct {

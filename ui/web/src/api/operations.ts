@@ -24,6 +24,14 @@ export const chatServiceOperations = {
   sendMessage: { method: 'POST', path: '/chat/sessions/{id}/messages', pathParams: ['id'] },
 } as const satisfies Record<string, ApiOperation>;
 
+/** Operations of system.access.v1.AccessService. */
+export const accessServiceOperations = {
+  /** Explain whether a user is allowed an operation, listing every route that allows it. */
+  explainUserAccess: { method: 'GET', path: '/access/explain', pathParams: [] },
+  /** List the users allowed an operation, with the routes that allow it. */
+  listPrincipalsForOperation: { method: 'GET', path: '/access/principals', pathParams: [] },
+} as const satisfies Record<string, ApiOperation>;
+
 /** Operations of system.audit.v1.AuditService. */
 export const auditServiceOperations = {
   /** List recorded changes to users, groups, roles, permissions and resources, newest first. */

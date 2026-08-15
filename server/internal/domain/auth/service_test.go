@@ -27,6 +27,30 @@ func (m *MockAuthRepository) FindUserAuthorizedPolicies(ctx context.Context, use
 	return args.Get(0).([]Policy), args.Error(1)
 }
 
+func (m *MockAuthRepository) FindUserAccessPaths(ctx context.Context, userId string) ([]AccessPath, error) {
+	args := m.Called(ctx, userId)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]AccessPath), args.Error(1)
+}
+
+func (m *MockAuthRepository) FindAccessPaths(ctx context.Context) ([]AccessPath, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]AccessPath), args.Error(1)
+}
+
+func (m *MockAuthRepository) FindMemberships(ctx context.Context) ([]Membership, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]Membership), args.Error(1)
+}
+
 func TestAuthService_Enforce(t *testing.T) {
 	ctx := context.Background()
 	subject := "user1"
@@ -139,4 +163,192 @@ func TestAuthService_Enforce(t *testing.T) {
 			authRepo.AssertExpectations(t)
 		})
 	}
+}
+
+// listUser is the operation the explain tests ask about, spelled the way the
+// server enforces it.
+var listUser = Request{Subject: "user1", Object: "api.user.v1.UserService", Action: "ListUser"}
+
+func TestAuthService_Explain(t *testing.T) {
+	ctx := context.Background()
+
+	adminPath := AccessPath{
+		GroupId: "group-admin", GroupName: "admin",
+		RoleId: "role-admin", RoleName: "admin-role",
+		PermissionId: "perm-all", Object: "api.*", Action: "*",
+	}
+	supportPath := AccessPath{
+		GroupId: "group-support", GroupName: "support",
+		RoleId: "role-reader", RoleName: "user-reader",
+		PermissionId: "perm-list-user", Object: "api.user.v1.UserService", Action: "ListUser",
+	}
+	unrelatedPath := AccessPath{
+		GroupId: "group-support", GroupName: "support",
+		RoleId: "role-reader", RoleName: "user-reader",
+		PermissionId: "perm-list-role", Object: "api.system.role.v1.RoleService", Action: "ListRole",
+	}
+
+	tests := []struct {
+		name          string
+		mockPaths     []AccessPath
+		mockError     error
+		expectedPaths []AccessPath
+		expectedError bool
+	}{
+		{
+			// The wildcard case is the one a reader most needs told: the answer
+			// is yes because of a grant that does not name the operation.
+			name:          "a wildcard grant is reported, as the pattern it is",
+			mockPaths:     []AccessPath{adminPath},
+			expectedPaths: []AccessPath{adminPath},
+		},
+		{
+			// Revoking one of two routes revokes nothing, so both are reported.
+			name:          "every route is returned, not the first one found",
+			mockPaths:     []AccessPath{adminPath, supportPath},
+			expectedPaths: []AccessPath{adminPath, supportPath},
+		},
+		{
+			name:          "routes to other operations are left out",
+			mockPaths:     []AccessPath{supportPath, unrelatedPath},
+			expectedPaths: []AccessPath{supportPath},
+		},
+		{
+			name:          "a user with no route is explained as having none",
+			mockPaths:     []AccessPath{unrelatedPath},
+			expectedPaths: nil,
+		},
+		{
+			name:          "repository error",
+			mockPaths:     nil,
+			mockError:     errors.New("db connection failed"),
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			authRepo := new(MockAuthRepository)
+			authRepo.On("FindUserAccessPaths", ctx, listUser.Subject).Return(tt.mockPaths, tt.mockError).Once()
+
+			paths, err := NewService(authRepo).Explain(ctx, listUser)
+
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedPaths, paths)
+			}
+			authRepo.AssertExpectations(t)
+		})
+	}
+}
+
+// TestExplainAgreesWithEnforce is the property that makes an explanation worth
+// reading: whenever Enforce says yes, Explain says why, and whenever it says no,
+// Explain offers no reason. A second copy of the matching rule would pass its
+// own tests and still disagree here.
+func TestExplainAgreesWithEnforce(t *testing.T) {
+	ctx := context.Background()
+
+	paths := []AccessPath{
+		{GroupId: "g1", Object: "api.*", Action: "*"},
+		{GroupId: "g2", Object: "api.user.v1.UserService", Action: "*User"},
+		{GroupId: "g3", Object: "api.system.*.v1.*Service", Action: "ListRole"},
+		{GroupId: "g4", Object: "menu.*", Action: "view"},
+	}
+	policies := make([]Policy, 0, len(paths))
+	for _, path := range paths {
+		policies = append(policies, Policy{Object: path.Object, Action: path.Action})
+	}
+
+	requests := []Request{
+		{Subject: "user1", Object: "api.user.v1.UserService", Action: "ListUser"},
+		{Subject: "user1", Object: "api.system.role.v1.RoleService", Action: "ListRole"},
+		{Subject: "user1", Object: "api.system.role.v1.RoleService", Action: "DeleteRole"},
+		{Subject: "user1", Object: "menu.dashboard", Action: "view"},
+		{Subject: "user1", Object: "menu.dashboard", Action: "edit"},
+	}
+
+	for _, req := range requests {
+		t.Run(req.Object+"/"+req.Action, func(t *testing.T) {
+			authRepo := new(MockAuthRepository)
+			authRepo.On("FindUserAuthorizedPolicies", ctx, req.Subject).Return(policies, nil).Once()
+			authRepo.On("FindUserAccessPaths", ctx, req.Subject).Return(paths, nil).Once()
+
+			service := NewService(authRepo)
+			allowed, err := service.Enforce(ctx, req)
+			assert.NoError(t, err)
+			explained, err := service.Explain(ctx, req)
+			assert.NoError(t, err)
+
+			assert.Equal(t, allowed, len(explained) > 0,
+				"Enforce answered %v but Explain returned %d routes", allowed, len(explained))
+		})
+	}
+}
+
+func TestAuthService_PrincipalsFor(t *testing.T) {
+	ctx := context.Background()
+	req := Request{Object: "api.user.v1.UserService", Action: "ListUser"}
+
+	adminPath := AccessPath{
+		GroupId: "group-admin", GroupName: "admin",
+		RoleId: "role-admin", RoleName: "admin-role",
+		PermissionId: "perm-all", Object: "api.*", Action: "*",
+	}
+	supportPath := AccessPath{
+		GroupId: "group-support", GroupName: "support",
+		RoleId: "role-reader", RoleName: "user-reader",
+		PermissionId: "perm-list-user", Object: "api.user.v1.UserService", Action: "ListUser",
+	}
+	unrelatedPath := AccessPath{
+		GroupId: "group-guest", GroupName: "guest",
+		RoleId: "role-guest", RoleName: "guest-role",
+		PermissionId: "perm-list-role", Object: "api.system.role.v1.RoleService", Action: "ListRole",
+	}
+
+	t.Run("a user holding the operation twice is one principal with both routes", func(t *testing.T) {
+		authRepo := new(MockAuthRepository)
+		authRepo.On("FindAccessPaths", ctx).
+			Return([]AccessPath{adminPath, supportPath, unrelatedPath}, nil).Once()
+		authRepo.On("FindMemberships", ctx).Return([]Membership{
+			{UserId: "user1", Username: "alice", GroupId: "group-admin"},
+			{UserId: "user1", Username: "alice", GroupId: "group-support"},
+			{UserId: "user2", Username: "bob", GroupId: "group-support"},
+			{UserId: "user3", Username: "carol", GroupId: "group-guest"},
+		}, nil).Once()
+
+		principals, err := NewService(authRepo).PrincipalsFor(ctx, req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, []Principal{
+			{UserId: "user1", Username: "alice", Paths: []AccessPath{adminPath, supportPath}},
+			{UserId: "user2", Username: "bob", Paths: []AccessPath{supportPath}},
+		}, principals)
+	})
+
+	t.Run("nobody is allowed, and the members are never read", func(t *testing.T) {
+		authRepo := new(MockAuthRepository)
+		authRepo.On("FindAccessPaths", ctx).Return([]AccessPath{unrelatedPath}, nil).Once()
+
+		principals, err := NewService(authRepo).PrincipalsFor(ctx, req)
+
+		assert.NoError(t, err)
+		assert.Empty(t, principals)
+		// Narrowing the graph before the people is the thing that keeps this
+		// query from costing users times permissions.
+		authRepo.AssertNotCalled(t, "FindMemberships", ctx)
+		authRepo.AssertExpectations(t)
+	})
+
+	t.Run("repository error", func(t *testing.T) {
+		authRepo := new(MockAuthRepository)
+		authRepo.On("FindAccessPaths", ctx).Return(nil, errors.New("db connection failed")).Once()
+
+		_, err := NewService(authRepo).PrincipalsFor(ctx, req)
+
+		assert.Error(t, err)
+		authRepo.AssertExpectations(t)
+	})
 }
