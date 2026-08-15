@@ -30,6 +30,16 @@ menus:
     metadata:
       icon: "ChatIcon"
     status: "Active"
+  - id: "00000000-0000-0000-4000-000000000000"
+    name: "アクセス申請"
+    type: "menu"
+    path: "/access-requests"
+    component: "AccessRequests"
+    displayOrder: 4
+    description: ""
+    metadata:
+      icon: "task"
+    status: "Active"
   - id: "00000000-0000-0000-9000-000000000000"
     name: "システム管理"
     type: "menu"
@@ -70,4 +80,14 @@ menus:
         description: ""
         metadata:
           icon: "FolderIcon"
+        status: "Active"
+      - id: "00000000-0000-0000-9000-400000000000"
+        name: "サービスアカウント"
+        type: "menu"
+        path: "/system/service-accounts"
+        component: "system/ServiceAccounts"
+        displayOrder: 4
+        description: ""
+        metadata:
+          icon: "plug-in"
         status: "Active"
