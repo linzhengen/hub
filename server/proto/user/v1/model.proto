@@ -21,7 +21,19 @@ message User {
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
 
-  repeated string group_ids = 7;
+  // 7 was group_ids, a bare list that could not say when a membership ended.
+  // Reserved rather than reused so an old client reading field 7 gets nothing
+  // instead of a list of timestamps.
+  reserved 7;
+
+  repeated GroupMembership groups = 8;
+}
+
+// GroupMembership is one group the user is in, and when they leave it.
+message GroupMembership {
+  string group_id = 1;
+  // When the membership lapses, unset when it does not.
+  optional google.protobuf.Timestamp expires_at = 2;
 }
 
 message MenuMeta {

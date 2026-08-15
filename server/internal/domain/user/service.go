@@ -56,10 +56,13 @@ func (s service) CreateIfNotExists(ctx context.Context, u *User) (*User, error) 
 		if err := s.repo.Create(ctx, u); err != nil {
 			return err
 		}
-		if len(u.GroupIds) == 0 {
-			u.GroupIds = append(u.GroupIds, uuid.Nil.String())
+		// A user in no group can do nothing at all, so a new one who was not
+		// placed anywhere joins the default group. The membership does not
+		// expire: it is what makes the account usable, not a grant of anything.
+		if len(u.Groups) == 0 {
+			u.Groups = PermanentMemberships([]string{uuid.Nil.String()})
 		}
-		return s.userGroupRepo.Upsert(ctx, u.Id, u.GroupIds)
+		return s.userGroupRepo.Upsert(ctx, u.Id, u.GroupIds())
 	}); err != nil {
 		return nil, err
 	}

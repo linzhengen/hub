@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"time"
+
 	"fmt"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -42,8 +44,30 @@ func userDomainToPb(m *user.User) *pbuserv1.User {
 		Status:    toUserPbStatus(m.Status),
 		CreatedAt: timestamppb.New(m.CreatedAt),
 		UpdatedAt: timestamppb.New(m.UpdatedAt),
-		GroupIds:  m.GroupIds,
+		Groups:    groupMembershipsToPb(m.Groups),
 	}
+}
+
+// groupMembershipsToPb carries each membership's expiry out with it, so a
+// caller can tell a membership that ends on Friday from one that does not end.
+func groupMembershipsToPb(memberships []user.GroupMembership) []*pbuserv1.GroupMembership {
+	pbMemberships := make([]*pbuserv1.GroupMembership, 0, len(memberships))
+	for _, m := range memberships {
+		pbMemberships = append(pbMemberships, &pbuserv1.GroupMembership{
+			GroupId:   m.GroupId,
+			ExpiresAt: expiryToPb(m.ExpiresAt),
+		})
+	}
+	return pbMemberships
+}
+
+// expiryToPb leaves the field absent when nothing expires, rather than sending
+// a zero time a reader would have to know to ignore.
+func expiryToPb(t *time.Time) *timestamppb.Timestamp {
+	if t == nil {
+		return nil
+	}
+	return timestamppb.New(*t)
 }
 
 func groupDomainToPb(m *group.Group) *pbgroupv1.Group {

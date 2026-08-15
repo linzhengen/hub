@@ -176,7 +176,7 @@ export interface components {
             description?: string;
             id?: string;
             name?: string;
-            roleIds?: string[];
+            roles?: components["schemas"]["v1RoleGrant"][];
             status?: components["schemas"]["v1GroupStatus"];
             /** Format: date-time */
             updatedAt?: string;
@@ -196,6 +196,16 @@ export interface components {
         };
         v1RemoveUsersFromGroupResponse: {
             group?: components["schemas"]["v1Group"];
+        };
+        /** @description RoleGrant is one role the group holds, and when it stops holding it. */
+        v1RoleGrant: {
+            /**
+             * Format: date-time
+             * @description When the grant lapses, unset when it does not. A grant that ends on Friday
+             *     and one that never ends are different things and must not read the same.
+             */
+            expiresAt?: string;
+            roleId?: string;
         };
         v1UpdateGroupResponse: {
             group?: components["schemas"]["v1Group"];

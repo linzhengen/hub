@@ -79,7 +79,7 @@ type Group struct {
 	Status        Group_Status           `protobuf:"varint,4,opt,name=status,proto3,enum=system.group.v1.Group_Status" json:"status,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	RoleIds       []string               `protobuf:"bytes,7,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	Roles         []*RoleGrant           `protobuf:"bytes,8,rep,name=roles,proto3" json:"roles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -156,9 +156,64 @@ func (x *Group) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Group) GetRoleIds() []string {
+func (x *Group) GetRoles() []*RoleGrant {
 	if x != nil {
-		return x.RoleIds
+		return x.Roles
+	}
+	return nil
+}
+
+// RoleGrant is one role the group holds, and when it stops holding it.
+type RoleGrant struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	RoleId string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	// When the grant lapses, unset when it does not. A grant that ends on Friday
+	// and one that never ends are different things and must not read the same.
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoleGrant) Reset() {
+	*x = RoleGrant{}
+	mi := &file_system_group_v1_model_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoleGrant) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoleGrant) ProtoMessage() {}
+
+func (x *RoleGrant) ProtoReflect() protoreflect.Message {
+	mi := &file_system_group_v1_model_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoleGrant.ProtoReflect.Descriptor instead.
+func (*RoleGrant) Descriptor() ([]byte, []int) {
+	return file_system_group_v1_model_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RoleGrant) GetRoleId() string {
+	if x != nil {
+		return x.RoleId
+	}
+	return ""
+}
+
+func (x *RoleGrant) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
 	}
 	return nil
 }
@@ -167,7 +222,7 @@ var File_system_group_v1_model_proto protoreflect.FileDescriptor
 
 const file_system_group_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x1bsystem/group/v1/model.proto\x12\x0fsystem.group.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdf\x02\n" +
+	"\x1bsystem/group/v1/model.proto\x12\x0fsystem.group.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xfc\x02\n" +
 	"\x05Group\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -176,12 +231,17 @@ const file_system_group_v1_model_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x19\n" +
-	"\brole_ids\x18\a \x03(\tR\aroleIds\"H\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x120\n" +
+	"\x05roles\x18\b \x03(\v2\x1a.system.group.v1.RoleGrantR\x05roles\"H\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rSTATUS_ACTIVE\x10\x01\x12\x13\n" +
-	"\x0fSTATUS_INACTIVE\x10\x02B5Z3github.com/linzhengen/hub/server/pb/system/group/v1b\x06proto3"
+	"\x0fSTATUS_INACTIVE\x10\x02J\x04\b\a\x10\b\"s\n" +
+	"\tRoleGrant\x12\x17\n" +
+	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12>\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\texpiresAt\x88\x01\x01B\r\n" +
+	"\v_expires_atB5Z3github.com/linzhengen/hub/server/pb/system/group/v1b\x06proto3"
 
 var (
 	file_system_group_v1_model_proto_rawDescOnce sync.Once
@@ -196,21 +256,24 @@ func file_system_group_v1_model_proto_rawDescGZIP() []byte {
 }
 
 var file_system_group_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_system_group_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_system_group_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_system_group_v1_model_proto_goTypes = []any{
 	(Group_Status)(0),             // 0: system.group.v1.Group.Status
 	(*Group)(nil),                 // 1: system.group.v1.Group
-	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
+	(*RoleGrant)(nil),             // 2: system.group.v1.RoleGrant
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_system_group_v1_model_proto_depIdxs = []int32{
 	0, // 0: system.group.v1.Group.status:type_name -> system.group.v1.Group.Status
-	2, // 1: system.group.v1.Group.created_at:type_name -> google.protobuf.Timestamp
-	2, // 2: system.group.v1.Group.updated_at:type_name -> google.protobuf.Timestamp
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	3, // 1: system.group.v1.Group.created_at:type_name -> google.protobuf.Timestamp
+	3, // 2: system.group.v1.Group.updated_at:type_name -> google.protobuf.Timestamp
+	2, // 3: system.group.v1.Group.roles:type_name -> system.group.v1.RoleGrant
+	3, // 4: system.group.v1.RoleGrant.expires_at:type_name -> google.protobuf.Timestamp
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_system_group_v1_model_proto_init() }
@@ -218,13 +281,14 @@ func file_system_group_v1_model_proto_init() {
 	if File_system_group_v1_model_proto != nil {
 		return
 	}
+	file_system_group_v1_model_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_system_group_v1_model_proto_rawDesc), len(file_system_group_v1_model_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

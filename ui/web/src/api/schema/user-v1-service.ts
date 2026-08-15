@@ -188,10 +188,19 @@ export interface components {
             description?: string;
             id?: string;
             name?: string;
-            roleIds?: string[];
+            roles?: components["schemas"]["v1RoleGrant"][];
             status?: components["schemas"]["v1GroupStatus"];
             /** Format: date-time */
             updatedAt?: string;
+        };
+        /** @description GroupMembership is one group the user is in, and when they leave it. */
+        v1GroupMembership: {
+            /**
+             * Format: date-time
+             * @description When the membership lapses, unset when it does not.
+             */
+            expiresAt?: string;
+            groupId?: string;
         };
         /**
          * @default STATUS_UNSPECIFIED
@@ -226,6 +235,16 @@ export interface components {
         v1RemoveGroupsFromUserResponse: {
             user?: components["schemas"]["v1User"];
         };
+        /** @description RoleGrant is one role the group holds, and when it stops holding it. */
+        v1RoleGrant: {
+            /**
+             * Format: date-time
+             * @description When the grant lapses, unset when it does not. A grant that ends on Friday
+             *     and one that never ends are different things and must not read the same.
+             */
+            expiresAt?: string;
+            roleId?: string;
+        };
         /**
          * @description The verification email is always sent to the authenticated user, so the
          *     request carries no target: taking a user id here would let a caller trigger
@@ -249,7 +268,7 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
             email?: string;
-            groupIds?: string[];
+            groups?: components["schemas"]["v1GroupMembership"][];
             id?: string;
             status?: components["schemas"]["v1UserStatus"];
             /** Format: date-time */

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { expiresSoon, formatTerm, groupIdsOf } from '@/lib/grants';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { userService, User, UpdateUserRequest } from '@/services/user';
 import { groupService, ListGroupsResponse } from '@/services/group';
@@ -41,7 +42,7 @@ function downloadCsv(users: User[], groupNameFn: (ids: string[] | undefined) => 
     u.username ?? '',
     u.email ?? '',
     u.status?.replace('STATUS_', '') ?? '',
-    groupNameFn(u.groupIds).join('; '),
+    groupNameFn(groupIdsOf(u.groups)).join('; '),
     u.createdAt ? new Date(u.createdAt).toISOString() : '',
   ]);
   const csv = [header, ...rows]
@@ -241,17 +242,17 @@ export function Users() {
   const drawerMemberGroups = useMemo(
     () =>
       (groupsData?.groups ?? []).filter((g) =>
-        (managingGroupsUser?.groupIds ?? []).includes(g.id ?? ''),
+        groupIdsOf(managingGroupsUser?.groups).includes(g.id ?? ''),
       ),
-    [groupsData?.groups, managingGroupsUser?.groupIds],
+    [groupsData?.groups, managingGroupsUser?.groups],
   );
 
   const drawerAvailableGroups = useMemo(
     () =>
       (groupsData?.groups ?? []).filter(
-        (g) => !(managingGroupsUser?.groupIds ?? []).includes(g.id ?? ''),
+        (g) => !groupIdsOf(managingGroupsUser?.groups).includes(g.id ?? ''),
       ),
-    [groupsData?.groups, managingGroupsUser?.groupIds],
+    [groupsData?.groups, managingGroupsUser?.groups],
   );
 
   const filteredMemberGroups = useMemo(
@@ -328,15 +329,30 @@ export function Users() {
       key: 'groups',
       width: 200,
       render: (_: unknown, record: User) => {
-        const names = getGroupNames(record.groupIds);
+        const memberships = record.groups ?? [];
         return (
           <div className="flex flex-wrap gap-1">
-            {names.length > 0 ? (
-              names.map((name, i) => (
-                <Tag key={i} color="blue" className="m-0">
-                  {name}
-                </Tag>
-              ))
+            {memberships.length > 0 ? (
+              memberships.map((membership) => {
+                const [name] = getGroupNames([membership.groupId ?? '']);
+                // A membership that ends is not the same fact as one that does
+                // not, so it does not get the same tag. The tooltip carries the
+                // date; the colour carries "somebody has to act".
+                return membership.expiresAt ? (
+                  <Tooltip key={membership.groupId} title={formatTerm(membership.expiresAt)}>
+                    <Tag
+                      color={expiresSoon(membership.expiresAt) ? 'orange' : 'cyan'}
+                      className="m-0"
+                    >
+                      {name ?? membership.groupId} ⏳
+                    </Tag>
+                  </Tooltip>
+                ) : (
+                  <Tag key={membership.groupId} color="blue" className="m-0">
+                    {name ?? membership.groupId}
+                  </Tag>
+                );
+              })
             ) : (
               <span className="text-xs text-gray-400">—</span>
             )}
@@ -372,7 +388,7 @@ export function Users() {
                   username: record.username,
                   email: record.email,
                   status: record.status,
-                  groupIds: record.groupIds,
+                  groupIds: groupIdsOf(record.groups),
                 });
               }}
               className="text-blue-600 dark:text-blue-400"
@@ -404,7 +420,7 @@ export function Users() {
   const activeCount = data?.users?.filter((u) => u.status === 'STATUS_ACTIVE').length ?? 0;
   const inactiveCount = data?.users?.filter((u) => u.status === 'STATUS_INACTIVE').length ?? 0;
   const avgGroups = data?.users?.length
-    ? ((data.users.reduce((s, u) => s + (u.groupIds?.length ?? 0), 0)) / data.users.length).toFixed(1)
+    ? ((data.users.reduce((s, u) => s + (u.groups?.length ?? 0), 0)) / data.users.length).toFixed(1)
     : '—';
 
   const activeFilter = statusFilter !== '' || groupFilter.length > 0;
