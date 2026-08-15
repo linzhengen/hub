@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package system.serviceaccount.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/serviceaccount/v1";
+
+// ServiceAccount is one machine's identity: CI, a job, another service.
+//
+// Authentication is still Keycloak's - a service account is a Keycloak client
+// and a machine gets a token through the client credentials grant. This is the
+// register that says the client exists, what it is for and who set it up.
+message ServiceAccount {
+  string id = 1;
+  // The hub user the machine acts as. It is a row in `users` like any other,
+  // which is what lets a machine join groups, hold roles and appear in the
+  // audit log through the same machinery a person does.
+  string user_id = 2;
+  string name = 3;
+  // What the machine is for. A machine nobody can describe is a machine nobody
+  // dares turn off.
+  string description = 4;
+  // What an operator puts in HUB_OIDC_CLIENT_ID. Derived from the name, so two
+  // service accounts cannot claim the same client.
+  string client_id = 5;
+  string created_by_user_id = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// Credentials are what a machine needs to authenticate.
+//
+// The secret is returned once, when it is issued, and never again: hub does not
+// store it and Keycloak cannot always show it back. Losing it means rotating
+// it, which is the right cost for a credential.
+message Credentials {
+  string client_id = 1;
+  string secret = 2;
+}

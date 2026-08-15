@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -20,6 +21,33 @@ type Client interface {
 	CreateUser(ctx context.Context, username, email, password string) (string, error)
 	DeleteUser(ctx context.Context, userID string) error
 	SendVerifyEmail(ctx context.Context, userID string) error
+
+	// CreateServiceAccountClient registers a confidential client whose only
+	// purpose is to authenticate a machine, and returns the handles hub needs
+	// to keep track of it: Keycloak's internal id for the client, the id of the
+	// user the client acts as, and the secret.
+	//
+	// The secret is returned once, here, and never read back. Keycloak can
+	// re-issue one but cannot show the current one again in every
+	// configuration, so treating it as write-once is the behaviour that holds
+	// everywhere rather than the one that happens to work locally.
+	CreateServiceAccountClient(ctx context.Context, clientID, description string) (ServiceAccountClient, error)
+	// RotateClientSecret issues a new secret and invalidates the old one.
+	RotateClientSecret(ctx context.Context, keycloakID string) (string, error)
+	DeleteClient(ctx context.Context, keycloakID string) error
+}
+
+// ServiceAccountClient is what registering a machine's client yields.
+type ServiceAccountClient struct {
+	// KeycloakID is Keycloak's internal handle for the client, which every
+	// later admin call needs.
+	KeycloakID string
+	// UserID is the client's own service account user. hub stores it in
+	// `users`, which is what lets a machine hold groups and roles and appear in
+	// the audit log the way a person does.
+	UserID string
+	// Secret is shown to the creator once and never again.
+	Secret string
 }
 
 // GoCloak defines the interface for Keycloak operations
@@ -31,6 +59,11 @@ type GoCloak interface {
 	DeleteUser(ctx context.Context, token, realm, userID string) error
 	UpdateUser(ctx context.Context, token, realm string, user gocloak.User) error
 	SendVerifyEmail(ctx context.Context, token, userID, realm string) error
+	CreateClient(ctx context.Context, token, realm string, newClient gocloak.Client) (string, error)
+	DeleteClient(ctx context.Context, token, realm, idOfClient string) error
+	GetClientSecret(ctx context.Context, token, realm, idOfClient string) (*gocloak.CredentialRepresentation, error)
+	RegenerateClientSecret(ctx context.Context, token, realm, idOfClient string) (*gocloak.CredentialRepresentation, error)
+	GetClientServiceAccount(ctx context.Context, token, realm, idOfClient string) (*gocloak.User, error)
 }
 
 // RealGoCloak wraps the actual gocloak.GoCloak client
@@ -43,6 +76,26 @@ func NewRealGoCloak(url string) GoCloak {
 	return &RealGoCloak{
 		client: gocloak.NewClient(url),
 	}
+}
+
+func (g *RealGoCloak) CreateClient(ctx context.Context, token, realm string, newClient gocloak.Client) (string, error) {
+	return g.client.CreateClient(ctx, token, realm, newClient)
+}
+
+func (g *RealGoCloak) DeleteClient(ctx context.Context, token, realm, idOfClient string) error {
+	return g.client.DeleteClient(ctx, token, realm, idOfClient)
+}
+
+func (g *RealGoCloak) GetClientSecret(ctx context.Context, token, realm, idOfClient string) (*gocloak.CredentialRepresentation, error) {
+	return g.client.GetClientSecret(ctx, token, realm, idOfClient)
+}
+
+func (g *RealGoCloak) RegenerateClientSecret(ctx context.Context, token, realm, idOfClient string) (*gocloak.CredentialRepresentation, error) {
+	return g.client.RegenerateClientSecret(ctx, token, realm, idOfClient)
+}
+
+func (g *RealGoCloak) GetClientServiceAccount(ctx context.Context, token, realm, idOfClient string) (*gocloak.User, error) {
+	return g.client.GetClientServiceAccount(ctx, token, realm, idOfClient)
 }
 
 // LoginAdmin implements the GoCloak interface
@@ -227,4 +280,84 @@ func (c *client) SendVerifyEmail(ctx context.Context, userID string) error {
 	}
 
 	return c.gocloak.SendVerifyEmail(ctx, token, userID, c.cfg.Realm)
+}
+
+// CreateServiceAccountClient registers a confidential client for a machine.
+//
+// Only the client credentials grant is enabled on it. A machine has no browser
+// to redirect and no user to consent, so the flows that assume one are turned
+// off rather than left at their defaults: a client that could also do the
+// authorization code flow is a client that could be pointed at a login page.
+func (c *client) CreateServiceAccountClient(
+	ctx context.Context,
+	clientID, description string,
+) (ServiceAccountClient, error) {
+	token, err := c.getToken(ctx)
+	if err != nil {
+		return ServiceAccountClient{}, err
+	}
+
+	keycloakID, err := c.gocloak.CreateClient(ctx, token, c.cfg.Realm, gocloak.Client{
+		ClientID:                  &clientID,
+		Description:               &description,
+		Enabled:                   gocloak.BoolP(true),
+		PublicClient:              gocloak.BoolP(false),
+		ServiceAccountsEnabled:    gocloak.BoolP(true),
+		StandardFlowEnabled:       gocloak.BoolP(false),
+		ImplicitFlowEnabled:       gocloak.BoolP(false),
+		DirectAccessGrantsEnabled: gocloak.BoolP(false),
+	})
+	if err != nil {
+		return ServiceAccountClient{}, fmt.Errorf("failed to create keycloak client: %w", err)
+	}
+
+	serviceAccount, err := c.gocloak.GetClientServiceAccount(ctx, token, c.cfg.Realm, keycloakID)
+	if err != nil {
+		return ServiceAccountClient{}, fmt.Errorf("failed to read the client's service account user: %w", err)
+	}
+	if serviceAccount == nil || serviceAccount.ID == nil {
+		return ServiceAccountClient{}, fmt.Errorf("keycloak returned no service account user for client %s", clientID)
+	}
+
+	secret, err := c.gocloak.GetClientSecret(ctx, token, c.cfg.Realm, keycloakID)
+	if err != nil {
+		return ServiceAccountClient{}, fmt.Errorf("failed to read the client secret: %w", err)
+	}
+	if secret == nil || secret.Value == nil {
+		return ServiceAccountClient{}, fmt.Errorf("keycloak returned no secret for client %s", clientID)
+	}
+
+	return ServiceAccountClient{
+		KeycloakID: keycloakID,
+		UserID:     *serviceAccount.ID,
+		Secret:     *secret.Value,
+	}, nil
+}
+
+// RotateClientSecret issues a new secret, which invalidates the old one.
+func (c *client) RotateClientSecret(ctx context.Context, keycloakID string) (string, error) {
+	token, err := c.getToken(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	secret, err := c.gocloak.RegenerateClientSecret(ctx, token, c.cfg.Realm, keycloakID)
+	if err != nil {
+		return "", fmt.Errorf("failed to regenerate the client secret: %w", err)
+	}
+	if secret == nil || secret.Value == nil {
+		return "", fmt.Errorf("keycloak returned no secret for client %s", keycloakID)
+	}
+	return *secret.Value, nil
+}
+
+// DeleteClient removes the client, which is what actually stops the machine
+// authenticating. Deleting only hub's record would leave working credentials
+// behind.
+func (c *client) DeleteClient(ctx context.Context, keycloakID string) error {
+	token, err := c.getToken(ctx)
+	if err != nil {
+		return err
+	}
+	return c.gocloak.DeleteClient(ctx, token, c.cfg.Realm, keycloakID)
 }

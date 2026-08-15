@@ -52,6 +52,40 @@ func (m *MockGoCloak) SendVerifyEmail(ctx context.Context, token, userID, realm 
 }
 
 // Test configuration
+func (m *MockGoCloak) CreateClient(ctx context.Context, token, realm string, newClient gocloak.Client) (string, error) {
+	args := m.Called(ctx, token, realm, newClient)
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockGoCloak) DeleteClient(ctx context.Context, token, realm, idOfClient string) error {
+	args := m.Called(ctx, token, realm, idOfClient)
+	return args.Error(0)
+}
+
+func (m *MockGoCloak) GetClientSecret(ctx context.Context, token, realm, idOfClient string) (*gocloak.CredentialRepresentation, error) {
+	args := m.Called(ctx, token, realm, idOfClient)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*gocloak.CredentialRepresentation), args.Error(1)
+}
+
+func (m *MockGoCloak) RegenerateClientSecret(ctx context.Context, token, realm, idOfClient string) (*gocloak.CredentialRepresentation, error) {
+	args := m.Called(ctx, token, realm, idOfClient)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*gocloak.CredentialRepresentation), args.Error(1)
+}
+
+func (m *MockGoCloak) GetClientServiceAccount(ctx context.Context, token, realm, idOfClient string) (*gocloak.User, error) {
+	args := m.Called(ctx, token, realm, idOfClient)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*gocloak.User), args.Error(1)
+}
+
 func getTestConfig() config.KeyCloak {
 	return config.KeyCloak{
 		KeycloakURL: "http://localhost:8080",

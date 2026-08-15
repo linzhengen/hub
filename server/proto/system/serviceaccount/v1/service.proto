@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package system.serviceaccount.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "hub/annotations/v1/annotations.proto";
+import "system/serviceaccount/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/serviceaccount/v1";
+
+// ServiceAccountService registers the machines that call the API.
+//
+// Every rpc here issues, rotates or destroys a credential, so none of it is
+// exposed to the assistant: a machine identity is a way to hold permissions
+// without a person attached, which is the one thing the approval flow exists to
+// prevent being automated.
+service ServiceAccountService {
+  rpc CreateServiceAccount(CreateServiceAccountRequest) returns (CreateServiceAccountResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/service-accounts"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Register a machine and return its credentials, which are shown once."};
+  }
+  rpc GetServiceAccount(GetServiceAccountRequest) returns (GetServiceAccountResponse) {
+    option (google.api.http) = {get: "/api/v1/service-accounts/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Get a single service account by id."};
+  }
+  rpc ListServiceAccounts(ListServiceAccountsRequest) returns (ListServiceAccountsResponse) {
+    option (google.api.http) = {get: "/api/v1/service-accounts"};
+    option (hub.annotations.v1.method_rule) = {summary: "List the registered service accounts."};
+  }
+  rpc RotateServiceAccountSecret(RotateServiceAccountSecretRequest) returns (RotateServiceAccountSecretResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/service-accounts/{id}/rotate-secret"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Issue a new secret and invalidate the old one."};
+  }
+  rpc DeleteServiceAccount(DeleteServiceAccountRequest) returns (DeleteServiceAccountResponse) {
+    option (google.api.http) = {delete: "/api/v1/service-accounts/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Remove a machine's identity, its credentials and its group memberships."};
+  }
+}
+
+message CreateServiceAccountRequest {
+  // Lowercase letters, digits and hyphens. The name becomes a Keycloak client
+  // id and a username, so anything that would need escaping somewhere is
+  // refused here instead.
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 3
+    max_len: 64
+    pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+  }];
+  string description = 2 [(buf.validate.field).string.max_len = 1024];
+}
+
+message CreateServiceAccountResponse {
+  ServiceAccount service_account = 1;
+  // Shown once. There is no rpc that reads it back.
+  Credentials credentials = 2;
+}
+
+message GetServiceAccountRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetServiceAccountResponse {
+  ServiceAccount service_account = 1;
+}
+
+message ListServiceAccountsRequest {
+  uint32 limit = 1 [(buf.validate.field).uint32.lte = 200];
+  uint32 offset = 2;
+}
+
+message ListServiceAccountsResponse {
+  repeated ServiceAccount service_accounts = 1;
+  int64 total = 2;
+}
+
+message RotateServiceAccountSecretRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message RotateServiceAccountSecretResponse {
+  Credentials credentials = 1;
+}
+
+message DeleteServiceAccountRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteServiceAccountResponse {}

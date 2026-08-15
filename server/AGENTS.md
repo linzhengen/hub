@@ -248,10 +248,16 @@ question asked first whenever something is wrong.
     there is nowhere for a change to go unrecorded. A use case that forgot to
     call a recorder would be silent, and silence is what the log has to rule
     out.
--   **The actor is always a person.** The assistant is a *channel*, never an
-    actor: a tool call it makes is recorded against the user it was answering,
-    with `channel = ai_chat` and the chat session id. "The AI did it" answers
-    nothing, so nothing may record it that way.
+-   **The actor is always an account somebody is answerable for** - a person, or
+    a service account with a named creator. The assistant is a *channel*, never
+    an actor: a tool call it makes is recorded against the user it was
+    answering, with `channel = ai_chat` and the chat session id. "The AI did it"
+    answers nothing, so nothing may record it that way.
+
+    A service account is a row in `users` like any other, so it needs no second
+    kind of actor and no second authorization path; `service_accounts` says
+    which Keycloak client it is and who registered it, which is what turns
+    "hub-sa-ci did this" into a person to ask.
 -   **What is recorded** is the `audited` map in `interceptor/audit.go`, written
     out by gRPC method path, and `notAudited` holds the mutating rpcs
     deliberately left out with the reason. `UnclassifiedMutations` reports any

@@ -16,6 +16,7 @@ import (
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
 	pbrolev1 "github.com/linzhengen/hub/server/pb/system/role/v1"
+	pbserviceaccountv1 "github.com/linzhengen/hub/server/pb/system/serviceaccount/v1"
 	pbuserv1 "github.com/linzhengen/hub/server/pb/user/v1"
 
 	"github.com/linzhengen/hub/server/pkg/logger"
@@ -39,6 +40,7 @@ func New(
 	must(pbauditv1.RegisterAuditServiceHandler(ctx, mux, conn))
 	must(pbaccessv1.RegisterAccessServiceHandler(ctx, mux, conn))
 	must(pbaccessv1.RegisterAccessRequestServiceHandler(ctx, mux, conn))
+	must(pbserviceaccountv1.RegisterServiceAccountServiceHandler(ctx, mux, conn))
 	must(pbpermissionv1.RegisterPermissionServiceHandler(ctx, mux, conn))
 	must(pbresourcev1.RegisterResourceServiceHandler(ctx, mux, conn))
 	must(pbgrouupv1.RegisterGroupServiceHandler(ctx, mux, conn))

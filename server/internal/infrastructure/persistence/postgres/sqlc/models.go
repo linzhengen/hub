@@ -135,6 +135,18 @@ type RolePermission struct {
 	UpdatedAt    time.Time
 }
 
+type ServiceAccount struct {
+	ID              string
+	UserID          string
+	Name            string
+	Description     string
+	ClientID        string
+	KeycloakID      string
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 type User struct {
 	ID        string
 	Username  string

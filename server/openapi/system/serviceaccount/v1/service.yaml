@@ -1,0 +1,250 @@
+components:
+    schemas:
+        ServiceAccountServiceRotateServiceAccountSecretBody:
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1CreateServiceAccountRequest:
+            properties:
+                description:
+                    type: string
+                name:
+                    description: |-
+                        Lowercase letters, digits and hyphens. The name becomes a Keycloak client
+                        id and a username, so anything that would need escaping somewhere is
+                        refused here instead.
+                    type: string
+            type: object
+        v1CreateServiceAccountResponse:
+            properties:
+                credentials:
+                    $ref: '#/components/schemas/v1Credentials'
+                serviceAccount:
+                    $ref: '#/components/schemas/v1ServiceAccount'
+            type: object
+        v1Credentials:
+            description: |-
+                Credentials are what a machine needs to authenticate.
+
+                The secret is returned once, when it is issued, and never again: hub does not
+                store it and Keycloak cannot always show it back. Losing it means rotating
+                it, which is the right cost for a credential.
+            properties:
+                clientId:
+                    type: string
+                secret:
+                    type: string
+            type: object
+        v1DeleteServiceAccountResponse:
+            type: object
+        v1GetServiceAccountResponse:
+            properties:
+                serviceAccount:
+                    $ref: '#/components/schemas/v1ServiceAccount'
+            type: object
+        v1ListServiceAccountsResponse:
+            properties:
+                serviceAccounts:
+                    items:
+                        $ref: '#/components/schemas/v1ServiceAccount'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1RotateServiceAccountSecretResponse:
+            properties:
+                credentials:
+                    $ref: '#/components/schemas/v1Credentials'
+            type: object
+        v1ServiceAccount:
+            description: |-
+                ServiceAccount is one machine's identity: CI, a job, another service.
+
+                Authentication is still Keycloak's - a service account is a Keycloak client
+                and a machine gets a token through the client credentials grant. This is the
+                register that says the client exists, what it is for and who set it up.
+            properties:
+                clientId:
+                    description: |-
+                        What an operator puts in HUB_OIDC_CLIENT_ID. Derived from the name, so two
+                        service accounts cannot claim the same client.
+                    type: string
+                createdAt:
+                    format: date-time
+                    type: string
+                createdByUserId:
+                    type: string
+                description:
+                    description: |-
+                        What the machine is for. A machine nobody can describe is a machine nobody
+                        dares turn off.
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                updatedAt:
+                    format: date-time
+                    type: string
+                userId:
+                    description: |-
+                        The hub user the machine acts as. It is a row in `users` like any other,
+                        which is what lets a machine join groups, hold roles and appear in the
+                        audit log through the same machinery a person does.
+                    type: string
+            type: object
+info:
+    title: system/serviceaccount/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/service-accounts:
+        get:
+            operationId: ServiceAccountService_ListServiceAccounts
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListServiceAccountsResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ServiceAccountService
+        post:
+            operationId: ServiceAccountService_CreateServiceAccount
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateServiceAccountRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateServiceAccountResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ServiceAccountService
+    /api/v1/service-accounts/{id}:
+        delete:
+            operationId: ServiceAccountService_DeleteServiceAccount
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeleteServiceAccountResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ServiceAccountService
+        get:
+            operationId: ServiceAccountService_GetServiceAccount
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetServiceAccountResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ServiceAccountService
+    /api/v1/service-accounts/{id}/rotate-secret:
+        post:
+            operationId: ServiceAccountService_RotateServiceAccountSecret
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ServiceAccountServiceRotateServiceAccountSecretBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1RotateServiceAccountSecretResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - ServiceAccountService
+tags:
+    - name: ServiceAccountService

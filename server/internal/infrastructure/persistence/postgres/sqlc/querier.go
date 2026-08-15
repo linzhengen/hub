@@ -13,6 +13,7 @@ type Querier interface {
 	AddChatSessionTokens(ctx context.Context, arg AddChatSessionTokensParams) error
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
 	CountAccessRequests(ctx context.Context, arg CountAccessRequestsParams) (int64, error)
+	CountServiceAccounts(ctx context.Context) (int64, error)
 	CreateAccessRequest(ctx context.Context, arg CreateAccessRequestParams) error
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (*AuditLog, error)
 	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (*ChatMessage, error)
@@ -23,6 +24,7 @@ type Querier interface {
 	CreatePermission(ctx context.Context, arg CreatePermissionParams) error
 	CreateResource(ctx context.Context, arg CreateResourceParams) error
 	CreateRole(ctx context.Context, arg CreateRoleParams) error
+	CreateServiceAccount(ctx context.Context, arg CreateServiceAccountParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	CreateUserGroup(ctx context.Context, arg CreateUserGroupParams) error
 	// Deciding is conditional on the request still being pending, so two decisions
@@ -39,6 +41,7 @@ type Querier interface {
 	DeleteResource(ctx context.Context, id string) error
 	DeleteRole(ctx context.Context, id string) error
 	DeleteRoleAllPermission(ctx context.Context, roleID string) error
+	DeleteServiceAccount(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, id string) error
 	DeleteUserAllGroup(ctx context.Context, userID string) error
 	DeleteUserGroup(ctx context.Context, arg DeleteUserGroupParams) error
@@ -49,6 +52,10 @@ type Querier interface {
 	// and a group's history without three near-identical statements.
 	// Newest first: a queue is read from the top.
 	ListAccessRequests(ctx context.Context, arg ListAccessRequestsParams) ([]*AccessRequest, error)
+	// The listing is not filtered. A deployment has a handful of machines, not a
+	// directory of them, and "who created it" is a column to read rather than a
+	// question to ask the database.
+	ListServiceAccounts(ctx context.Context, arg ListServiceAccountsParams) ([]*ServiceAccount, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, arg RemovePermissionFromRoleParams) error
 	SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRow, error)
@@ -77,6 +84,7 @@ type Querier interface {
 	SelectRoleById(ctx context.Context, id string) (*Role, error)
 	SelectRoleForUpdate(ctx context.Context, id string) (*Role, error)
 	SelectRolePermissionByRoleId(ctx context.Context, roleID string) ([]*RolePermission, error)
+	SelectServiceAccount(ctx context.Context, id string) (*ServiceAccount, error)
 	SelectUserAccessPaths(ctx context.Context, id string) ([]*SelectUserAccessPathsRow, error)
 	// The expiry is not filtered here on purpose: see the note on expires_at in
 	// the user_groups and group_roles migrations.
