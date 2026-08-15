@@ -119,7 +119,17 @@ func (uc userUseCase) Get(ctx context.Context, userId string) (*user.User, error
 		logger.Errorf("Get: failed to find user %s: %v", userId, err)
 		return nil, err
 	}
-	u.SetGroupIds(ug.GroupIds(userId))
+	memberships := make([]user.GroupMembership, 0, len(ug))
+	for _, g := range ug {
+		if g.UserId != userId {
+			continue
+		}
+		memberships = append(memberships, user.GroupMembership{
+			GroupId:   g.GroupId,
+			ExpiresAt: g.ExpiresAt,
+		})
+	}
+	u.SetGroups(memberships)
 	return u, nil
 }
 
@@ -136,7 +146,7 @@ func (uc userUseCase) Update(ctx context.Context, u *user.User, password *string
 			logger.Errorf("Update: failed to update user %s in DB: %v", u.Id, err)
 			return err
 		}
-		if err := uc.userGroupRepo.Upsert(ctx, u.Id, u.GroupIds); err != nil {
+		if err := uc.userGroupRepo.Upsert(ctx, u.Id, u.GroupIds()); err != nil {
 			logger.Errorf("Update: failed to upsert user groups for user %s: %v", u.Id, err)
 			return err
 		}
@@ -200,7 +210,10 @@ func (uc userUseCase) Create(ctx context.Context, username, email, password stri
 		Username: username,
 		Email:    email,
 		Status:   user.Active,
-		GroupIds: groupIds,
+		// The groups a user is created in are a set of ids with no term, so
+		// they do not expire. A grant with a term arrives later, through
+		// AddGroupsToUser or an approved request.
+		Groups: user.PermanentMemberships(groupIds),
 	}
 	if _, err := uc.userSvc.CreateIfNotExists(ctx, u); err != nil {
 		logger.Errorf("Create: failed to create user %s in DB (Keycloak ID: %s): %v", username, keycloakUserId, err)
@@ -288,11 +301,11 @@ func (uc userUseCase) List(ctx context.Context, params *ListUserQueryParams) ([]
 	}
 
 	// Fetch all user-group relationships in a single query
-	userGroupMap := make(map[string][]string)
+	userGroupMap := make(map[string][]user.GroupMembership)
 
 	// Build a query to get all user-group relationships for the user IDs
 	ugQuery := uc.dialectWrapper.From("user_groups").
-		Select("user_id", "group_id").
+		Select("user_id", "group_id", "expires_at").
 		Where(goqu.Ex{"user_id": userIds})
 
 	ugSQL, ugParams, err := ugQuery.Prepared(true).ToSQL()
@@ -317,11 +330,16 @@ func (uc userUseCase) List(ctx context.Context, params *ListUserQueryParams) ([]
 	// Process the results
 	for ugRows.Next() {
 		var userId, groupId string
-		if err := ugRows.Scan(&userId, &groupId); err != nil {
+		var expiresAt sql.NullTime
+		if err := ugRows.Scan(&userId, &groupId, &expiresAt); err != nil {
 			logger.Errorf("List: failed to scan user-group row: %v", err)
 			return nil, 0, err
 		}
-		userGroupMap[userId] = append(userGroupMap[userId], groupId)
+		membership := user.GroupMembership{GroupId: groupId}
+		if expiresAt.Valid {
+			membership.ExpiresAt = &expiresAt.Time
+		}
+		userGroupMap[userId] = append(userGroupMap[userId], membership)
 	}
 
 	if err := ugRows.Err(); err != nil {
@@ -329,10 +347,10 @@ func (uc userUseCase) List(ctx context.Context, params *ListUserQueryParams) ([]
 		return nil, 0, err
 	}
 
-	// Set group IDs for each user
+	// Set the memberships for each user
 	for _, item := range items {
-		if groupIds, ok := userGroupMap[item.Id]; ok {
-			item.SetGroupIds(groupIds)
+		if memberships, ok := userGroupMap[item.Id]; ok {
+			item.SetGroups(memberships)
 		}
 	}
 

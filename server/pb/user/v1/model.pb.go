@@ -80,7 +80,7 @@ type User struct {
 	Status        User_Status            `protobuf:"varint,4,opt,name=status,proto3,enum=user.v1.User_Status" json:"status,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	GroupIds      []string               `protobuf:"bytes,7,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
+	Groups        []*GroupMembership     `protobuf:"bytes,8,rep,name=groups,proto3" json:"groups,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -157,9 +157,63 @@ func (x *User) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *User) GetGroupIds() []string {
+func (x *User) GetGroups() []*GroupMembership {
 	if x != nil {
-		return x.GroupIds
+		return x.Groups
+	}
+	return nil
+}
+
+// GroupMembership is one group the user is in, and when they leave it.
+type GroupMembership struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	GroupId string                 `protobuf:"bytes,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	// When the membership lapses, unset when it does not.
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GroupMembership) Reset() {
+	*x = GroupMembership{}
+	mi := &file_user_v1_model_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GroupMembership) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GroupMembership) ProtoMessage() {}
+
+func (x *GroupMembership) ProtoReflect() protoreflect.Message {
+	mi := &file_user_v1_model_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GroupMembership.ProtoReflect.Descriptor instead.
+func (*GroupMembership) Descriptor() ([]byte, []int) {
+	return file_user_v1_model_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GroupMembership) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
+}
+
+func (x *GroupMembership) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
 	}
 	return nil
 }
@@ -179,7 +233,7 @@ type MenuMeta struct {
 
 func (x *MenuMeta) Reset() {
 	*x = MenuMeta{}
-	mi := &file_user_v1_model_proto_msgTypes[1]
+	mi := &file_user_v1_model_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -191,7 +245,7 @@ func (x *MenuMeta) String() string {
 func (*MenuMeta) ProtoMessage() {}
 
 func (x *MenuMeta) ProtoReflect() protoreflect.Message {
-	mi := &file_user_v1_model_proto_msgTypes[1]
+	mi := &file_user_v1_model_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -204,7 +258,7 @@ func (x *MenuMeta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MenuMeta.ProtoReflect.Descriptor instead.
 func (*MenuMeta) Descriptor() ([]byte, []int) {
-	return file_user_v1_model_proto_rawDescGZIP(), []int{1}
+	return file_user_v1_model_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *MenuMeta) GetIcon() string {
@@ -272,7 +326,7 @@ type Menu struct {
 
 func (x *Menu) Reset() {
 	*x = Menu{}
-	mi := &file_user_v1_model_proto_msgTypes[2]
+	mi := &file_user_v1_model_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -284,7 +338,7 @@ func (x *Menu) String() string {
 func (*Menu) ProtoMessage() {}
 
 func (x *Menu) ProtoReflect() protoreflect.Message {
-	mi := &file_user_v1_model_proto_msgTypes[2]
+	mi := &file_user_v1_model_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -297,7 +351,7 @@ func (x *Menu) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Menu.ProtoReflect.Descriptor instead.
 func (*Menu) Descriptor() ([]byte, []int) {
-	return file_user_v1_model_proto_rawDescGZIP(), []int{2}
+	return file_user_v1_model_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Menu) GetName() string {
@@ -360,7 +414,7 @@ var File_user_v1_model_proto protoreflect.FileDescriptor
 
 const file_user_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x13user/v1/model.proto\x12\auser.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1esystem/resource/v1/model.proto\"\xd3\x02\n" +
+	"\x13user/v1/model.proto\x12\auser.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1esystem/resource/v1/model.proto\"\xee\x02\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
@@ -369,12 +423,17 @@ const file_user_v1_model_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1b\n" +
-	"\tgroup_ids\x18\a \x03(\tR\bgroupIds\"H\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x120\n" +
+	"\x06groups\x18\b \x03(\v2\x18.user.v1.GroupMembershipR\x06groups\"H\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rSTATUS_ACTIVE\x10\x01\x12\x13\n" +
-	"\x0fSTATUS_INACTIVE\x10\x02\"\xbf\x01\n" +
+	"\x0fSTATUS_INACTIVE\x10\x02J\x04\b\a\x10\b\"{\n" +
+	"\x0fGroupMembership\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\tR\agroupId\x12>\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\texpiresAt\x88\x01\x01B\r\n" +
+	"\v_expires_at\"\xbf\x01\n" +
 	"\bMenuMeta\x12\x12\n" +
 	"\x04icon\x18\x01 \x01(\tR\x04icon\x12\x1d\n" +
 	"\n" +
@@ -410,27 +469,30 @@ func file_user_v1_model_proto_rawDescGZIP() []byte {
 }
 
 var file_user_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_user_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_user_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_user_v1_model_proto_goTypes = []any{
 	(User_Status)(0),              // 0: user.v1.User.Status
 	(*User)(nil),                  // 1: user.v1.User
-	(*MenuMeta)(nil),              // 2: user.v1.MenuMeta
-	(*Menu)(nil),                  // 3: user.v1.Menu
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(v1.Type)(0),                  // 5: system.resource.v1.Type
+	(*GroupMembership)(nil),       // 2: user.v1.GroupMembership
+	(*MenuMeta)(nil),              // 3: user.v1.MenuMeta
+	(*Menu)(nil),                  // 4: user.v1.Menu
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(v1.Type)(0),                  // 6: system.resource.v1.Type
 }
 var file_user_v1_model_proto_depIdxs = []int32{
 	0, // 0: user.v1.User.status:type_name -> user.v1.User.Status
-	4, // 1: user.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	4, // 2: user.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	5, // 3: user.v1.Menu.type:type_name -> system.resource.v1.Type
-	2, // 4: user.v1.Menu.meta:type_name -> user.v1.MenuMeta
-	3, // 5: user.v1.Menu.children:type_name -> user.v1.Menu
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	5, // 1: user.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	5, // 2: user.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	2, // 3: user.v1.User.groups:type_name -> user.v1.GroupMembership
+	5, // 4: user.v1.GroupMembership.expires_at:type_name -> google.protobuf.Timestamp
+	6, // 5: user.v1.Menu.type:type_name -> system.resource.v1.Type
+	3, // 6: user.v1.Menu.meta:type_name -> user.v1.MenuMeta
+	4, // 7: user.v1.Menu.children:type_name -> user.v1.Menu
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_user_v1_model_proto_init() }
@@ -438,13 +500,14 @@ func file_user_v1_model_proto_init() {
 	if File_user_v1_model_proto != nil {
 		return
 	}
+	file_user_v1_model_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_v1_model_proto_rawDesc), len(file_user_v1_model_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

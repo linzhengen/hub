@@ -6,6 +6,8 @@ import type { RequestParameters } from '@/api/helper';
 // Re-export schema types for backward compatibility
 export type UserStatus = components['schemas']['v1UserStatus'];
 export type User = components['schemas']['v1User'];
+/** One group the user is in, with when the membership ends. */
+export type GroupMembership = components['schemas']['v1GroupMembership'];
 export type Menu = components['schemas']['v1Menu'];
 export type MenuMeta = components['schemas']['v1MenuMeta'];
 export type ListUsersResponse = components['schemas']['v1ListUserResponse'];

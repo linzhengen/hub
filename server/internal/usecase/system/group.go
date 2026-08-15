@@ -194,11 +194,11 @@ func (uc groupUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*grou
 	}
 
 	// Fetch all group-role relationships in a single query
-	groupRoleMap := make(map[string][]string)
+	groupRoleMap := make(map[string][]group.RoleGrant)
 
 	// Build a query to get all group-role relationships for the group IDs
 	grQuery := uc.dialectWrapper.From("group_roles").
-		Select("group_id", "role_id").
+		Select("group_id", "role_id", "expires_at").
 		Where(goqu.Ex{"group_id": groupIds})
 
 	grSQL, grParams, err := grQuery.Prepared(true).ToSQL()
@@ -221,21 +221,25 @@ func (uc groupUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*grou
 	// Process the results
 	for grRows.Next() {
 		var groupId, roleId string
-		if err := grRows.Scan(&groupId, &roleId); err != nil {
+		var expiresAt sql.NullTime
+		if err := grRows.Scan(&groupId, &roleId, &expiresAt); err != nil {
 			return nil, err
 		}
-		// Add the role ID to the map
-		groupRoleMap[groupId] = append(groupRoleMap[groupId], roleId)
+		grant := group.RoleGrant{RoleId: roleId}
+		if expiresAt.Valid {
+			grant.ExpiresAt = &expiresAt.Time
+		}
+		groupRoleMap[groupId] = append(groupRoleMap[groupId], grant)
 	}
 
 	if err := grRows.Err(); err != nil {
 		return nil, err
 	}
 
-	// Set role IDs for each group
+	// Set the role grants for each group
 	for _, item := range items {
-		if roleIds, ok := groupRoleMap[item.Id]; ok {
-			item.SetRoleIds(roleIds)
+		if grants, ok := groupRoleMap[item.Id]; ok {
+			item.SetRoles(grants)
 		}
 	}
 

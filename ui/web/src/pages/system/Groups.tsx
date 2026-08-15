@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { expiresSoon, formatTerm, groupIdsOf, roleExpiryOf, roleIdsOf } from '@/lib/grants';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { groupService, Group, CreateGroupRequest, UpdateGroupRequest } from '@/services/group.ts';
 import { roleService, Role } from '@/services/role.ts';
@@ -84,7 +85,12 @@ export function Groups() {
       if (managingRolesGroup && managingRolesGroup.id === variables.id) {
         setManagingRolesGroup({
           ...managingRolesGroup,
-          roleIds: [...(managingRolesGroup.roleIds || []), ...variables.roleIds],
+          // The optimistic update carries no term, because the caller did not
+          // send one here. The refetch replaces it with what the server stored.
+          roles: [
+            ...(managingRolesGroup.roles ?? []),
+            ...variables.roleIds.map((roleId) => ({ roleId })),
+          ],
         });
       }
       notify.success('Role(s) assigned successfully');
@@ -100,7 +106,9 @@ export function Groups() {
       if (managingRolesGroup && managingRolesGroup.id === variables.id) {
         setManagingRolesGroup({
           ...managingRolesGroup,
-          roleIds: (managingRolesGroup.roleIds || []).filter(id => !variables.roleIds.includes(id)),
+          roles: (managingRolesGroup.roles ?? []).filter(
+            (grant) => !variables.roleIds.includes(grant.roleId ?? ''),
+          ),
         });
       }
       notify.success('Role(s) unassigned successfully');
@@ -208,7 +216,7 @@ export function Groups() {
       title: 'Roles',
       key: 'roles',
       render: (_: unknown, record: Group) => {
-        const roleCount = record.roleIds?.length || 0;
+        const roleCount = record.roles?.length || 0;
         return (
           <div className="flex items-center gap-2">
             <span style={{
@@ -226,7 +234,7 @@ export function Groups() {
             </span>
             {roleCount > 0 && rolesData?.roles && (
               <span className="text-sm" style={{ color: '#64748b' }}>
-                {rolesData.roles.filter(role => record.roleIds?.includes(role.id ?? '')).slice(0, 2).map(r => r.name).join(', ')}
+                {rolesData.roles.filter(role => roleIdsOf(record.roles).includes(role.id ?? '')).slice(0, 2).map(r => r.name).join(', ')}
                 {roleCount > 2 ? '...' : ''}
               </span>
             )}
@@ -481,7 +489,8 @@ function ManageRolesDrawer({ group, allRoles, onClose, onAssign, onUnassign, isA
   const [selectedAvailable, setSelectedAvailable] = useState<string[]>([]);
 
   const groupId = group?.id ?? '';
-  const assignedIds = group?.roleIds ?? [];
+  const grants = useMemo(() => group?.roles ?? [], [group?.roles]);
+  const assignedIds = useMemo(() => roleIdsOf(grants), [grants]);
 
   const assignedRoles = useMemo(
     () => allRoles.filter(r => assignedIds.includes(r.id ?? '')),
@@ -588,6 +597,7 @@ function ManageRolesDrawer({ group, allRoles, onClose, onAssign, onUnassign, isA
                       selected={selectedAssigned.includes(role.id ?? '')}
                       onToggle={() => toggleAssigned(role.id ?? '')}
                       variant="assigned"
+                      expiresAt={roleExpiryOf(grants, role.id ?? '')}
                     />
                   ))
                 )}
@@ -676,13 +686,15 @@ function ManageRolesDrawer({ group, allRoles, onClose, onAssign, onUnassign, isA
 }
 
 interface RoleRowProps {
+  /** When this grant lapses. Absent on the available side, where nothing is granted yet. */
+  expiresAt?: string;
   role: Role;
   selected: boolean;
   onToggle: () => void;
   variant: 'assigned' | 'available';
 }
 
-function RoleRow({ role, selected, onToggle, variant }: RoleRowProps) {
+function RoleRow({ role, selected, onToggle, variant, expiresAt }: RoleRowProps) {
   const iconBg = variant === 'assigned'
     ? 'bg-purple-100 dark:bg-purple-900/40'
     : 'bg-gray-100 dark:bg-gray-700';
@@ -707,6 +719,21 @@ function RoleRow({ role, selected, onToggle, variant }: RoleRowProps) {
         <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{role.name}</div>
         {role.description && (
           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{role.description}</div>
+        )}
+        {/* A grant that ends on Friday and one that never ends are different
+            things; without this line they looked identical. Only the ending
+            kind says anything, so only it is shown - and it is highlighted when
+            it is close, since that is when somebody has to act. */}
+        {expiresAt && (
+          <div
+            className={`text-xs truncate ${
+              expiresSoon(expiresAt)
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
+          >
+            {formatTerm(expiresAt)}
+          </div>
         )}
       </div>
     </div>
@@ -734,12 +761,12 @@ function ManageUsersDrawer({ group, allUsers, onClose, onAdd, onRemove, isAdding
   const groupId = group?.id ?? '';
 
   const members = useMemo(
-    () => allUsers.filter(u => u.groupIds?.includes(groupId)),
+    () => allUsers.filter(u => groupIdsOf(u.groups).includes(groupId)),
     [allUsers, groupId],
   );
 
   const nonMembers = useMemo(
-    () => allUsers.filter(u => !u.groupIds?.includes(groupId)),
+    () => allUsers.filter(u => !groupIdsOf(u.groups).includes(groupId)),
     [allUsers, groupId],
   );
 

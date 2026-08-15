@@ -207,7 +207,7 @@ func userFactory(t *token.Token) *user.User {
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 
-		GroupIds: groupIds,
+		Groups: user.PermanentMemberships(groupIds),
 	}
 }
 

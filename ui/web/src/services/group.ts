@@ -6,6 +6,8 @@ import type { RequestParameters } from '@/api/helper';
 // Re-export schema types for backward compatibility
 export type GroupStatus = components['schemas']['v1GroupStatus'];
 export type Group = components['schemas']['v1Group'];
+/** One role the group holds, with when the grant ends. */
+export type RoleGrant = components['schemas']['v1RoleGrant'];
 export type ListGroupsResponse = components['schemas']['v1ListGroupResponse'];
 export type GetGroupResponse = components['schemas']['v1GetGroupResponse'];
 export type CreateGroupRequest = components['schemas']['v1CreateGroupRequest'];

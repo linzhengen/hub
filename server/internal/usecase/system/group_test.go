@@ -302,7 +302,7 @@ func TestGroupUseCase_List_WithPagination(t *testing.T) {
 
 	// Expect the query for group roles
 	grQuery, grArgs, _ := dialect.From("group_roles").
-		Select("group_id", "role_id").
+		Select("group_id", "role_id", "expires_at").
 		Where(goqu.Ex{"group_id": []string{"group1"}}).
 		Prepared(true).ToSQL()
 
@@ -313,7 +313,7 @@ func TestGroupUseCase_List_WithPagination(t *testing.T) {
 	}
 
 	// Create empty rows for group roles
-	grRows := sqlmock.NewRows([]string{"group_id", "role_id"})
+	grRows := sqlmock.NewRows([]string{"group_id", "role_id", "expires_at"})
 
 	mock.ExpectQuery(grQuery).WithArgs(grDriverArgs...).WillReturnRows(grRows)
 	mock.ExpectClose()
@@ -381,7 +381,7 @@ func TestGroupUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 
 	// Expect the query for group roles
 	grQuery, grArgs, _ := dialect.From("group_roles").
-		Select("group_id", "role_id").
+		Select("group_id", "role_id", "expires_at").
 		Where(goqu.Ex{"group_id": []string{"group1", "group2"}}).
 		Prepared(true).ToSQL()
 
@@ -392,7 +392,7 @@ func TestGroupUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 	}
 
 	// Create empty rows for group roles
-	grRows := sqlmock.NewRows([]string{"group_id", "role_id"})
+	grRows := sqlmock.NewRows([]string{"group_id", "role_id", "expires_at"})
 
 	mock.ExpectQuery(grQuery).WithArgs(grDriverArgs...).WillReturnRows(grRows)
 	mock.ExpectClose()

@@ -117,9 +117,9 @@ components:
                     type: string
                 name:
                     type: string
-                roleIds:
+                roles:
                     items:
-                        type: string
+                        $ref: '#/components/schemas/v1RoleGrant'
                     type: array
                 status:
                     $ref: '#/components/schemas/v1GroupStatus'
@@ -153,6 +153,18 @@ components:
             properties:
                 group:
                     $ref: '#/components/schemas/v1Group'
+            type: object
+        v1RoleGrant:
+            description: RoleGrant is one role the group holds, and when it stops holding it.
+            properties:
+                expiresAt:
+                    description: |-
+                        When the grant lapses, unset when it does not. A grant that ends on Friday
+                        and one that never ends are different things and must not read the same.
+                    format: date-time
+                    type: string
+                roleId:
+                    type: string
             type: object
         v1UpdateGroupResponse:
             properties:

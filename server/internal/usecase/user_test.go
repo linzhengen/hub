@@ -12,6 +12,8 @@ import (
 
 	"github.com/linzhengen/hub/server/internal/usecase/pagination"
 	"github.com/stretchr/testify/require"
+
+	"github.com/linzhengen/hub/server/internal/domain/user"
 )
 
 func TestUserUseCase_List_WithGroupIds(t *testing.T) {
@@ -72,7 +74,7 @@ func TestUserUseCase_List_WithGroupIds(t *testing.T) {
 
 	// Expect the query for user-group relationships
 	ugQuery, ugArgs, _ := dialect.From("user_groups").
-		Select("user_id", "group_id").
+		Select("user_id", "group_id", "expires_at").
 		Where(goqu.Ex{"user_id": []string{"user1"}}).
 		Prepared(true).ToSQL()
 
@@ -81,8 +83,11 @@ func TestUserUseCase_List_WithGroupIds(t *testing.T) {
 		ugDriverArgs[i] = arg
 	}
 
-	ugRows := sqlmock.NewRows([]string{"user_id", "group_id"}).
-		AddRow("user1", "group1")
+	// A membership with no expiry and one with an expiry, because the listing
+	// has to be able to tell them apart - that is the point of reading the
+	// column at all.
+	ugRows := sqlmock.NewRows([]string{"user_id", "group_id", "expires_at"}).
+		AddRow("user1", "group1", nil)
 
 	mock.ExpectQuery(ugQuery).WithArgs(ugDriverArgs...).WillReturnRows(ugRows)
 	mock.ExpectClose()
@@ -92,6 +97,10 @@ func TestUserUseCase_List_WithGroupIds(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), total)
 	assert.Len(t, users, 1)
+	assert.Equal(t,
+		[]user.GroupMembership{{GroupId: "group1"}},
+		users[0].Groups,
+		"a membership with no expiry comes back with none, not with a zero time")
 
 	assert.NoError(t, db.Close())
 }
@@ -143,7 +152,7 @@ func TestUserUseCase_List_WithPagination(t *testing.T) {
 
 	// Expect the query for user-group relationships
 	ugQuery, ugArgs, _ := dialect.From("user_groups").
-		Select("user_id", "group_id").
+		Select("user_id", "group_id", "expires_at").
 		Where(goqu.Ex{"user_id": []string{"user1"}}).
 		Prepared(true).ToSQL()
 
@@ -152,8 +161,11 @@ func TestUserUseCase_List_WithPagination(t *testing.T) {
 		ugDriverArgs[i] = arg
 	}
 
-	ugRows := sqlmock.NewRows([]string{"user_id", "group_id"}).
-		AddRow("user1", "group1")
+	// A membership with no expiry and one with an expiry, because the listing
+	// has to be able to tell them apart - that is the point of reading the
+	// column at all.
+	ugRows := sqlmock.NewRows([]string{"user_id", "group_id", "expires_at"}).
+		AddRow("user1", "group1", nil)
 
 	mock.ExpectQuery(ugQuery).WithArgs(ugDriverArgs...).WillReturnRows(ugRows)
 	mock.ExpectClose()
@@ -214,7 +226,7 @@ func TestUserUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 
 	// Expect the query for user-group relationships
 	ugQuery, ugArgs, _ := dialect.From("user_groups").
-		Select("user_id", "group_id").
+		Select("user_id", "group_id", "expires_at").
 		Where(goqu.Ex{"user_id": []string{"user1", "user2"}}).
 		Prepared(true).ToSQL()
 
@@ -223,9 +235,12 @@ func TestUserUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 		ugDriverArgs[i] = arg
 	}
 
-	ugRows := sqlmock.NewRows([]string{"user_id", "group_id"}).
-		AddRow("user1", "group1").
-		AddRow("user2", "group2")
+	// A membership with no expiry and one with an expiry, because the listing
+	// has to be able to tell them apart - that is the point of reading the
+	// column at all.
+	ugRows := sqlmock.NewRows([]string{"user_id", "group_id", "expires_at"}).
+		AddRow("user1", "group1", nil).
+		AddRow("user2", "group2", nil)
 
 	mock.ExpectQuery(ugQuery).WithArgs(ugDriverArgs...).WillReturnRows(ugRows)
 	mock.ExpectClose()

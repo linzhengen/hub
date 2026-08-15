@@ -48,7 +48,7 @@ func (h userHandler) GetMe(ctx context.Context, _ *pbv1.GetMeRequest) (*pbv1.Get
 		return nil, err
 	}
 	gs, _, err := h.groupUseCase.List(ctx, &system.ListGroupQueryParams{
-		GroupIds: u.GroupIds,
+		GroupIds: u.GroupIds(),
 	})
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func (h userHandler) UpdateMe(ctx context.Context, request *pbv1.UpdateMeRequest
 
 	// Get the user's groups
 	gs, _, err := h.groupUseCase.List(ctx, &system.ListGroupQueryParams{
-		GroupIds: updatedUser.GroupIds,
+		GroupIds: updatedUser.GroupIds(),
 	})
 	if err != nil {
 		return nil, err
@@ -191,7 +191,10 @@ func (h userHandler) UpdateUser(ctx context.Context, request *pbv1.UpdateUserReq
 		Username: request.Username,
 		Email:    request.Email,
 		Status:   status,
-		GroupIds: request.GroupIds,
+		// UpdateUser replaces the whole set, so the request carries ids and
+		// nothing else. A membership with a term is made by AddGroupsToUser or
+		// by an approved request, not by re-stating the set.
+		Groups: user.PermanentMemberships(request.GroupIds),
 	}, request.Password)
 	if err != nil {
 		return nil, err

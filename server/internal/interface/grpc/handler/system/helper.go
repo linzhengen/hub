@@ -1,6 +1,8 @@
 package system
 
 import (
+	"time"
+
 	"fmt"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -46,8 +48,29 @@ func groupDomainToPb(m *group.Group) *pbgroupv1.Group {
 		CreatedAt:   timestamppb.New(m.CreatedAt),
 		UpdatedAt:   timestamppb.New(m.UpdatedAt),
 
-		RoleIds: m.RoleIds,
+		Roles: roleGrantsToPb(m.Roles),
 	}
+}
+
+// roleGrantsToPb carries each grant's expiry out with it, so a caller can tell
+// a role the group holds until Friday from one it holds indefinitely.
+func roleGrantsToPb(grants []group.RoleGrant) []*pbgroupv1.RoleGrant {
+	pbGrants := make([]*pbgroupv1.RoleGrant, 0, len(grants))
+	for _, g := range grants {
+		pbGrants = append(pbGrants, &pbgroupv1.RoleGrant{
+			RoleId:    g.RoleId,
+			ExpiresAt: grantExpiryToPb(g.ExpiresAt),
+		})
+	}
+	return pbGrants
+}
+
+// grantExpiryToPb leaves the field absent when nothing expires.
+func grantExpiryToPb(t *time.Time) *timestamppb.Timestamp {
+	if t == nil {
+		return nil
+	}
+	return timestamppb.New(*t)
 }
 
 func roleDomainToPb(m *role.Role) *pbrolev1.Role {

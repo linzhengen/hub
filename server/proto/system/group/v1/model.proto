@@ -20,5 +20,18 @@ message Group {
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
 
-  repeated string role_ids = 7;
+  // 7 was role_ids, a bare list that could not say when a grant ended.
+  // Reserved rather than reused so an old client reading field 7 gets nothing
+  // instead of a list of timestamps.
+  reserved 7;
+
+  repeated RoleGrant roles = 8;
+}
+
+// RoleGrant is one role the group holds, and when it stops holding it.
+message RoleGrant {
+  string role_id = 1;
+  // When the grant lapses, unset when it does not. A grant that ends on Friday
+  // and one that never ends are different things and must not read the same.
+  optional google.protobuf.Timestamp expires_at = 2;
 }
