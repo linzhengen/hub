@@ -3,7 +3,7 @@ import { App } from 'antd';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ServiceAccounts } from '@/pages/ServiceAccounts';
+import { ServiceAccounts } from '@/pages/system/ServiceAccounts';
 import { serviceAccountService } from '@/services/serviceAccount';
 import type { ServiceAccount } from '@/services/serviceAccount';
 import { userService } from '@/services/user';

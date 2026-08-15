@@ -20,7 +20,7 @@ const AccessRequests = lazy(() =>
   import("@/pages/AccessRequests.tsx").then((m) => ({ default: m.AccessRequests })),
 );
 const ServiceAccounts = lazy(() =>
-  import("@/pages/ServiceAccounts.tsx").then((m) => ({ default: m.ServiceAccounts })),
+  import("@/pages/system/ServiceAccounts.tsx").then((m) => ({ default: m.ServiceAccounts })),
 );
 
 const PageFallback = () => (
