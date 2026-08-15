@@ -16,6 +16,7 @@ import (
 	"github.com/linzhengen/hub/server/internal/domain/auth"
 	"github.com/linzhengen/hub/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/server/internal/infrastructure/ai/tool"
+	pbaccessv1 "github.com/linzhengen/hub/server/pb/system/access/v1"
 	pbuserv1 "github.com/linzhengen/hub/server/pb/user/v1"
 	"github.com/linzhengen/hub/server/pkg/apicatalog"
 )
@@ -266,4 +267,88 @@ func toolNames(tools []chatDomain.Tool) []string {
 		names[i] = t.Name
 	}
 	return names
+}
+
+// accessRequestServer is a stand-in for the real AccessRequestServiceServer.
+// Only the two rpcs these tests reach do anything.
+type accessRequestServer struct {
+	created *pbaccessv1.CreateAccessRequestRequest
+}
+
+func (s *accessRequestServer) CreateAccessRequest(
+	_ context.Context,
+	req *pbaccessv1.CreateAccessRequestRequest,
+) (*pbaccessv1.CreateAccessRequestResponse, error) {
+	s.created = req
+	return &pbaccessv1.CreateAccessRequestResponse{
+		AccessRequest: &pbaccessv1.AccessRequest{Id: "33333333-3333-3333-3333-333333333333"},
+	}, nil
+}
+
+func (s *accessRequestServer) ListAccessRequests(
+	context.Context,
+	*pbaccessv1.ListAccessRequestsRequest,
+) (*pbaccessv1.ListAccessRequestsResponse, error) {
+	return &pbaccessv1.ListAccessRequestsResponse{}, nil
+}
+
+func (s *accessRequestServer) CancelAccessRequest(
+	context.Context,
+	*pbaccessv1.CancelAccessRequestRequest,
+) (*pbaccessv1.CancelAccessRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "not used")
+}
+
+func (s *accessRequestServer) DecideAccessRequest(
+	context.Context,
+	*pbaccessv1.DecideAccessRequestRequest,
+) (*pbaccessv1.DecideAccessRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "not used")
+}
+
+func buildRequests(t *testing.T, authz auth.Service) chatDomain.ToolBox {
+	t.Helper()
+	box, err := tool.New(
+		apicatalog.Default(),
+		authz,
+		[]tool.Service{tool.Register(
+			&pbaccessv1.AccessRequestService_ServiceDesc, &accessRequestServer{})},
+	)
+	require.NoError(t, err)
+	return box
+}
+
+// TestRaisingAccessIsOfferedToSomebodyWithNoPermissions is the behaviour the
+// whole request flow depends on.
+//
+// The people who most need to ask for access are the ones holding none, so
+// CreateAccessRequest is public and the authorization interceptor skips the
+// check for it. The tool list has to agree: filtering it with Enforce anyway
+// would withhold from those users a tool the server would have run for them.
+func TestRaisingAccessIsOfferedToSomebodyWithNoPermissions(t *testing.T) {
+	box := buildRequests(t, authStub{}) // permits nothing
+
+	tools, err := box.Tools(ctxWithUser())
+	require.NoError(t, err)
+
+	assert.Equal(t, []string{"create_access_request"}, toolNames(tools),
+		"asking for access must not itself require a permission")
+	// Listing requests is not public, so it stays behind the permission and is
+	// absent here - which is what shows the filter is still doing its job.
+}
+
+// Deciding must not appear even for somebody permitted to do everything: it is
+// on the escalation list, and that list does not bend to permissions.
+func TestDecidingIsNotOfferedToAnyone(t *testing.T) {
+	box := buildRequests(t, authStub{all: true})
+
+	tools, err := box.Tools(ctxWithUser())
+	require.NoError(t, err)
+
+	for _, name := range toolNames(tools) {
+		assert.NotEqual(t, "decide_access_request", name,
+			"the assistant must never be offered a way to approve a request")
+	}
+	assert.Contains(t, toolNames(tools), "create_access_request")
+	assert.Contains(t, toolNames(tools), "list_access_requests")
 }

@@ -41,3 +41,66 @@ func TestEveryExclusionNamesARealRpc(t *testing.T) {
 		}
 	}
 }
+
+// TestDecidingIsNeverExposed fixes the asymmetry the request flow rests on.
+//
+// The assistant may raise an access request and may never decide one. If
+// deciding ever became reachable, injected text could travel from a tool result
+// to a granted permission inside one conversation, with the same person
+// approving it that the text was written to persuade - which is the path the
+// escalation list exists to cut.
+func TestDecidingIsNeverExposed(t *testing.T) {
+	const (
+		create = "/system.access.v1.AccessRequestService/CreateAccessRequest"
+		decide = "/system.access.v1.AccessRequestService/DecideAccessRequest"
+	)
+
+	if !exposed[create] {
+		t.Errorf("%s must be exposed as a write: it is the assistant's way into the request flow", create)
+	}
+	if _, listed := exposed[decide]; listed {
+		t.Errorf("%s is exposed; the assistant must never decide a request", decide)
+	}
+	if !escalation[decide] {
+		t.Errorf("%s must be on the escalation list, so leaving it unreachable is a decision and not an omission", decide)
+	}
+}
+
+// The explain rpcs answer "why can they?" and change nothing, so they are reads.
+// A read runs the moment the model asks for it, which is only safe while it
+// stays a read.
+func TestExplainIsExposedAsARead(t *testing.T) {
+	for _, full := range []string{
+		"/system.access.v1.AccessService/ExplainUserAccess",
+		"/system.access.v1.AccessService/ListPrincipalsForOperation",
+		"/system.access.v1.AccessRequestService/ListAccessRequests",
+	} {
+		write, listed := exposed[full]
+		if !listed {
+			t.Errorf("%s is not exposed", full)
+			continue
+		}
+		if write {
+			t.Errorf("%s is marked as a write; it reads the graph and changes nothing", full)
+		}
+	}
+}
+
+// TestPublicRpcsAreOfferedWithoutAPermission checks that the offer agrees with
+// the enforcement.
+//
+// CreateAccessRequest is public, so the authorization interceptor lets any
+// signed-in user call it. Filtering the tool list with Enforce anyway would
+// withhold it from precisely the people it exists for - the ones holding no
+// permissions at all - and the model would be told it cannot do something the
+// server would happily have done.
+func TestPublicRpcsAreOfferedWithoutAPermission(t *testing.T) {
+	catalog := defaultCatalog(t)
+	op, ok := catalog.ByFullMethod("/system.access.v1.AccessRequestService/CreateAccessRequest")
+	if !ok {
+		t.Fatal("CreateAccessRequest is not in the API catalog")
+	}
+	if !op.Public {
+		t.Error("CreateAccessRequest is no longer public; asking for access now needs a permission, which is a deadlock")
+	}
+}

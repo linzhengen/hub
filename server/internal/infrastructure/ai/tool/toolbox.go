@@ -51,6 +51,13 @@ var exposed = map[string]bool{
 	// The audit log answers "who added them to that group, and when" without
 	// anyone having to write SQL, which is the question it exists for.
 	"/system.audit.v1.AuditService/ListAuditLog": false,
+	// Explain turns "can they?" into "why can they?", which is the question
+	// somebody actually asks when access looks wrong. Both read the same graph
+	// the other reads, and neither can reach anything a list of groups and
+	// roles could not.
+	"/system.access.v1.AccessService/ExplainUserAccess":          false,
+	"/system.access.v1.AccessService/ListPrincipalsForOperation": false,
+	"/system.access.v1.AccessRequestService/ListAccessRequests":  false,
 
 	// Writes. Each is proposed to the user and runs only once approved.
 	"/user.v1.UserService/CreateUser":                    true,
@@ -59,6 +66,10 @@ var exposed = map[string]bool{
 	"/system.group.v1.GroupService/UpdateGroup":          true,
 	"/system.group.v1.GroupService/AddUsersToGroup":      true,
 	"/system.group.v1.GroupService/RemoveUsersFromGroup": true,
+	// Raising a request is the assistant's way into the work the escalation
+	// list keeps it out of. It grants nothing: it adds a pending row that a
+	// different person has to approve, in a screen the conversation is not in.
+	"/system.access.v1.AccessRequestService/CreateAccessRequest": true,
 }
 
 // escalation lists the rpcs the assistant may never call, whatever the user is
@@ -78,18 +89,28 @@ var exposed = map[string]bool{
 //
 // The deletes are here for the same reason: a deletion the user did not intend
 // is not undone by having approved it.
+//
+// DecideAccessRequest is here for a sharper version of the same reason, and is
+// the entry that makes the rest of this workable. The assistant may raise an
+// access request; it may never decide one. That asymmetry is the whole design:
+// injected text can get as far as a pending row with a reason on it, and no
+// further, because the person who settles it does so somewhere the conversation
+// cannot reach and after reading what was actually asked for. Approving through
+// the tool flow would collapse the two back into one screen and one person, and
+// the approval would attest to nothing.
 var escalation = map[string]bool{
-	"/system.role.v1.RoleService/AddPermissionsToRole":         true,
-	"/system.role.v1.RoleService/RemovePermissionsFromRole":    true,
-	"/system.group.v1.GroupService/AddRolesToGroup":            true,
-	"/system.group.v1.GroupService/RemoveRolesFromGroup":       true,
-	"/user.v1.UserService/AddGroupsToUser":                     true,
-	"/user.v1.UserService/RemoveGroupsFromUser":                true,
-	"/user.v1.UserService/DeleteUser":                          true,
-	"/system.group.v1.GroupService/DeleteGroup":                true,
-	"/system.role.v1.RoleService/DeleteRole":                   true,
-	"/system.permission.v1.PermissionService/DeletePermission": true,
-	"/system.resource.v1.ResourceService/DeleteResource":       true,
+	"/system.access.v1.AccessRequestService/DecideAccessRequest": true,
+	"/system.role.v1.RoleService/AddPermissionsToRole":           true,
+	"/system.role.v1.RoleService/RemovePermissionsFromRole":      true,
+	"/system.group.v1.GroupService/AddRolesToGroup":              true,
+	"/system.group.v1.GroupService/RemoveRolesFromGroup":         true,
+	"/user.v1.UserService/AddGroupsToUser":                       true,
+	"/user.v1.UserService/RemoveGroupsFromUser":                  true,
+	"/user.v1.UserService/DeleteUser":                            true,
+	"/system.group.v1.GroupService/DeleteGroup":                  true,
+	"/system.role.v1.RoleService/DeleteRole":                     true,
+	"/system.permission.v1.PermissionService/DeletePermission":   true,
+	"/system.resource.v1.ResourceService/DeleteResource":         true,
 }
 
 // hidden lists response fields the assistant never needs, removed from every
@@ -201,16 +222,23 @@ func (b *toolBox) Tools(ctx context.Context) ([]chatDomain.Tool, error) {
 	tools := make([]chatDomain.Tool, 0, len(names))
 	for _, name := range names {
 		bind := b.byName[name]
-		allowed, err := b.authSvc.Enforce(ctx, auth.Request{
-			Subject: userID,
-			Object:  bind.op.Resource,
-			Action:  bind.op.Action,
-		})
-		if err != nil {
-			return nil, err
-		}
-		if !allowed {
-			continue
+		// Public means "any signed-in user", and the authorization interceptor
+		// skips the check for it. Asking Enforce anyway would withhold a tool
+		// the server would have run, and it withholds it from exactly the
+		// people it is for: raising an access request is public because the
+		// ones who most need to ask are the ones holding no permissions.
+		if !bind.op.Public {
+			allowed, err := b.authSvc.Enforce(ctx, auth.Request{
+				Subject: userID,
+				Object:  bind.op.Resource,
+				Action:  bind.op.Action,
+			})
+			if err != nil {
+				return nil, err
+			}
+			if !allowed {
+				continue
+			}
 		}
 		tools = append(tools, chatDomain.Tool{
 			Name:        name,
