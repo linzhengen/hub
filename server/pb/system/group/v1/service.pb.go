@@ -12,6 +12,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -545,9 +546,16 @@ func (*DeleteGroupResponse) Descriptor() ([]byte, []int) {
 }
 
 type AddRolesToGroupRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RoleIds       []string               `protobuf:"bytes,2,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RoleIds []string               `protobuf:"bytes,2,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	// When the grant lapses. Leave it unset to grant for good, which is what
+	// every grant made before this field existed did.
+	//
+	// It applies to each id in this request, since one call is one decision:
+	// "give them these three until Friday". A grant with a different term is a
+	// different decision, so it is a different call.
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -592,6 +600,13 @@ func (x *AddRolesToGroupRequest) GetId() string {
 func (x *AddRolesToGroupRequest) GetRoleIds() []string {
 	if x != nil {
 		return x.RoleIds
+	}
+	return nil
+}
+
+func (x *AddRolesToGroupRequest) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
 	}
 	return nil
 }
@@ -737,9 +752,16 @@ func (x *RemoveRolesFromGroupResponse) GetGroup() *Group {
 }
 
 type AddUsersToGroupRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserIds       []string               `protobuf:"bytes,2,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserIds []string               `protobuf:"bytes,2,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
+	// When the grant lapses. Leave it unset to grant for good, which is what
+	// every grant made before this field existed did.
+	//
+	// It applies to each id in this request, since one call is one decision:
+	// "give them these three until Friday". A grant with a different term is a
+	// different decision, so it is a different call.
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -784,6 +806,13 @@ func (x *AddUsersToGroupRequest) GetId() string {
 func (x *AddUsersToGroupRequest) GetUserIds() []string {
 	if x != nil {
 		return x.UserIds
+	}
+	return nil
+}
+
+func (x *AddUsersToGroupRequest) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
 	}
 	return nil
 }
@@ -932,7 +961,7 @@ var File_system_group_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_group_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dsystem/group/v1/service.proto\x12\x0fsystem.group.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\"+\n" +
+	"\x1dsystem/group/v1/service.proto\x12\x0fsystem.group.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\"+\n" +
 	"\x0fGetGroupRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"@\n" +
 	"\x10GetGroupResponse\x12,\n" +
@@ -965,20 +994,26 @@ const file_system_group_v1_service_proto_rawDesc = "" +
 	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\".\n" +
 	"\x12DeleteGroupRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"\x15\n" +
-	"\x13DeleteGroupResponse\"^\n" +
+	"\x13DeleteGroupResponse\"\xb7\x01\n" +
 	"\x16AddRolesToGroupRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12*\n" +
-	"\brole_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\aroleIds\"G\n" +
+	"\brole_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\aroleIds\x12H\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\b\xbaH\x05\xb2\x01\x02@\x01H\x00R\texpiresAt\x88\x01\x01B\r\n" +
+	"\v_expires_at\"G\n" +
 	"\x17AddRolesToGroupResponse\x12,\n" +
 	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"c\n" +
 	"\x1bRemoveRolesFromGroupRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12*\n" +
 	"\brole_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\aroleIds\"L\n" +
 	"\x1cRemoveRolesFromGroupResponse\x12,\n" +
-	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"^\n" +
+	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"\xb7\x01\n" +
 	"\x16AddUsersToGroupRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12*\n" +
-	"\buser_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\auserIds\"G\n" +
+	"\buser_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\auserIds\x12H\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\b\xbaH\x05\xb2\x01\x02@\x01H\x00R\texpiresAt\x88\x01\x01B\r\n" +
+	"\v_expires_at\"G\n" +
 	"\x17AddUsersToGroupResponse\x12,\n" +
 	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"c\n" +
 	"\x1bRemoveUsersFromGroupRequest\x12\x18\n" +
@@ -1031,6 +1066,7 @@ var file_system_group_v1_service_proto_goTypes = []any{
 	(*RemoveUsersFromGroupResponse)(nil), // 17: system.group.v1.RemoveUsersFromGroupResponse
 	(*Group)(nil),                        // 18: system.group.v1.Group
 	(Group_Status)(0),                    // 19: system.group.v1.Group.Status
+	(*timestamppb.Timestamp)(nil),        // 20: google.protobuf.Timestamp
 }
 var file_system_group_v1_service_proto_depIdxs = []int32{
 	18, // 0: system.group.v1.GetGroupResponse.group:type_name -> system.group.v1.Group
@@ -1040,33 +1076,35 @@ var file_system_group_v1_service_proto_depIdxs = []int32{
 	18, // 4: system.group.v1.CreateGroupResponse.group:type_name -> system.group.v1.Group
 	19, // 5: system.group.v1.UpdateGroupRequest.status:type_name -> system.group.v1.Group.Status
 	18, // 6: system.group.v1.UpdateGroupResponse.group:type_name -> system.group.v1.Group
-	18, // 7: system.group.v1.AddRolesToGroupResponse.group:type_name -> system.group.v1.Group
-	18, // 8: system.group.v1.RemoveRolesFromGroupResponse.group:type_name -> system.group.v1.Group
-	18, // 9: system.group.v1.AddUsersToGroupResponse.group:type_name -> system.group.v1.Group
-	18, // 10: system.group.v1.RemoveUsersFromGroupResponse.group:type_name -> system.group.v1.Group
-	0,  // 11: system.group.v1.GroupService.GetGroup:input_type -> system.group.v1.GetGroupRequest
-	2,  // 12: system.group.v1.GroupService.ListGroup:input_type -> system.group.v1.ListGroupRequest
-	4,  // 13: system.group.v1.GroupService.CreateGroup:input_type -> system.group.v1.CreateGroupRequest
-	6,  // 14: system.group.v1.GroupService.UpdateGroup:input_type -> system.group.v1.UpdateGroupRequest
-	8,  // 15: system.group.v1.GroupService.DeleteGroup:input_type -> system.group.v1.DeleteGroupRequest
-	10, // 16: system.group.v1.GroupService.AddRolesToGroup:input_type -> system.group.v1.AddRolesToGroupRequest
-	12, // 17: system.group.v1.GroupService.RemoveRolesFromGroup:input_type -> system.group.v1.RemoveRolesFromGroupRequest
-	14, // 18: system.group.v1.GroupService.AddUsersToGroup:input_type -> system.group.v1.AddUsersToGroupRequest
-	16, // 19: system.group.v1.GroupService.RemoveUsersFromGroup:input_type -> system.group.v1.RemoveUsersFromGroupRequest
-	1,  // 20: system.group.v1.GroupService.GetGroup:output_type -> system.group.v1.GetGroupResponse
-	3,  // 21: system.group.v1.GroupService.ListGroup:output_type -> system.group.v1.ListGroupResponse
-	5,  // 22: system.group.v1.GroupService.CreateGroup:output_type -> system.group.v1.CreateGroupResponse
-	7,  // 23: system.group.v1.GroupService.UpdateGroup:output_type -> system.group.v1.UpdateGroupResponse
-	9,  // 24: system.group.v1.GroupService.DeleteGroup:output_type -> system.group.v1.DeleteGroupResponse
-	11, // 25: system.group.v1.GroupService.AddRolesToGroup:output_type -> system.group.v1.AddRolesToGroupResponse
-	13, // 26: system.group.v1.GroupService.RemoveRolesFromGroup:output_type -> system.group.v1.RemoveRolesFromGroupResponse
-	15, // 27: system.group.v1.GroupService.AddUsersToGroup:output_type -> system.group.v1.AddUsersToGroupResponse
-	17, // 28: system.group.v1.GroupService.RemoveUsersFromGroup:output_type -> system.group.v1.RemoveUsersFromGroupResponse
-	20, // [20:29] is the sub-list for method output_type
-	11, // [11:20] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	20, // 7: system.group.v1.AddRolesToGroupRequest.expires_at:type_name -> google.protobuf.Timestamp
+	18, // 8: system.group.v1.AddRolesToGroupResponse.group:type_name -> system.group.v1.Group
+	18, // 9: system.group.v1.RemoveRolesFromGroupResponse.group:type_name -> system.group.v1.Group
+	20, // 10: system.group.v1.AddUsersToGroupRequest.expires_at:type_name -> google.protobuf.Timestamp
+	18, // 11: system.group.v1.AddUsersToGroupResponse.group:type_name -> system.group.v1.Group
+	18, // 12: system.group.v1.RemoveUsersFromGroupResponse.group:type_name -> system.group.v1.Group
+	0,  // 13: system.group.v1.GroupService.GetGroup:input_type -> system.group.v1.GetGroupRequest
+	2,  // 14: system.group.v1.GroupService.ListGroup:input_type -> system.group.v1.ListGroupRequest
+	4,  // 15: system.group.v1.GroupService.CreateGroup:input_type -> system.group.v1.CreateGroupRequest
+	6,  // 16: system.group.v1.GroupService.UpdateGroup:input_type -> system.group.v1.UpdateGroupRequest
+	8,  // 17: system.group.v1.GroupService.DeleteGroup:input_type -> system.group.v1.DeleteGroupRequest
+	10, // 18: system.group.v1.GroupService.AddRolesToGroup:input_type -> system.group.v1.AddRolesToGroupRequest
+	12, // 19: system.group.v1.GroupService.RemoveRolesFromGroup:input_type -> system.group.v1.RemoveRolesFromGroupRequest
+	14, // 20: system.group.v1.GroupService.AddUsersToGroup:input_type -> system.group.v1.AddUsersToGroupRequest
+	16, // 21: system.group.v1.GroupService.RemoveUsersFromGroup:input_type -> system.group.v1.RemoveUsersFromGroupRequest
+	1,  // 22: system.group.v1.GroupService.GetGroup:output_type -> system.group.v1.GetGroupResponse
+	3,  // 23: system.group.v1.GroupService.ListGroup:output_type -> system.group.v1.ListGroupResponse
+	5,  // 24: system.group.v1.GroupService.CreateGroup:output_type -> system.group.v1.CreateGroupResponse
+	7,  // 25: system.group.v1.GroupService.UpdateGroup:output_type -> system.group.v1.UpdateGroupResponse
+	9,  // 26: system.group.v1.GroupService.DeleteGroup:output_type -> system.group.v1.DeleteGroupResponse
+	11, // 27: system.group.v1.GroupService.AddRolesToGroup:output_type -> system.group.v1.AddRolesToGroupResponse
+	13, // 28: system.group.v1.GroupService.RemoveRolesFromGroup:output_type -> system.group.v1.RemoveRolesFromGroupResponse
+	15, // 29: system.group.v1.GroupService.AddUsersToGroup:output_type -> system.group.v1.AddUsersToGroupResponse
+	17, // 30: system.group.v1.GroupService.RemoveUsersFromGroup:output_type -> system.group.v1.RemoveUsersFromGroupResponse
+	22, // [22:31] is the sub-list for method output_type
+	13, // [13:22] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_system_group_v1_service_proto_init() }
@@ -1075,6 +1113,8 @@ func file_system_group_v1_service_proto_init() {
 		return
 	}
 	file_system_group_v1_model_proto_init()
+	file_system_group_v1_service_proto_msgTypes[10].OneofWrappers = []any{}
+	file_system_group_v1_service_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

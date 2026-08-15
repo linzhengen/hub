@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 
@@ -25,9 +26,9 @@ type GroupUseCase interface {
 	Update(ctx context.Context, g *group.Group) (*group.Group, error)
 	Delete(ctx context.Context, groupId string) error
 	List(ctx context.Context, params *ListGroupQueryParams) ([]*group.Group, int64, error)
-	AddRoles(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error)
+	AddRoles(ctx context.Context, groupID string, roleIDs []string, expiresAt *time.Time) (*group.Group, error)
 	RemoveRoles(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error)
-	AddUsers(ctx context.Context, groupID string, userIDs []string) (*group.Group, error)
+	AddUsers(ctx context.Context, groupID string, userIDs []string, expiresAt *time.Time) (*group.Group, error)
 	RemoveUsers(ctx context.Context, groupID string, userIDs []string) (*group.Group, error)
 }
 
@@ -244,8 +245,19 @@ func (uc groupUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*grou
 // AddRoles grants each of roleIDs to the group, keeping the roles it already
 // has. The set is applied in one transaction, so a failure part way through
 // does not leave the group holding some of the roles but not the rest.
-func (uc groupUseCase) AddRoles(ctx context.Context, groupID string, roleIDs []string) (*group.Group, error) {
-	return uc.changeRoles(ctx, groupID, roleIDs, uc.groupRoleRepo.AssignRole)
+//
+// expiresAt applies to every role in the call and is nil for a grant that does
+// not end.
+func (uc groupUseCase) AddRoles(
+	ctx context.Context,
+	groupID string,
+	roleIDs []string,
+	expiresAt *time.Time,
+) (*group.Group, error) {
+	return uc.changeRoles(ctx, groupID, roleIDs,
+		func(ctx context.Context, groupID, roleID string) error {
+			return uc.groupRoleRepo.AssignRole(ctx, groupID, roleID, expiresAt)
+		})
 }
 
 // RemoveRoles revokes each of roleIDs from the group.
@@ -272,9 +284,14 @@ func (uc groupUseCase) changeRoles(
 	return uc.Get(ctx, groupID)
 }
 
-func (uc groupUseCase) AddUsers(ctx context.Context, groupID string, userIDs []string) (*group.Group, error) {
+func (uc groupUseCase) AddUsers(
+	ctx context.Context,
+	groupID string,
+	userIDs []string,
+	expiresAt *time.Time,
+) (*group.Group, error) {
 	if err := uc.transRepo.ExecTrans(ctx, func(ctx context.Context) error {
-		return uc.userGroupRepo.AddUsersToGroup(ctx, groupID, userIDs)
+		return uc.userGroupRepo.AddUsersToGroup(ctx, groupID, userIDs, expiresAt)
 	}); err != nil {
 		return nil, err
 	}

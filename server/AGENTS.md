@@ -367,6 +367,22 @@ Auth is handled via gRPC interceptors defined in `internal/interface/grpc/interc
 
     `internal/infrastructure/auth/cache_integration_test.go` checks the
     triggers against a real database. It skips unless `HUB_TEST_DSN` is set.
+-   **Time-bounded grants:** `user_groups.expires_at` and
+    `group_roles.expires_at` end a membership or a role grant without anybody
+    editing the graph. `NULL` means it does not end.
+
+    The expiry is deliberately **not** filtered in SQL. It is the one change to
+    the graph that nobody writes, so no trigger fires and `rbac_revisions` never
+    moves: a cached policy filtered at fetch time would keep serving a grant
+    that had already lapsed, for the length of the TTL. The query returns
+    lapsed rows with their expiry attached and `auth.Service.Enforce` drops them
+    as it decides, so a decision is always made against the clock rather than
+    against whenever the cache was filled.
+
+    A route expires with whichever of its edges expires first. `auth.Earliest`
+    is the one place that says so; `Enforce`, `Explain` and `PrincipalsFor` all
+    go through it. **Do not add an `expires_at > now()` predicate to a policy
+    query.**
 -   **Inspecting permissions:** `hub api describe <rpc>` reports the resource
     and action an rpc needs, which is the quickest way to explain a 403.
 

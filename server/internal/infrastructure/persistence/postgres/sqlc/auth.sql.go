@@ -7,6 +7,7 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const selectAccessPaths = `-- name: SelectAccessPaths :many
@@ -16,7 +17,8 @@ SELECT g.id     AS group_id,
        r.name   AS role_name,
        p.id     AS permission_id,
        res.identifier,
-       p.verb
+       p.verb,
+       gr.expires_at
 FROM "groups" AS g
          INNER JOIN group_roles AS gr ON g.id = gr.group_id
          INNER JOIN roles AS r ON r.id = gr.role_id
@@ -35,6 +37,7 @@ type SelectAccessPathsRow struct {
 	PermissionID string
 	Identifier   string
 	Verb         string
+	ExpiresAt    sql.NullTime
 }
 
 func (q *Queries) SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRow, error) {
@@ -54,6 +57,7 @@ func (q *Queries) SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRo
 			&i.PermissionID,
 			&i.Identifier,
 			&i.Verb,
+			&i.ExpiresAt,
 		); err != nil {
 			return nil, err
 		}
@@ -71,7 +75,8 @@ func (q *Queries) SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRo
 const selectMemberships = `-- name: SelectMemberships :many
 SELECT u.id,
        u.username,
-       ug.group_id
+       ug.group_id,
+       ug.expires_at
 FROM users AS u
          INNER JOIN user_groups AS ug ON u.id = ug.user_id
 WHERE u.status = 'Active'
@@ -79,9 +84,10 @@ ORDER BY u.username, u.id
 `
 
 type SelectMembershipsRow struct {
-	ID       string
-	Username string
-	GroupID  string
+	ID        string
+	Username  string
+	GroupID   string
+	ExpiresAt sql.NullTime
 }
 
 func (q *Queries) SelectMemberships(ctx context.Context) ([]*SelectMembershipsRow, error) {
@@ -93,7 +99,12 @@ func (q *Queries) SelectMemberships(ctx context.Context) ([]*SelectMembershipsRo
 	items := []*SelectMembershipsRow{}
 	for rows.Next() {
 		var i SelectMembershipsRow
-		if err := rows.Scan(&i.ID, &i.Username, &i.GroupID); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.GroupID,
+			&i.ExpiresAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
@@ -114,7 +125,9 @@ SELECT g.id     AS group_id,
        r.name   AS role_name,
        p.id     AS permission_id,
        res.identifier,
-       p.verb
+       p.verb,
+       ug.expires_at AS group_expires_at,
+       gr.expires_at AS role_expires_at
 FROM users AS u
          INNER JOIN user_groups AS ug ON u.id = ug.user_id
          INNER JOIN "groups" AS g ON g.id = ug.group_id AND g.status = 'Active'
@@ -129,13 +142,15 @@ ORDER BY g.name, r.name, res.identifier, p.verb
 `
 
 type SelectUserAccessPathsRow struct {
-	GroupID      string
-	GroupName    string
-	RoleID       string
-	RoleName     string
-	PermissionID string
-	Identifier   string
-	Verb         string
+	GroupID        string
+	GroupName      string
+	RoleID         string
+	RoleName       string
+	PermissionID   string
+	Identifier     string
+	Verb           string
+	GroupExpiresAt sql.NullTime
+	RoleExpiresAt  sql.NullTime
 }
 
 func (q *Queries) SelectUserAccessPaths(ctx context.Context, id string) ([]*SelectUserAccessPathsRow, error) {
@@ -155,6 +170,8 @@ func (q *Queries) SelectUserAccessPaths(ctx context.Context, id string) ([]*Sele
 			&i.PermissionID,
 			&i.Identifier,
 			&i.Verb,
+			&i.GroupExpiresAt,
+			&i.RoleExpiresAt,
 		); err != nil {
 			return nil, err
 		}
@@ -170,7 +187,7 @@ func (q *Queries) SelectUserAccessPaths(ctx context.Context, id string) ([]*Sele
 }
 
 const selectUserAuthorizedPolices = `-- name: SelectUserAuthorizedPolices :many
-SELECT u.id, res.identifier, p.verb
+SELECT u.id, res.identifier, p.verb, ug.expires_at AS group_expires_at, gr.expires_at AS role_expires_at
 FROM users AS u
          INNER JOIN user_groups AS ug ON u.id = ug.user_id
          INNER JOIN "groups" AS g ON g.id = ug.group_id AND g.status = 'Active'
@@ -183,11 +200,20 @@ WHERE u.id = $1
 `
 
 type SelectUserAuthorizedPolicesRow struct {
-	ID         string
-	Identifier string
-	Verb       string
+	ID             string
+	Identifier     string
+	Verb           string
+	GroupExpiresAt sql.NullTime
+	RoleExpiresAt  sql.NullTime
 }
 
+// The expiry is not filtered here on purpose: see the note on expires_at in
+// the user_groups and group_roles migrations.
+//
+// Both edges of the route are returned rather than LEAST() of them, so that
+// "the route expires with whichever edge expires first" is stated once, in Go,
+// where it is under test - and so that a NULL keeps meaning "never" rather than
+// depending on how LEAST treats it.
 func (q *Queries) SelectUserAuthorizedPolices(ctx context.Context, id string) ([]*SelectUserAuthorizedPolicesRow, error) {
 	rows, err := q.db.QueryContext(ctx, selectUserAuthorizedPolices, id)
 	if err != nil {
@@ -197,7 +223,13 @@ func (q *Queries) SelectUserAuthorizedPolices(ctx context.Context, id string) ([
 	items := []*SelectUserAuthorizedPolicesRow{}
 	for rows.Next() {
 		var i SelectUserAuthorizedPolicesRow
-		if err := rows.Scan(&i.ID, &i.Identifier, &i.Verb); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Identifier,
+			&i.Verb,
+			&i.GroupExpiresAt,
+			&i.RoleExpiresAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)

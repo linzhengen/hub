@@ -2,10 +2,20 @@ package usergroup
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 )
+
+// nullTime turns the domain's "nil means never" into the nullable column.
+func nullTime(t *time.Time) sql.NullTime {
+	if t == nil {
+		return sql.NullTime{}
+	}
+	return sql.NullTime{Time: *t, Valid: true}
+}
 
 func New(q persistence.Querier) usergroup.Repository {
 	return &repositoryImpl{q: q}
@@ -22,16 +32,21 @@ func (r repositoryImpl) FindByUserId(ctx context.Context, userId string) (usergr
 	}
 	var result usergroup.UserGroups
 	for _, row := range rows {
+		expiresAt := (*time.Time)(nil)
+		if row.ExpiresAt.Valid {
+			expiresAt = &row.ExpiresAt.Time
+		}
 		result = append(result, &usergroup.UserGroup{
-			UserId:  row.UserID,
-			GroupId: row.GroupID,
+			UserId:    row.UserID,
+			GroupId:   row.GroupID,
+			ExpiresAt: expiresAt,
 		})
 	}
 	return result, nil
 }
 
-func (r repositoryImpl) AssignGroup(ctx context.Context, userId, groupId string) error {
-	return persistence.GetQ(ctx, r.q).CreateUserGroup(ctx, userId, groupId)
+func (r repositoryImpl) AssignGroup(ctx context.Context, userId, groupId string, expiresAt *time.Time) error {
+	return persistence.GetQ(ctx, r.q).CreateUserGroup(ctx, userId, groupId, nullTime(expiresAt))
 }
 
 func (r repositoryImpl) UnassignGroup(ctx context.Context, userId, groupId string) error {
@@ -45,7 +60,7 @@ func (r repositoryImpl) Upsert(ctx context.Context, userId string, groupId []str
 		return err
 	}
 	for _, id := range groupId {
-		err = q.CreateUserGroup(ctx, userId, id)
+		err = q.CreateUserGroup(ctx, userId, id, sql.NullTime{})
 		if err != nil {
 			return err
 		}
@@ -53,7 +68,7 @@ func (r repositoryImpl) Upsert(ctx context.Context, userId string, groupId []str
 	return nil
 }
 
-func (r repositoryImpl) AddUsersToGroup(ctx context.Context, groupID string, userIDs []string) error {
+func (r repositoryImpl) AddUsersToGroup(ctx context.Context, groupID string, userIDs []string, expiresAt *time.Time) error {
 	q := persistence.GetQ(ctx, r.q)
 	for _, userID := range userIDs {
 		// 既にGroupに属している場合、AddをSkip
@@ -64,7 +79,7 @@ func (r repositoryImpl) AddUsersToGroup(ctx context.Context, groupID string, use
 		if isUserInGroup {
 			continue
 		}
-		err = q.CreateUserGroup(ctx, userID, groupID)
+		err = q.CreateUserGroup(ctx, userID, groupID, nullTime(expiresAt))
 		if err != nil {
 			return err
 		}

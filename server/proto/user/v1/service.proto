@@ -4,6 +4,7 @@ package user.v1;
 
 import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 import "hub/annotations/v1/annotations.proto";
 import "system/group/v1/model.proto";
 import "user/v1/model.proto";
@@ -199,6 +200,13 @@ message AddGroupsToUserRequest {
       string: {uuid: true}
     }
   }];
+  // When the grant lapses. Leave it unset to grant for good, which is what
+  // every grant made before this field existed did.
+  //
+  // It applies to each id in this request, since one call is one decision:
+  // "give them these three until Friday". A grant with a different term is a
+  // different decision, so it is a different call.
+  optional google.protobuf.Timestamp expires_at = 3 [(buf.validate.field).timestamp.gt_now = true];
 }
 
 message AddGroupsToUserResponse {

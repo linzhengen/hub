@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"testing"
+	"time"
 
 	_ "github.com/linzhengen/hub/server/internal/domain/trans"
 	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
@@ -59,8 +60,8 @@ type MockUserGroupRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserGroupRepository) AssignGroup(ctx context.Context, userId, groupId string) error {
-	args := m.Called(ctx, userId, groupId)
+func (m *MockUserGroupRepository) AssignGroup(ctx context.Context, userId, groupId string, expiresAt *time.Time) error {
+	args := m.Called(ctx, userId, groupId, expiresAt)
 	return args.Error(0)
 }
 
@@ -82,8 +83,8 @@ func (m *MockUserGroupRepository) Upsert(ctx context.Context, userId string, gro
 	return args.Error(0)
 }
 
-func (m *MockUserGroupRepository) AddUsersToGroup(ctx context.Context, groupID string, userIDs []string) error {
-	args := m.Called(ctx, groupID, userIDs)
+func (m *MockUserGroupRepository) AddUsersToGroup(ctx context.Context, groupID string, userIDs []string, expiresAt *time.Time) error {
+	args := m.Called(ctx, groupID, userIDs, expiresAt)
 	return args.Error(0)
 }
 

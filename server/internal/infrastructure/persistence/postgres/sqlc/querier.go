@@ -67,6 +67,13 @@ type Querier interface {
 	SelectRoleForUpdate(ctx context.Context, id string) (*Role, error)
 	SelectRolePermissionByRoleId(ctx context.Context, roleID string) ([]*RolePermission, error)
 	SelectUserAccessPaths(ctx context.Context, id string) ([]*SelectUserAccessPathsRow, error)
+	// The expiry is not filtered here on purpose: see the note on expires_at in
+	// the user_groups and group_roles migrations.
+	//
+	// Both edges of the route are returned rather than LEAST() of them, so that
+	// "the route expires with whichever edge expires first" is stated once, in Go,
+	// where it is under test - and so that a NULL keeps meaning "never" rather than
+	// depending on how LEAST treats it.
 	SelectUserAuthorizedPolices(ctx context.Context, id string) ([]*SelectUserAuthorizedPolicesRow, error)
 	SelectUserById(ctx context.Context, id string) (*User, error)
 	SelectUserForUpdate(ctx context.Context, id string) (*User, error)

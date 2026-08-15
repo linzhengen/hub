@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package system.access.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "github.com/linzhengen/hub/server/pb/system/access/v1";
 
 // AccessPath is one route by which a user is allowed an operation: the group
@@ -23,6 +25,10 @@ message AccessPath {
   // seeing here, so it is not resolved away.
   string resource = 6;
   string action = 7;
+  // When this route lapses, unset when no edge of it expires. It is the
+  // earliest expiry along the route: the access ends when the first of the
+  // memberships and grants behind it does.
+  optional google.protobuf.Timestamp expires_at = 8;
 }
 
 // Principal is a user allowed an operation, with every route that allows it.

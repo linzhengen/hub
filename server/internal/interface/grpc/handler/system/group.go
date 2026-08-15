@@ -86,7 +86,7 @@ func (h groupHandler) UpdateGroup(ctx context.Context, request *pbv1.UpdateGroup
 }
 
 func (h groupHandler) AddRolesToGroup(ctx context.Context, request *pbv1.AddRolesToGroupRequest) (*pbv1.AddRolesToGroupResponse, error) {
-	g, err := h.groupUseCase.AddRoles(ctx, request.Id, request.RoleIds)
+	g, err := h.groupUseCase.AddRoles(ctx, request.Id, request.RoleIds, timestampPbToTimePtr(request.ExpiresAt))
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (h groupHandler) RemoveRolesFromGroup(ctx context.Context, request *pbv1.Re
 }
 
 func (h groupHandler) AddUsersToGroup(ctx context.Context, request *pbv1.AddUsersToGroupRequest) (*pbv1.AddUsersToGroupResponse, error) {
-	g, err := h.groupUseCase.AddUsers(ctx, request.Id, request.UserIds)
+	g, err := h.groupUseCase.AddUsers(ctx, request.Id, request.UserIds, timestampPbToTimePtr(request.ExpiresAt))
 	if err != nil {
 		return nil, err
 	}

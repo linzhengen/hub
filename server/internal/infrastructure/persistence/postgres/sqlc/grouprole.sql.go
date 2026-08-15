@@ -7,26 +7,30 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createGroupRole = `-- name: CreateGroupRole :exec
 INSERT INTO group_roles (group_id,
                          role_id,
+                         expires_at,
                          created_at,
                          updated_at)
 VALUES ($1,
         $2,
+        $3,
         now(),
         now())
 `
 
 type CreateGroupRoleParams struct {
-	GroupID string
-	RoleID  string
+	GroupID   string
+	RoleID    string
+	ExpiresAt sql.NullTime
 }
 
 func (q *Queries) CreateGroupRole(ctx context.Context, arg CreateGroupRoleParams) error {
-	_, err := q.db.ExecContext(ctx, createGroupRole, arg.GroupID, arg.RoleID)
+	_, err := q.db.ExecContext(ctx, createGroupRole, arg.GroupID, arg.RoleID, arg.ExpiresAt)
 	return err
 }
 
@@ -59,7 +63,7 @@ func (q *Queries) DeleteGroupRole(ctx context.Context, arg DeleteGroupRoleParams
 }
 
 const selectGroupRoleByGroupId = `-- name: SelectGroupRoleByGroupId :many
-SELECT group_id, role_id, created_at, updated_at
+SELECT group_id, role_id, expires_at, created_at, updated_at
 FROM group_roles
 WHERE group_id = $1
 `
@@ -76,6 +80,7 @@ func (q *Queries) SelectGroupRoleByGroupId(ctx context.Context, groupID string) 
 		if err := rows.Scan(
 			&i.GroupID,
 			&i.RoleID,
+			&i.ExpiresAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

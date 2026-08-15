@@ -150,6 +150,7 @@ Grant roles to a group, keeping the roles it already has.
 | --- | --- | --- | --- | --- |
 | `--id` | `id` | path | string | uuid |
 | `--role-ids` | `roleIds` | body | repeated string | at least 1 item(s), each uuid |
+| `--expires-at` | `expiresAt` | body | message |  |
 
 ### AddUsersToGroup
 
@@ -163,6 +164,7 @@ Add users to a group, keeping the existing members.
 | --- | --- | --- | --- | --- |
 | `--id` | `id` | path | string | uuid |
 | `--user-ids` | `userIds` | body | repeated string | at least 1 item(s), each uuid |
+| `--expires-at` | `expiresAt` | body | message |  |
 
 ### CreateGroup
 
@@ -579,6 +581,7 @@ Add a user to groups, keeping the groups they are already in.
 | --- | --- | --- | --- | --- |
 | `--id` | `id` | path | string | uuid |
 | `--group-ids` | `groupIds` | body | repeated string | at least 1 item(s), each uuid |
+| `--expires-at` | `expiresAt` | body | message |  |
 
 ### CreateUser
 

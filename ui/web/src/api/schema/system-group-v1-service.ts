@@ -105,9 +105,29 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         GroupServiceAddRolesToGroupBody: {
+            /**
+             * Format: date-time
+             * @description When the grant lapses. Leave it unset to grant for good, which is what
+             *     every grant made before this field existed did.
+             *
+             *     It applies to each id in this request, since one call is one decision:
+             *     "give them these three until Friday". A grant with a different term is a
+             *     different decision, so it is a different call.
+             */
+            expiresAt?: string;
             roleIds?: string[];
         };
         GroupServiceAddUsersToGroupBody: {
+            /**
+             * Format: date-time
+             * @description When the grant lapses. Leave it unset to grant for good, which is what
+             *     every grant made before this field existed did.
+             *
+             *     It applies to each id in this request, since one call is one decision:
+             *     "give them these three until Friday". A grant with a different term is a
+             *     different decision, so it is a different call.
+             */
+            expiresAt?: string;
             userIds?: string[];
         };
         GroupServiceRemoveRolesFromGroupBody: {

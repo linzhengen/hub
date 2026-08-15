@@ -13,6 +13,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -933,9 +934,16 @@ func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
 }
 
 type AddGroupsToUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	GroupIds      []string               `protobuf:"bytes,2,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	GroupIds []string               `protobuf:"bytes,2,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
+	// When the grant lapses. Leave it unset to grant for good, which is what
+	// every grant made before this field existed did.
+	//
+	// It applies to each id in this request, since one call is one decision:
+	// "give them these three until Friday". A grant with a different term is a
+	// different decision, so it is a different call.
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -980,6 +988,13 @@ func (x *AddGroupsToUserRequest) GetId() string {
 func (x *AddGroupsToUserRequest) GetGroupIds() []string {
 	if x != nil {
 		return x.GroupIds
+	}
+	return nil
+}
+
+func (x *AddGroupsToUserRequest) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
 	}
 	return nil
 }
@@ -1128,7 +1143,7 @@ var File_user_v1_service_proto protoreflect.FileDescriptor
 
 const file_user_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x15user/v1/service.proto\x12\auser.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\x1a\x13user/v1/model.proto\"\xad\x01\n" +
+	"\x15user/v1/service.proto\x12\auser.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1bsystem/group/v1/model.proto\x1a\x13user/v1/model.proto\"\xad\x01\n" +
 	"\x11CreateUserRequest\x12%\n" +
 	"\busername\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\busername\x12\x1d\n" +
 	"\x05email\x18\x02 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12&\n" +
@@ -1186,10 +1201,13 @@ const file_user_v1_service_proto_rawDesc = "" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"-\n" +
 	"\x11DeleteUserRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"\x14\n" +
-	"\x12DeleteUserResponse\"`\n" +
+	"\x12DeleteUserResponse\"\xb9\x01\n" +
 	"\x16AddGroupsToUserRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12,\n" +
-	"\tgroup_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\bgroupIds\"<\n" +
+	"\tgroup_ids\x18\x02 \x03(\tB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05r\x03\xb0\x01\x01R\bgroupIds\x12H\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\b\xbaH\x05\xb2\x01\x02@\x01H\x00R\texpiresAt\x88\x01\x01B\r\n" +
+	"\v_expires_at\"<\n" +
 	"\x17AddGroupsToUserResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"e\n" +
 	"\x1bRemoveGroupsFromUserRequest\x12\x18\n" +
@@ -1256,6 +1274,7 @@ var file_user_v1_service_proto_goTypes = []any{
 	(*v1.Group)(nil),                     // 23: system.group.v1.Group
 	(*Menu)(nil),                         // 24: user.v1.Menu
 	(User_Status)(0),                     // 25: user.v1.User.Status
+	(*timestamppb.Timestamp)(nil),        // 26: google.protobuf.Timestamp
 }
 var file_user_v1_service_proto_depIdxs = []int32{
 	22, // 0: user.v1.CreateUserResponse.user:type_name -> user.v1.User
@@ -1269,35 +1288,36 @@ var file_user_v1_service_proto_depIdxs = []int32{
 	22, // 8: user.v1.ListUserResponse.users:type_name -> user.v1.User
 	25, // 9: user.v1.UpdateUserRequest.status:type_name -> user.v1.User.Status
 	22, // 10: user.v1.UpdateUserResponse.user:type_name -> user.v1.User
-	22, // 11: user.v1.AddGroupsToUserResponse.user:type_name -> user.v1.User
-	22, // 12: user.v1.RemoveGroupsFromUserResponse.user:type_name -> user.v1.User
-	2,  // 13: user.v1.UserService.GetMe:input_type -> user.v1.GetMeRequest
-	4,  // 14: user.v1.UserService.GetMeMenus:input_type -> user.v1.GetMeMenusRequest
-	6,  // 15: user.v1.UserService.UpdateMe:input_type -> user.v1.UpdateMeRequest
-	8,  // 16: user.v1.UserService.SendMeVerifyEmail:input_type -> user.v1.SendMeVerifyEmailRequest
-	10, // 17: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
-	12, // 18: user.v1.UserService.ListUser:input_type -> user.v1.ListUserRequest
-	14, // 19: user.v1.UserService.UpdateUser:input_type -> user.v1.UpdateUserRequest
-	16, // 20: user.v1.UserService.DeleteUser:input_type -> user.v1.DeleteUserRequest
-	18, // 21: user.v1.UserService.AddGroupsToUser:input_type -> user.v1.AddGroupsToUserRequest
-	20, // 22: user.v1.UserService.RemoveGroupsFromUser:input_type -> user.v1.RemoveGroupsFromUserRequest
-	0,  // 23: user.v1.UserService.CreateUser:input_type -> user.v1.CreateUserRequest
-	3,  // 24: user.v1.UserService.GetMe:output_type -> user.v1.GetMeResponse
-	5,  // 25: user.v1.UserService.GetMeMenus:output_type -> user.v1.GetMeMenusResponse
-	7,  // 26: user.v1.UserService.UpdateMe:output_type -> user.v1.UpdateMeResponse
-	9,  // 27: user.v1.UserService.SendMeVerifyEmail:output_type -> user.v1.SendMeVerifyEmailResponse
-	11, // 28: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
-	13, // 29: user.v1.UserService.ListUser:output_type -> user.v1.ListUserResponse
-	15, // 30: user.v1.UserService.UpdateUser:output_type -> user.v1.UpdateUserResponse
-	17, // 31: user.v1.UserService.DeleteUser:output_type -> user.v1.DeleteUserResponse
-	19, // 32: user.v1.UserService.AddGroupsToUser:output_type -> user.v1.AddGroupsToUserResponse
-	21, // 33: user.v1.UserService.RemoveGroupsFromUser:output_type -> user.v1.RemoveGroupsFromUserResponse
-	1,  // 34: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
-	24, // [24:35] is the sub-list for method output_type
-	13, // [13:24] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	26, // 11: user.v1.AddGroupsToUserRequest.expires_at:type_name -> google.protobuf.Timestamp
+	22, // 12: user.v1.AddGroupsToUserResponse.user:type_name -> user.v1.User
+	22, // 13: user.v1.RemoveGroupsFromUserResponse.user:type_name -> user.v1.User
+	2,  // 14: user.v1.UserService.GetMe:input_type -> user.v1.GetMeRequest
+	4,  // 15: user.v1.UserService.GetMeMenus:input_type -> user.v1.GetMeMenusRequest
+	6,  // 16: user.v1.UserService.UpdateMe:input_type -> user.v1.UpdateMeRequest
+	8,  // 17: user.v1.UserService.SendMeVerifyEmail:input_type -> user.v1.SendMeVerifyEmailRequest
+	10, // 18: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
+	12, // 19: user.v1.UserService.ListUser:input_type -> user.v1.ListUserRequest
+	14, // 20: user.v1.UserService.UpdateUser:input_type -> user.v1.UpdateUserRequest
+	16, // 21: user.v1.UserService.DeleteUser:input_type -> user.v1.DeleteUserRequest
+	18, // 22: user.v1.UserService.AddGroupsToUser:input_type -> user.v1.AddGroupsToUserRequest
+	20, // 23: user.v1.UserService.RemoveGroupsFromUser:input_type -> user.v1.RemoveGroupsFromUserRequest
+	0,  // 24: user.v1.UserService.CreateUser:input_type -> user.v1.CreateUserRequest
+	3,  // 25: user.v1.UserService.GetMe:output_type -> user.v1.GetMeResponse
+	5,  // 26: user.v1.UserService.GetMeMenus:output_type -> user.v1.GetMeMenusResponse
+	7,  // 27: user.v1.UserService.UpdateMe:output_type -> user.v1.UpdateMeResponse
+	9,  // 28: user.v1.UserService.SendMeVerifyEmail:output_type -> user.v1.SendMeVerifyEmailResponse
+	11, // 29: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
+	13, // 30: user.v1.UserService.ListUser:output_type -> user.v1.ListUserResponse
+	15, // 31: user.v1.UserService.UpdateUser:output_type -> user.v1.UpdateUserResponse
+	17, // 32: user.v1.UserService.DeleteUser:output_type -> user.v1.DeleteUserResponse
+	19, // 33: user.v1.UserService.AddGroupsToUser:output_type -> user.v1.AddGroupsToUserResponse
+	21, // 34: user.v1.UserService.RemoveGroupsFromUser:output_type -> user.v1.RemoveGroupsFromUserResponse
+	1,  // 35: user.v1.UserService.CreateUser:output_type -> user.v1.CreateUserResponse
+	25, // [25:36] is the sub-list for method output_type
+	14, // [14:25] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_user_v1_service_proto_init() }
@@ -1307,6 +1327,7 @@ func file_user_v1_service_proto_init() {
 	}
 	file_user_v1_model_proto_init()
 	file_user_v1_service_proto_msgTypes[14].OneofWrappers = []any{}
+	file_user_v1_service_proto_msgTypes[18].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

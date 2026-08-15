@@ -11,10 +11,12 @@ WHERE group_id = $1;
 -- name: CreateUserGroup :exec
 INSERT INTO user_groups (user_id,
                          group_id,
+                         expires_at,
                          created_at,
                          updated_at)
 VALUES ($1,
         $2,
+        sqlc.narg(expires_at),
         now(),
         now());
 

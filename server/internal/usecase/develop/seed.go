@@ -151,7 +151,7 @@ func (m seedUseCase) insert(ctx context.Context, data *seeds.Seed) error {
 		}
 	}
 	for _, v := range data.UserGroups {
-		if err := m.userGroupRepo.AssignGroup(ctx, v.UserId, v.GroupId); err != nil {
+		if err := m.userGroupRepo.AssignGroup(ctx, v.UserId, v.GroupId, nil); err != nil {
 			return fmt.Errorf("failed seed user group, err: %w", err)
 		}
 	}
@@ -161,7 +161,7 @@ func (m seedUseCase) insert(ctx context.Context, data *seeds.Seed) error {
 		}
 	}
 	for _, v := range data.GroupRoles {
-		if err := m.groupRoleRepo.AssignRole(ctx, v.GroupId, v.RoleId); err != nil {
+		if err := m.groupRoleRepo.AssignRole(ctx, v.GroupId, v.RoleId, nil); err != nil {
 			return fmt.Errorf("failed seed group role, err: %w", err)
 		}
 	}

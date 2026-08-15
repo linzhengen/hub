@@ -25,6 +25,7 @@ erDiagram
     user_groups {
         CHAR_36_ user_id PK, FK "User ID"
         CHAR_36_ group_id PK, FK "Group ID"
+        TIMESTAMP expires_at "NULL means the membership does not end"
     }
 
     roles {
@@ -38,6 +39,7 @@ erDiagram
     group_roles {
         CHAR_36_ group_id PK, FK "Group ID"
         CHAR_36_ role_id PK, FK "Role ID"
+        TIMESTAMP expires_at "NULL means the grant does not end"
     }
 
     resources {

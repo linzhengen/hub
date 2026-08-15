@@ -3,6 +3,9 @@ package handler
 import (
 	"context"
 	"strings"
+	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/linzhengen/hub/server/internal/domain/system/resource/menu"
 	"github.com/linzhengen/hub/server/internal/usecase"
@@ -13,6 +16,16 @@ import (
 
 	"github.com/linzhengen/hub/server/internal/domain/user"
 )
+
+// timestampPbToTimePtr maps an absent expiry to nil, which is how every layer
+// below spells "this grant does not end".
+func timestampPbToTimePtr(ts *timestamppb.Timestamp) *time.Time {
+	if ts == nil {
+		return nil
+	}
+	t := ts.AsTime()
+	return &t
+}
 
 func NewUserHandler(
 	userUseCase usecase.UserUseCase,
@@ -194,7 +207,7 @@ func (h userHandler) DeleteUser(ctx context.Context, request *pbv1.DeleteUserReq
 }
 
 func (h userHandler) AddGroupsToUser(ctx context.Context, request *pbv1.AddGroupsToUserRequest) (*pbv1.AddGroupsToUserResponse, error) {
-	u, err := h.userUseCase.AddGroups(ctx, request.Id, request.GroupIds)
+	u, err := h.userUseCase.AddGroups(ctx, request.Id, request.GroupIds, timestampPbToTimePtr(request.ExpiresAt))
 	if err != nil {
 		return nil, err
 	}

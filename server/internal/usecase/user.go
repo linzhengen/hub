@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 
@@ -26,7 +27,7 @@ type UserUseCase interface {
 	Delete(ctx context.Context, userId string) error
 	Create(ctx context.Context, username, email, password string, groupIds []string) (*user.User, error)
 	List(ctx context.Context, params *ListUserQueryParams) ([]*user.User, int64, error)
-	AddGroups(ctx context.Context, userId string, groupIds []string) (*user.User, error)
+	AddGroups(ctx context.Context, userId string, groupIds []string, expiresAt *time.Time) (*user.User, error)
 	RemoveGroups(ctx context.Context, userId string, groupIds []string) (*user.User, error)
 	GetMeMenus(ctx context.Context) ([]*menu.Menu, error)
 	SendMeVerifyEmail(ctx context.Context) error
@@ -388,8 +389,19 @@ func (uc userUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*user.
 // AddGroups puts the user in each of groupIds, leaving the groups they are
 // already in alone. The whole set is applied in one transaction so a partial
 // failure does not leave the user in some of the groups but not the rest.
-func (uc userUseCase) AddGroups(ctx context.Context, userId string, groupIds []string) (*user.User, error) {
-	return uc.changeGroups(ctx, "AddGroups", userId, groupIds, uc.userGroupRepo.AssignGroup)
+//
+// expiresAt applies to every group in the call and is nil for a membership
+// that does not end.
+func (uc userUseCase) AddGroups(
+	ctx context.Context,
+	userId string,
+	groupIds []string,
+	expiresAt *time.Time,
+) (*user.User, error) {
+	return uc.changeGroups(ctx, "AddGroups", userId, groupIds,
+		func(ctx context.Context, userId, groupId string) error {
+			return uc.userGroupRepo.AssignGroup(ctx, userId, groupId, expiresAt)
+		})
 }
 
 // RemoveGroups takes the user out of each of groupIds.
