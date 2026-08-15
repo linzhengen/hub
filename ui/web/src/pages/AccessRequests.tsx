@@ -330,7 +330,12 @@ const ComposeModal: React.FC<{
             requestedUntil: until ? new Date(until).toISOString() : undefined,
           });
           form.resetFields();
-        });
+        })
+        // validateFields rejects when a field is invalid. Antd has already put
+        // the message under the field, so there is nothing to report here - but
+        // the rejection still has to be taken, or it surfaces as an unhandled
+        // one every time somebody mistypes.
+        .catch(() => {});
       }}
     >
       <Form form={form} layout="vertical">
