@@ -23,11 +23,14 @@ import { useMe } from '@/hooks/useMe';
 import PageMeta from '@/components/common/PageMeta';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import { accessRequestService } from '@/services/access';
+import {
+  ACCESS_REQUESTS_QUERY_KEY,
+  pendingForApprover,
+  useAccessRequests,
+} from '@/hooks/useAccessRequests';
 import type { AccessRequest, RequestStatus } from '@/services/access';
 import { groupService } from '@/services/group';
 import { userService } from '@/services/user';
-
-const REQUESTS_QUERY_KEY = ['accessRequests'];
 
 const STATUS_TAG: Record<string, { color: string; label: string }> = {
   REQUEST_STATUS_PENDING: { color: 'processing', label: 'Pending' },
@@ -77,10 +80,7 @@ export const AccessRequests: React.FC = () => {
   const [composing, setComposing] = useState(false);
   const [deciding, setDeciding] = useState<AccessRequest | null>(null);
 
-  const requests = useQuery({
-    queryKey: REQUESTS_QUERY_KEY,
-    queryFn: () => accessRequestService.list({ limit: 200 }),
-  });
+  const requests = useAccessRequests();
 
   const groups = useQuery({
     queryKey: ['groups', 'forAccessRequests'],
@@ -104,7 +104,7 @@ export const AccessRequests: React.FC = () => {
     return (id?: string) => (id ? (byId.get(id) ?? id) : '—');
   }, [users.data]);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: REQUESTS_QUERY_KEY });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ACCESS_REQUESTS_QUERY_KEY });
 
   const create = useMutation({
     mutationFn: accessRequestService.create,
@@ -139,10 +139,10 @@ export const AccessRequests: React.FC = () => {
   const all = requests.data?.accessRequests ?? [];
   const mine = all.filter((r) => r.requesterUserId === myUserId);
   // The queue excludes your own asks, because you may not decide them. Showing
-  // them here with the buttons disabled would only invite the click.
-  const queue = all.filter(
-    (r) => r.status === 'REQUEST_STATUS_PENDING' && r.requesterUserId !== myUserId,
-  );
+  // them here with the buttons disabled would only invite the click. The rule
+  // is shared with the header's badge, so the two cannot disagree about what is
+  // waiting on you.
+  const queue = pendingForApprover(all, myUserId);
 
   const sharedColumns: ColumnsType<AccessRequest> = [
     {
