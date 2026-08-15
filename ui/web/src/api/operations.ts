@@ -124,6 +124,20 @@ export const roleServiceOperations = {
   updateRole: { method: 'PUT', path: '/roles/{id}', pathParams: ['id'] },
 } as const satisfies Record<string, ApiOperation>;
 
+/** Operations of system.serviceaccount.v1.ServiceAccountService. */
+export const serviceAccountServiceOperations = {
+  /** Register a machine and return its credentials, which are shown once. */
+  createServiceAccount: { method: 'POST', path: '/service-accounts', pathParams: [] },
+  /** Remove a machine's identity, its credentials and its group memberships. */
+  deleteServiceAccount: { method: 'DELETE', path: '/service-accounts/{id}', pathParams: ['id'] },
+  /** Get a single service account by id. */
+  getServiceAccount: { method: 'GET', path: '/service-accounts/{id}', pathParams: ['id'] },
+  /** List the registered service accounts. */
+  listServiceAccounts: { method: 'GET', path: '/service-accounts', pathParams: [] },
+  /** Issue a new secret and invalidate the old one. */
+  rotateServiceAccountSecret: { method: 'POST', path: '/service-accounts/{id}/rotate-secret', pathParams: ['id'] },
+} as const satisfies Record<string, ApiOperation>;
+
 /** Operations of user.v1.UserService. */
 export const userServiceOperations = {
   /** Add a user to groups, keeping the groups they are already in. */

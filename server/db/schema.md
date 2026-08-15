@@ -45,6 +45,18 @@ erDiagram
         TIMESTAMP updated_at
     }
 
+    service_accounts {
+        CHAR_36_ id PK "Service account ID"
+        CHAR_36_ user_id FK "The hub user the machine acts as"
+        VARCHAR_255_ name
+        TEXT description
+        VARCHAR_255_ client_id "Keycloak client id, derived from name"
+        VARCHAR_255_ keycloak_id "Keycloak's internal handle"
+        CHAR_36_ created_by_user_id FK
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
     roles {
         CHAR_36_ id PK "Role ID"
         VARCHAR_255_ name
@@ -85,6 +97,7 @@ erDiagram
         CHAR_36_ permission_id PK, FK "Permission ID"
     }
 
+    users           ||--o| service_accounts : "is the identity of"
     users           ||--o{ access_requests  : "raises and is the subject of"
     groups          ||--o{ access_requests  : "asked for"
     users           ||--o{ user_groups      : "many-to-many"

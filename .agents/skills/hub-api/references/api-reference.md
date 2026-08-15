@@ -627,6 +627,70 @@ Update a role's name or description.
 | `--name` | `name` | body | string | length 1..64 |
 | `--description` | `description` | body | string | length <= 255 |
 
+## system.serviceaccount.v1.ServiceAccountService
+
+### CreateServiceAccount
+
+Register a machine and return its credentials, which are shown once.
+
+- command: `hub service-account create-service-account`
+- endpoint: `POST /api/v1/service-accounts`
+- rbac: `CreateServiceAccount` on `api.system.serviceaccount.v1.ServiceAccountService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--name` | `name` | body | string | length 3..64 |
+| `--description` | `description` | body | string | length <= 1024 |
+
+### DeleteServiceAccount
+
+Remove a machine's identity, its credentials and its group memberships.
+
+- command: `hub service-account delete-service-account`
+- endpoint: `DELETE /api/v1/service-accounts/{id}`
+- rbac: `DeleteServiceAccount` on `api.system.serviceaccount.v1.ServiceAccountService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### GetServiceAccount
+
+Get a single service account by id.
+
+- command: `hub service-account get-service-account`
+- endpoint: `GET /api/v1/service-accounts/{id}`
+- rbac: `GetServiceAccount` on `api.system.serviceaccount.v1.ServiceAccountService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### ListServiceAccounts
+
+List the registered service accounts.
+
+- command: `hub service-account list-service-accounts`
+- endpoint: `GET /api/v1/service-accounts`
+- rbac: `ListServiceAccounts` on `api.system.serviceaccount.v1.ServiceAccountService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+
+### RotateServiceAccountSecret
+
+Issue a new secret and invalidate the old one.
+
+- command: `hub service-account rotate-service-account-secret`
+- endpoint: `POST /api/v1/service-accounts/{id}/rotate-secret`
+- rbac: `RotateServiceAccountSecret` on `api.system.serviceaccount.v1.ServiceAccountService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
 ## user.v1.UserService
 
 ### AddGroupsToUser

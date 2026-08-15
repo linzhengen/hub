@@ -14,6 +14,7 @@ import (
 	menuInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/resource/menu"
 	roleInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/role"
 	rolepermissionInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/role/rolepermission"
+	serviceAccountInfra "github.com/linzhengen/hub/server/internal/infrastructure/system/serviceaccount"
 	systemHandler "github.com/linzhengen/hub/server/internal/interface/grpc/handler/system"
 	"github.com/linzhengen/hub/server/internal/usecase/develop"
 	"github.com/linzhengen/hub/server/internal/usecase/system"
@@ -30,6 +31,7 @@ func ProvideSystem(c *dig.Container) {
 	must(c.Provide(permissionInfra.New))
 	must(c.Provide(resourceInfra.New))
 	must(c.Provide(roleInfra.New))
+	must(c.Provide(serviceAccountInfra.New))
 	must(c.Provide(grouproleInfra.New))
 	must(c.Provide(rolepermissionInfra.New))
 	must(c.Provide(apiInfra.New))
@@ -42,6 +44,7 @@ func ProvideSystem(c *dig.Container) {
 	must(c.Provide(system.NewPermissionUseCase))
 	must(c.Provide(system.NewResourceUseCase))
 	must(c.Provide(system.NewRoleUseCase))
+	must(c.Provide(system.NewServiceAccountUseCase))
 	must(c.Provide(develop.NewResourceUseCase))
 	// interface (gRPC)
 	must(c.Provide(systemHandler.NewAccessHandler))
@@ -51,4 +54,5 @@ func ProvideSystem(c *dig.Container) {
 	must(c.Provide(systemHandler.NewPermissionHandler))
 	must(c.Provide(systemHandler.NewResourceHandler))
 	must(c.Provide(systemHandler.NewRoleHandler))
+	must(c.Provide(systemHandler.NewServiceAccountHandler))
 }

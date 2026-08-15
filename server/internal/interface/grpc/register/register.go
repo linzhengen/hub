@@ -22,6 +22,7 @@ import (
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
 	pbrolev1 "github.com/linzhengen/hub/server/pb/system/role/v1"
+	pbserviceaccountv1 "github.com/linzhengen/hub/server/pb/system/serviceaccount/v1"
 	pbuserv1 "github.com/linzhengen/hub/server/pb/user/v1"
 	"github.com/linzhengen/hub/server/pkg/apicatalog"
 	"github.com/linzhengen/hub/server/pkg/logger"
@@ -53,6 +54,7 @@ func New(
 	auditServiceServer pbauditv1.AuditServiceServer,
 	accessServiceServer pbaccessv1.AccessServiceServer,
 	accessRequestServiceServer pbaccessv1.AccessRequestServiceServer,
+	serviceAccountServiceServer pbserviceaccountv1.ServiceAccountServiceServer,
 ) *grpc.Server {
 	store, err := memorystore.New(&memorystore.Config{
 		Tokens:   opts.APIRateLimit,
@@ -118,6 +120,7 @@ func New(
 	pbauditv1.RegisterAuditServiceServer(grpcServer, auditServiceServer)
 	pbaccessv1.RegisterAccessServiceServer(grpcServer, accessServiceServer)
 	pbaccessv1.RegisterAccessRequestServiceServer(grpcServer, accessRequestServiceServer)
+	pbserviceaccountv1.RegisterServiceAccountServiceServer(grpcServer, serviceAccountServiceServer)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 	return grpcServer
 }

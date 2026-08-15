@@ -42,6 +42,7 @@ import (
 	_ "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/resource/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/role/v1"
+	_ "github.com/linzhengen/hub/server/pb/system/serviceaccount/v1"
 	_ "github.com/linzhengen/hub/server/pb/user/v1"
 )
 

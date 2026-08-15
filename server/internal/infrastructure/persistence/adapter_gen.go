@@ -188,6 +188,19 @@ type SelectUserAuthorizedPolicesModel struct {
 	RoleExpiresAt  sql.NullTime
 }
 
+// ServiceAccountModel represents a ServiceAccount in the database
+type ServiceAccountModel struct {
+	ID              string
+	UserID          string
+	Name            string
+	Description     string
+	ClientID        string
+	KeycloakID      string
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 // UserModel represents a User in the database
 type UserModel struct {
 	ID        string
@@ -214,6 +227,7 @@ type Querier interface {
 	AddChatSessionTokens(ctx context.Context, ID string, TokensUsed int64) error
 	AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error
 	CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string) (int64, error)
+	CountServiceAccounts(ctx context.Context) (int64, error)
 	CreateAccessRequest(ctx context.Context, ID string, RequesterUserID string, SubjectUserID string, GroupID string, Reason string, RequestedUntil sql.NullTime, Status string, Origin string, SessionID string) error
 	CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error)
 	CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error)
@@ -224,6 +238,7 @@ type Querier interface {
 	CreatePermission(ctx context.Context, ID string, Verb string, ResourceID string, Description string) error
 	CreateResource(ctx context.Context, ID string, ParentID string, Name string, Identifier string, Type string, Path string, Component string, DisplayOrder int32, Description string, Metadata map[string]string, Status string) error
 	CreateRole(ctx context.Context, ID string, Name string, Description string) error
+	CreateServiceAccount(ctx context.Context, ID string, UserID string, Name string, Description string, ClientID string, KeycloakID string, CreatedByUserID string) error
 	CreateUser(ctx context.Context, ID string, Username string, Email string, Status string) error
 	CreateUserGroup(ctx context.Context, UserID string, GroupID string, ExpiresAt sql.NullTime) error
 	DecideAccessRequest(ctx context.Context, Status string, DecidedByUserID string, DecidedAt sql.NullTime, DecisionComment string, ID string) (*AccessRequestModel, error)
@@ -236,12 +251,14 @@ type Querier interface {
 	DeleteResource(ctx context.Context, id string) error
 	DeleteRole(ctx context.Context, id string) error
 	DeleteRoleAllPermission(ctx context.Context, roleID string) error
+	DeleteServiceAccount(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, id string) error
 	DeleteUserAllGroup(ctx context.Context, userID string) error
 	DeleteUserGroup(ctx context.Context, UserID string, GroupID string) error
 	IsPermissionInRole(ctx context.Context, RoleID string, PermissionID string) (bool, error)
 	IsUserInGroup(ctx context.Context, UserID string, GroupID string) (bool, error)
 	ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error)
+	ListServiceAccounts(ctx context.Context, RowOffset int32, RowLimit int32) ([]*ServiceAccountModel, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, RoleID string, PermissionID string) error
 	SelectAccessPath(ctx context.Context) ([]*SelectAccessPathsModel, error)
@@ -264,6 +281,7 @@ type Querier interface {
 	SelectRoleById(ctx context.Context, id string) (*RoleModel, error)
 	SelectRoleForUpdate(ctx context.Context, id string) (*RoleModel, error)
 	SelectRolePermissionByRoleId(ctx context.Context, roleID string) ([]*RolePermissionModel, error)
+	SelectServiceAccount(ctx context.Context, id string) (*ServiceAccountModel, error)
 	SelectUserAccessPath(ctx context.Context, id string) ([]*SelectUserAccessPathsModel, error)
 	SelectUserAuthorizedPolicies(ctx context.Context, id string) ([]*SelectUserAuthorizedPolicesModel, error)
 	SelectUserById(ctx context.Context, id string) (*UserModel, error)
@@ -314,6 +332,15 @@ func (p *PostgreSQLQuerier) CountAccessRequests(ctx context.Context, RequesterUs
 		GroupID:         sql.NullString{String: GroupID, Valid: GroupID != ""},
 		Status:          sql.NullString{String: Status, Valid: Status != ""},
 	})
+	if err != nil {
+		return 0, err
+	}
+	return row, nil
+
+}
+
+func (p *PostgreSQLQuerier) CountServiceAccounts(ctx context.Context) (int64, error) {
+	row, err := p.q.CountServiceAccounts(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -487,6 +514,19 @@ func (p *PostgreSQLQuerier) CreateRole(ctx context.Context, ID string, Name stri
 
 }
 
+func (p *PostgreSQLQuerier) CreateServiceAccount(ctx context.Context, ID string, UserID string, Name string, Description string, ClientID string, KeycloakID string, CreatedByUserID string) error {
+	return p.q.CreateServiceAccount(ctx, postgressqlc.CreateServiceAccountParams{
+		ID:              ID,
+		UserID:          UserID,
+		Name:            Name,
+		Description:     Description,
+		ClientID:        ClientID,
+		KeycloakID:      KeycloakID,
+		CreatedByUserID: CreatedByUserID,
+	})
+
+}
+
 func (p *PostgreSQLQuerier) CreateUser(ctx context.Context, ID string, Username string, Email string, Status string) error {
 	return p.q.CreateUser(ctx, postgressqlc.CreateUserParams{
 		ID:       ID,
@@ -603,6 +643,11 @@ func (p *PostgreSQLQuerier) DeleteRoleAllPermission(ctx context.Context, roleID 
 
 }
 
+func (p *PostgreSQLQuerier) DeleteServiceAccount(ctx context.Context, id string) error {
+	return p.q.DeleteServiceAccount(ctx, id)
+
+}
+
 func (p *PostgreSQLQuerier) DeleteUser(ctx context.Context, id string) error {
 	return p.q.DeleteUser(ctx, id)
 
@@ -672,6 +717,32 @@ func (p *PostgreSQLQuerier) ListAccessRequests(ctx context.Context, RequesterUse
 			DecidedByUserID: row.DecidedByUserID.String,
 			DecidedAt:       row.DecidedAt,
 			DecisionComment: row.DecisionComment,
+			CreatedAt:       row.CreatedAt,
+			UpdatedAt:       row.UpdatedAt,
+		}
+	}
+	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) ListServiceAccounts(ctx context.Context, RowOffset int32, RowLimit int32) ([]*ServiceAccountModel, error) {
+	rows, err := p.q.ListServiceAccounts(ctx, postgressqlc.ListServiceAccountsParams{
+		RowOffset: RowOffset,
+		RowLimit:  RowLimit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*ServiceAccountModel, len(rows))
+	for i, row := range rows {
+		res[i] = &ServiceAccountModel{
+			ID:              row.ID,
+			UserID:          row.UserID,
+			Name:            row.Name,
+			Description:     row.Description,
+			ClientID:        row.ClientID,
+			KeycloakID:      row.KeycloakID,
+			CreatedByUserID: row.CreatedByUserID,
 			CreatedAt:       row.CreatedAt,
 			UpdatedAt:       row.UpdatedAt,
 		}
@@ -1075,6 +1146,25 @@ func (p *PostgreSQLQuerier) SelectRolePermissionByRoleId(ctx context.Context, ro
 		}
 	}
 	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectServiceAccount(ctx context.Context, id string) (*ServiceAccountModel, error) {
+	row, err := p.q.SelectServiceAccount(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &ServiceAccountModel{
+		ID:              row.ID,
+		UserID:          row.UserID,
+		Name:            row.Name,
+		Description:     row.Description,
+		ClientID:        row.ClientID,
+		KeycloakID:      row.KeycloakID,
+		CreatedByUserID: row.CreatedByUserID,
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       row.UpdatedAt,
+	}, nil
 
 }
 
