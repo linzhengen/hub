@@ -155,6 +155,19 @@ instead of from memory, and change it with the user's approval.
     rare, deliberate work with the highest cost when it goes wrong and the least
     to gain from automation, so it stays in the console. `New` refuses to build
     a tool box if an rpc appears in both maps.
+-   **How the assistant reaches that work anyway** is by asking rather than
+    doing. `CreateAccessRequest` is exposed as a write; `DecideAccessRequest` is
+    on the escalation list and always will be. The assistant can raise a request
+    naming a user, a group, a reason and a term - and nothing more happens until
+    a different person settles it, in the console, away from the conversation.
+    Injected text therefore gets as far as a pending row somebody reads, and no
+    further. **Do not expose the deciding half**; `TestDecidingIsNeverExposed`
+    fails if it is.
+-   **Public rpcs skip the permission filter**, as they do in the authorization
+    interceptor. `Tools` used to call `Enforce` for every operation, which would
+    have withheld `CreateAccessRequest` from exactly the users it is for: asking
+    for access is public because the people who most need to ask hold no
+    permissions at all.
 -   **What a tool looks like** comes from `pkg/apicatalog`: the summary from the
     proto annotation becomes the description, and the request fields become the
     JSON Schema, constraints included.

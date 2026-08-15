@@ -16,6 +16,7 @@ import (
 	chatHandler "github.com/linzhengen/hub/server/internal/interface/grpc/handler/ai"
 	"github.com/linzhengen/hub/server/internal/interface/grpc/interceptor"
 	aiUseCase "github.com/linzhengen/hub/server/internal/usecase/ai"
+	pbaccessv1 "github.com/linzhengen/hub/server/pb/system/access/v1"
 	pbauditv1 "github.com/linzhengen/hub/server/pb/system/audit/v1"
 	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
@@ -65,6 +66,8 @@ func provideToolBox(
 	resourceServiceServer pbresourcev1.ResourceServiceServer,
 	groupServiceServer pbgroupv1.GroupServiceServer,
 	auditServiceServer pbauditv1.AuditServiceServer,
+	accessServiceServer pbaccessv1.AccessServiceServer,
+	accessRequestServiceServer pbaccessv1.AccessRequestServiceServer,
 ) (chat.ToolBox, error) {
 	return toolInfra.New(
 		catalog,
@@ -76,6 +79,8 @@ func provideToolBox(
 			toolInfra.Register(&pbpermissionv1.PermissionService_ServiceDesc, permissionServiceServer),
 			toolInfra.Register(&pbresourcev1.ResourceService_ServiceDesc, resourceServiceServer),
 			toolInfra.Register(&pbauditv1.AuditService_ServiceDesc, auditServiceServer),
+			toolInfra.Register(&pbaccessv1.AccessService_ServiceDesc, accessServiceServer),
+			toolInfra.Register(&pbaccessv1.AccessRequestService_ServiceDesc, accessRequestServiceServer),
 		},
 		interceptor.UnaryAuditInterceptor(auditRepo, transRepo, catalog),
 		interceptor.UnaryAuthzInterceptor(authSvc, userRepo, catalog),
