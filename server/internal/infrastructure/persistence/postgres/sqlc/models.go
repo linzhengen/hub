@@ -12,6 +12,23 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+type AccessRequest struct {
+	ID              string
+	RequesterUserID string
+	SubjectUserID   string
+	GroupID         string
+	Reason          string
+	RequestedUntil  sql.NullTime
+	Status          string
+	Origin          string
+	SessionID       sql.NullString
+	DecidedByUserID sql.NullString
+	DecidedAt       sql.NullTime
+	DecisionComment string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 type AuditLog struct {
 	ID          string
 	ActorUserID string

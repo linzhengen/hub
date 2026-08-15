@@ -12,6 +12,8 @@ type Querier interface {
 	// Adding rather than setting, so two streams on one session both count.
 	AddChatSessionTokens(ctx context.Context, arg AddChatSessionTokensParams) error
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
+	CountAccessRequests(ctx context.Context, arg CountAccessRequestsParams) (int64, error)
+	CreateAccessRequest(ctx context.Context, arg CreateAccessRequestParams) error
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (*AuditLog, error)
 	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (*ChatMessage, error)
 	CreateChatSession(ctx context.Context, arg CreateChatSessionParams) (*ChatSession, error)
@@ -23,6 +25,9 @@ type Querier interface {
 	CreateRole(ctx context.Context, arg CreateRoleParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error
 	CreateUserGroup(ctx context.Context, arg CreateUserGroupParams) error
+	// Deciding is conditional on the request still being pending, so two decisions
+	// racing cannot both grant the access: the second updates no row.
+	DecideAccessRequest(ctx context.Context, arg DecideAccessRequestParams) (*AccessRequest, error)
 	// Deciding is conditional on the proposal still being pending, so two decisions
 	// racing cannot both run the change: the second updates no row.
 	DecideChatToolProposal(ctx context.Context, arg DecideChatToolProposalParams) (*ChatToolProposal, error)
@@ -39,9 +44,15 @@ type Querier interface {
 	DeleteUserGroup(ctx context.Context, arg DeleteUserGroupParams) error
 	IsPermissionInRole(ctx context.Context, arg IsPermissionInRoleParams) (bool, error)
 	IsUserInGroup(ctx context.Context, arg IsUserInGroupParams) (bool, error)
+	// Every filter is optional and written as "unset or matching", so one query
+	// serves the approver's queue ("pending"), the requester's own list ("mine")
+	// and a group's history without three near-identical statements.
+	// Newest first: a queue is read from the top.
+	ListAccessRequests(ctx context.Context, arg ListAccessRequestsParams) ([]*AccessRequest, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, arg RemovePermissionFromRoleParams) error
 	SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRow, error)
+	SelectAccessRequest(ctx context.Context, id string) (*AccessRequest, error)
 	SelectChatMessagesBySessionId(ctx context.Context, arg SelectChatMessagesBySessionIdParams) ([]*ChatMessage, error)
 	// Scoping every lookup by user_id keeps a session private to its owner even if
 	// a caller reaches the repository without going through the use case, which is

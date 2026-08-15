@@ -12,6 +12,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -238,11 +239,458 @@ func (x *ListPrincipalsForOperationResponse) GetPrincipals() []*Principal {
 	return nil
 }
 
+type CreateAccessRequestRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Who the access is for. Leave it unset to ask for yourself.
+	SubjectUserId *string `protobuf:"bytes,1,opt,name=subject_user_id,json=subjectUserId,proto3,oneof" json:"subject_user_id,omitempty"`
+	GroupId       string  `protobuf:"bytes,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	// Why. Required, because a request nobody explained is a request nobody can
+	// judge.
+	Reason string `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	// How long for. Leave it unset to ask permanently, which is a bigger ask and
+	// reads as one on the approval screen.
+	RequestedUntil *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=requested_until,json=requestedUntil,proto3,oneof" json:"requested_until,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateAccessRequestRequest) Reset() {
+	*x = CreateAccessRequestRequest{}
+	mi := &file_system_access_v1_service_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAccessRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAccessRequestRequest) ProtoMessage() {}
+
+func (x *CreateAccessRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_service_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAccessRequestRequest.ProtoReflect.Descriptor instead.
+func (*CreateAccessRequestRequest) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_service_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CreateAccessRequestRequest) GetSubjectUserId() string {
+	if x != nil && x.SubjectUserId != nil {
+		return *x.SubjectUserId
+	}
+	return ""
+}
+
+func (x *CreateAccessRequestRequest) GetGroupId() string {
+	if x != nil {
+		return x.GroupId
+	}
+	return ""
+}
+
+func (x *CreateAccessRequestRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *CreateAccessRequestRequest) GetRequestedUntil() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RequestedUntil
+	}
+	return nil
+}
+
+type CreateAccessRequestResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessRequest *AccessRequest         `protobuf:"bytes,1,opt,name=access_request,json=accessRequest,proto3" json:"access_request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAccessRequestResponse) Reset() {
+	*x = CreateAccessRequestResponse{}
+	mi := &file_system_access_v1_service_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAccessRequestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAccessRequestResponse) ProtoMessage() {}
+
+func (x *CreateAccessRequestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_service_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAccessRequestResponse.ProtoReflect.Descriptor instead.
+func (*CreateAccessRequestResponse) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_service_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CreateAccessRequestResponse) GetAccessRequest() *AccessRequest {
+	if x != nil {
+		return x.AccessRequest
+	}
+	return nil
+}
+
+type ListAccessRequestsRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Limit           uint32                 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset          uint32                 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	RequesterUserId *string                `protobuf:"bytes,3,opt,name=requester_user_id,json=requesterUserId,proto3,oneof" json:"requester_user_id,omitempty"`
+	SubjectUserId   *string                `protobuf:"bytes,4,opt,name=subject_user_id,json=subjectUserId,proto3,oneof" json:"subject_user_id,omitempty"`
+	GroupId         *string                `protobuf:"bytes,5,opt,name=group_id,json=groupId,proto3,oneof" json:"group_id,omitempty"`
+	Status          RequestStatus          `protobuf:"varint,6,opt,name=status,proto3,enum=system.access.v1.RequestStatus" json:"status,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListAccessRequestsRequest) Reset() {
+	*x = ListAccessRequestsRequest{}
+	mi := &file_system_access_v1_service_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAccessRequestsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAccessRequestsRequest) ProtoMessage() {}
+
+func (x *ListAccessRequestsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_service_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAccessRequestsRequest.ProtoReflect.Descriptor instead.
+func (*ListAccessRequestsRequest) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_service_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ListAccessRequestsRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListAccessRequestsRequest) GetOffset() uint32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *ListAccessRequestsRequest) GetRequesterUserId() string {
+	if x != nil && x.RequesterUserId != nil {
+		return *x.RequesterUserId
+	}
+	return ""
+}
+
+func (x *ListAccessRequestsRequest) GetSubjectUserId() string {
+	if x != nil && x.SubjectUserId != nil {
+		return *x.SubjectUserId
+	}
+	return ""
+}
+
+func (x *ListAccessRequestsRequest) GetGroupId() string {
+	if x != nil && x.GroupId != nil {
+		return *x.GroupId
+	}
+	return ""
+}
+
+func (x *ListAccessRequestsRequest) GetStatus() RequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RequestStatus_REQUEST_STATUS_UNSPECIFIED
+}
+
+type ListAccessRequestsResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	AccessRequests []*AccessRequest       `protobuf:"bytes,1,rep,name=access_requests,json=accessRequests,proto3" json:"access_requests,omitempty"`
+	Total          int64                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ListAccessRequestsResponse) Reset() {
+	*x = ListAccessRequestsResponse{}
+	mi := &file_system_access_v1_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAccessRequestsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAccessRequestsResponse) ProtoMessage() {}
+
+func (x *ListAccessRequestsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAccessRequestsResponse.ProtoReflect.Descriptor instead.
+func (*ListAccessRequestsResponse) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ListAccessRequestsResponse) GetAccessRequests() []*AccessRequest {
+	if x != nil {
+		return x.AccessRequests
+	}
+	return nil
+}
+
+func (x *ListAccessRequestsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type CancelAccessRequestRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelAccessRequestRequest) Reset() {
+	*x = CancelAccessRequestRequest{}
+	mi := &file_system_access_v1_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelAccessRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelAccessRequestRequest) ProtoMessage() {}
+
+func (x *CancelAccessRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelAccessRequestRequest.ProtoReflect.Descriptor instead.
+func (*CancelAccessRequestRequest) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CancelAccessRequestRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type CancelAccessRequestResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessRequest *AccessRequest         `protobuf:"bytes,1,opt,name=access_request,json=accessRequest,proto3" json:"access_request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelAccessRequestResponse) Reset() {
+	*x = CancelAccessRequestResponse{}
+	mi := &file_system_access_v1_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelAccessRequestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelAccessRequestResponse) ProtoMessage() {}
+
+func (x *CancelAccessRequestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelAccessRequestResponse.ProtoReflect.Descriptor instead.
+func (*CancelAccessRequestResponse) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CancelAccessRequestResponse) GetAccessRequest() *AccessRequest {
+	if x != nil {
+		return x.AccessRequest
+	}
+	return nil
+}
+
+type DecideAccessRequestRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// True performs the grant; false records the refusal. There is no third
+	// state: a request is decided once.
+	Approved      bool   `protobuf:"varint,2,opt,name=approved,proto3" json:"approved,omitempty"`
+	Comment       string `protobuf:"bytes,3,opt,name=comment,proto3" json:"comment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DecideAccessRequestRequest) Reset() {
+	*x = DecideAccessRequestRequest{}
+	mi := &file_system_access_v1_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DecideAccessRequestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DecideAccessRequestRequest) ProtoMessage() {}
+
+func (x *DecideAccessRequestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DecideAccessRequestRequest.ProtoReflect.Descriptor instead.
+func (*DecideAccessRequestRequest) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DecideAccessRequestRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DecideAccessRequestRequest) GetApproved() bool {
+	if x != nil {
+		return x.Approved
+	}
+	return false
+}
+
+func (x *DecideAccessRequestRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+type DecideAccessRequestResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessRequest *AccessRequest         `protobuf:"bytes,1,opt,name=access_request,json=accessRequest,proto3" json:"access_request,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DecideAccessRequestResponse) Reset() {
+	*x = DecideAccessRequestResponse{}
+	mi := &file_system_access_v1_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DecideAccessRequestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DecideAccessRequestResponse) ProtoMessage() {}
+
+func (x *DecideAccessRequestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_system_access_v1_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DecideAccessRequestResponse.ProtoReflect.Descriptor instead.
+func (*DecideAccessRequestResponse) Descriptor() ([]byte, []int) {
+	return file_system_access_v1_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *DecideAccessRequestResponse) GetAccessRequest() *AccessRequest {
+	if x != nil {
+		return x.AccessRequest
+	}
+	return nil
+}
+
 var File_system_access_v1_service_proto protoreflect.FileDescriptor
 
 const file_system_access_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1esystem/access/v1/service.proto\x12\x10system.access.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1csystem/access/v1/model.proto\"\x89\x01\n" +
+	"\x1esystem/access/v1/service.proto\x12\x10system.access.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a$hub/annotations/v1/annotations.proto\x1a\x1csystem/access/v1/model.proto\"\x89\x01\n" +
 	"\x18ExplainUserAccessRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12&\n" +
 	"\bresource\x18\x02 \x01(\tB\n" +
@@ -260,10 +708,48 @@ const file_system_access_v1_service_proto_rawDesc = "" +
 	"\"ListPrincipalsForOperationResponse\x12;\n" +
 	"\n" +
 	"principals\x18\x01 \x03(\v2\x1b.system.access.v1.PrincipalR\n" +
-	"principals2\xed\x03\n" +
+	"principals\"\x98\x02\n" +
+	"\x1aCreateAccessRequestRequest\x125\n" +
+	"\x0fsubject_user_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\rsubjectUserId\x88\x01\x01\x12#\n" +
+	"\bgroup_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\agroupId\x12\"\n" +
+	"\x06reason\x18\x03 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\bR\x06reason\x12R\n" +
+	"\x0frequested_until\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampB\b\xbaH\x05\xb2\x01\x02@\x01H\x01R\x0erequestedUntil\x88\x01\x01B\x12\n" +
+	"\x10_subject_user_idB\x12\n" +
+	"\x10_requested_until\"e\n" +
+	"\x1bCreateAccessRequestResponse\x12F\n" +
+	"\x0eaccess_request\x18\x01 \x01(\v2\x1f.system.access.v1.AccessRequestR\raccessRequest\"\xdf\x02\n" +
+	"\x19ListAccessRequestsRequest\x12\x1e\n" +
+	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\rR\x06offset\x129\n" +
+	"\x11requester_user_id\x18\x03 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\x0frequesterUserId\x88\x01\x01\x125\n" +
+	"\x0fsubject_user_id\x18\x04 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x01R\rsubjectUserId\x88\x01\x01\x12(\n" +
+	"\bgroup_id\x18\x05 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x02R\agroupId\x88\x01\x01\x127\n" +
+	"\x06status\x18\x06 \x01(\x0e2\x1f.system.access.v1.RequestStatusR\x06statusB\x14\n" +
+	"\x12_requester_user_idB\x12\n" +
+	"\x10_subject_user_idB\v\n" +
+	"\t_group_id\"|\n" +
+	"\x1aListAccessRequestsResponse\x12H\n" +
+	"\x0faccess_requests\x18\x01 \x03(\v2\x1f.system.access.v1.AccessRequestR\x0eaccessRequests\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"6\n" +
+	"\x1aCancelAccessRequestRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"e\n" +
+	"\x1bCancelAccessRequestResponse\x12F\n" +
+	"\x0eaccess_request\x18\x01 \x01(\v2\x1f.system.access.v1.AccessRequestR\raccessRequest\"v\n" +
+	"\x1aDecideAccessRequestRequest\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\x12\x1a\n" +
+	"\bapproved\x18\x02 \x01(\bR\bapproved\x12\"\n" +
+	"\acomment\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x80\bR\acomment\"e\n" +
+	"\x1bDecideAccessRequestResponse\x12F\n" +
+	"\x0eaccess_request\x18\x01 \x01(\v2\x1f.system.access.v1.AccessRequestR\raccessRequest2\xed\x03\n" +
 	"\rAccessService\x12\xe5\x01\n" +
 	"\x11ExplainUserAccess\x12*.system.access.v1.ExplainUserAccessRequest\x1a+.system.access.v1.ExplainUserAccessResponse\"w\x8a\xa6\x1dU\"SExplain whether a user is allowed an operation, listing every route that allows it.\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/access/explain\x12\xf3\x01\n" +
-	"\x1aListPrincipalsForOperation\x123.system.access.v1.ListPrincipalsForOperationRequest\x1a4.system.access.v1.ListPrincipalsForOperationResponse\"j\x8a\xa6\x1dE\"CList the users allowed an operation, with the routes that allow it.\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/access/principalsB6Z4github.com/linzhengen/hub/server/pb/system/access/v1b\x06proto3"
+	"\x1aListPrincipalsForOperation\x123.system.access.v1.ListPrincipalsForOperationRequest\x1a4.system.access.v1.ListPrincipalsForOperationResponse\"j\x8a\xa6\x1dE\"CList the users allowed an operation, with the routes that allow it.\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/access/principals2\xcb\a\n" +
+	"\x14AccessRequestService\x12\xe4\x01\n" +
+	"\x13CreateAccessRequest\x12,.system.access.v1.CreateAccessRequestRequest\x1a-.system.access.v1.CreateAccessRequestResponse\"p\x8a\xa6\x1dJ\b\x01\"FAsk for a user to be put in a group, giving a reason and how long for.\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/v1/access-requests\x12\xe7\x01\n" +
+	"\x12ListAccessRequests\x12+.system.access.v1.ListAccessRequestsRequest\x1a,.system.access.v1.ListAccessRequestsResponse\"v\x8a\xa6\x1dS\"QList access requests, optionally filtered by requester, subject, group or status.\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/access-requests\x12\xe3\x01\n" +
+	"\x13CancelAccessRequest\x12,.system.access.v1.CancelAccessRequestRequest\x1a-.system.access.v1.CancelAccessRequestResponse\"o\x8a\xa6\x1d=\b\x01\"9Withdraw a request you raised, while it is still pending.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/access-requests/{id}/cancel\x12\xfb\x01\n" +
+	"\x13DecideAccessRequest\x12,.system.access.v1.DecideAccessRequestRequest\x1a-.system.access.v1.DecideAccessRequestResponse\"\x86\x01\x8a\xa6\x1dT\"RApprove or reject a request. Approving performs the grant, for the term asked for.\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/access-requests/{id}/decideB6Z4github.com/linzhengen/hub/server/pb/system/access/v1b\x06proto3"
 
 var (
 	file_system_access_v1_service_proto_rawDescOnce sync.Once
@@ -277,27 +763,52 @@ func file_system_access_v1_service_proto_rawDescGZIP() []byte {
 	return file_system_access_v1_service_proto_rawDescData
 }
 
-var file_system_access_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_system_access_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_system_access_v1_service_proto_goTypes = []any{
 	(*ExplainUserAccessRequest)(nil),           // 0: system.access.v1.ExplainUserAccessRequest
 	(*ExplainUserAccessResponse)(nil),          // 1: system.access.v1.ExplainUserAccessResponse
 	(*ListPrincipalsForOperationRequest)(nil),  // 2: system.access.v1.ListPrincipalsForOperationRequest
 	(*ListPrincipalsForOperationResponse)(nil), // 3: system.access.v1.ListPrincipalsForOperationResponse
-	(*AccessPath)(nil),                         // 4: system.access.v1.AccessPath
-	(*Principal)(nil),                          // 5: system.access.v1.Principal
+	(*CreateAccessRequestRequest)(nil),         // 4: system.access.v1.CreateAccessRequestRequest
+	(*CreateAccessRequestResponse)(nil),        // 5: system.access.v1.CreateAccessRequestResponse
+	(*ListAccessRequestsRequest)(nil),          // 6: system.access.v1.ListAccessRequestsRequest
+	(*ListAccessRequestsResponse)(nil),         // 7: system.access.v1.ListAccessRequestsResponse
+	(*CancelAccessRequestRequest)(nil),         // 8: system.access.v1.CancelAccessRequestRequest
+	(*CancelAccessRequestResponse)(nil),        // 9: system.access.v1.CancelAccessRequestResponse
+	(*DecideAccessRequestRequest)(nil),         // 10: system.access.v1.DecideAccessRequestRequest
+	(*DecideAccessRequestResponse)(nil),        // 11: system.access.v1.DecideAccessRequestResponse
+	(*AccessPath)(nil),                         // 12: system.access.v1.AccessPath
+	(*Principal)(nil),                          // 13: system.access.v1.Principal
+	(*timestamppb.Timestamp)(nil),              // 14: google.protobuf.Timestamp
+	(*AccessRequest)(nil),                      // 15: system.access.v1.AccessRequest
+	(RequestStatus)(0),                         // 16: system.access.v1.RequestStatus
 }
 var file_system_access_v1_service_proto_depIdxs = []int32{
-	4, // 0: system.access.v1.ExplainUserAccessResponse.paths:type_name -> system.access.v1.AccessPath
-	5, // 1: system.access.v1.ListPrincipalsForOperationResponse.principals:type_name -> system.access.v1.Principal
-	0, // 2: system.access.v1.AccessService.ExplainUserAccess:input_type -> system.access.v1.ExplainUserAccessRequest
-	2, // 3: system.access.v1.AccessService.ListPrincipalsForOperation:input_type -> system.access.v1.ListPrincipalsForOperationRequest
-	1, // 4: system.access.v1.AccessService.ExplainUserAccess:output_type -> system.access.v1.ExplainUserAccessResponse
-	3, // 5: system.access.v1.AccessService.ListPrincipalsForOperation:output_type -> system.access.v1.ListPrincipalsForOperationResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	12, // 0: system.access.v1.ExplainUserAccessResponse.paths:type_name -> system.access.v1.AccessPath
+	13, // 1: system.access.v1.ListPrincipalsForOperationResponse.principals:type_name -> system.access.v1.Principal
+	14, // 2: system.access.v1.CreateAccessRequestRequest.requested_until:type_name -> google.protobuf.Timestamp
+	15, // 3: system.access.v1.CreateAccessRequestResponse.access_request:type_name -> system.access.v1.AccessRequest
+	16, // 4: system.access.v1.ListAccessRequestsRequest.status:type_name -> system.access.v1.RequestStatus
+	15, // 5: system.access.v1.ListAccessRequestsResponse.access_requests:type_name -> system.access.v1.AccessRequest
+	15, // 6: system.access.v1.CancelAccessRequestResponse.access_request:type_name -> system.access.v1.AccessRequest
+	15, // 7: system.access.v1.DecideAccessRequestResponse.access_request:type_name -> system.access.v1.AccessRequest
+	0,  // 8: system.access.v1.AccessService.ExplainUserAccess:input_type -> system.access.v1.ExplainUserAccessRequest
+	2,  // 9: system.access.v1.AccessService.ListPrincipalsForOperation:input_type -> system.access.v1.ListPrincipalsForOperationRequest
+	4,  // 10: system.access.v1.AccessRequestService.CreateAccessRequest:input_type -> system.access.v1.CreateAccessRequestRequest
+	6,  // 11: system.access.v1.AccessRequestService.ListAccessRequests:input_type -> system.access.v1.ListAccessRequestsRequest
+	8,  // 12: system.access.v1.AccessRequestService.CancelAccessRequest:input_type -> system.access.v1.CancelAccessRequestRequest
+	10, // 13: system.access.v1.AccessRequestService.DecideAccessRequest:input_type -> system.access.v1.DecideAccessRequestRequest
+	1,  // 14: system.access.v1.AccessService.ExplainUserAccess:output_type -> system.access.v1.ExplainUserAccessResponse
+	3,  // 15: system.access.v1.AccessService.ListPrincipalsForOperation:output_type -> system.access.v1.ListPrincipalsForOperationResponse
+	5,  // 16: system.access.v1.AccessRequestService.CreateAccessRequest:output_type -> system.access.v1.CreateAccessRequestResponse
+	7,  // 17: system.access.v1.AccessRequestService.ListAccessRequests:output_type -> system.access.v1.ListAccessRequestsResponse
+	9,  // 18: system.access.v1.AccessRequestService.CancelAccessRequest:output_type -> system.access.v1.CancelAccessRequestResponse
+	11, // 19: system.access.v1.AccessRequestService.DecideAccessRequest:output_type -> system.access.v1.DecideAccessRequestResponse
+	14, // [14:20] is the sub-list for method output_type
+	8,  // [8:14] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_system_access_v1_service_proto_init() }
@@ -306,15 +817,17 @@ func file_system_access_v1_service_proto_init() {
 		return
 	}
 	file_system_access_v1_model_proto_init()
+	file_system_access_v1_service_proto_msgTypes[4].OneofWrappers = []any{}
+	file_system_access_v1_service_proto_msgTypes[6].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_system_access_v1_service_proto_rawDesc), len(file_system_access_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   12,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_system_access_v1_service_proto_goTypes,
 		DependencyIndexes: file_system_access_v1_service_proto_depIdxs,

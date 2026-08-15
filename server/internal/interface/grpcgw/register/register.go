@@ -38,6 +38,7 @@ func New(
 	must(pbrolev1.RegisterRoleServiceHandler(ctx, mux, conn))
 	must(pbauditv1.RegisterAuditServiceHandler(ctx, mux, conn))
 	must(pbaccessv1.RegisterAccessServiceHandler(ctx, mux, conn))
+	must(pbaccessv1.RegisterAccessRequestServiceHandler(ctx, mux, conn))
 	must(pbpermissionv1.RegisterPermissionServiceHandler(ctx, mux, conn))
 	must(pbresourcev1.RegisterResourceServiceHandler(ctx, mux, conn))
 	must(pbgrouupv1.RegisterGroupServiceHandler(ctx, mux, conn))

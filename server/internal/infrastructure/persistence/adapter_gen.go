@@ -11,6 +11,24 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
+// AccessRequestModel represents a AccessRequest in the database
+type AccessRequestModel struct {
+	ID              string
+	RequesterUserID string
+	SubjectUserID   string
+	GroupID         string
+	Reason          string
+	RequestedUntil  sql.NullTime
+	Status          string
+	Origin          string
+	SessionID       string
+	DecidedByUserID string
+	DecidedAt       sql.NullTime
+	DecisionComment string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 // AuditLogModel represents a AuditLog in the database
 type AuditLogModel struct {
 	ID          string
@@ -195,6 +213,8 @@ type Querier interface {
 
 	AddChatSessionTokens(ctx context.Context, ID string, TokensUsed int64) error
 	AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error
+	CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string) (int64, error)
+	CreateAccessRequest(ctx context.Context, ID string, RequesterUserID string, SubjectUserID string, GroupID string, Reason string, RequestedUntil sql.NullTime, Status string, Origin string, SessionID string) error
 	CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error)
 	CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error)
 	CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error)
@@ -206,6 +226,7 @@ type Querier interface {
 	CreateRole(ctx context.Context, ID string, Name string, Description string) error
 	CreateUser(ctx context.Context, ID string, Username string, Email string, Status string) error
 	CreateUserGroup(ctx context.Context, UserID string, GroupID string, ExpiresAt sql.NullTime) error
+	DecideAccessRequest(ctx context.Context, Status string, DecidedByUserID string, DecidedAt sql.NullTime, DecisionComment string, ID string) (*AccessRequestModel, error)
 	DecideChatToolProposal(ctx context.Context, ID string, Status string) (*ChatToolProposalModel, error)
 	DeleteChatSession(ctx context.Context, ID string, UserID string) error
 	DeleteGroup(ctx context.Context, id string) error
@@ -220,9 +241,11 @@ type Querier interface {
 	DeleteUserGroup(ctx context.Context, UserID string, GroupID string) error
 	IsPermissionInRole(ctx context.Context, RoleID string, PermissionID string) (bool, error)
 	IsUserInGroup(ctx context.Context, UserID string, GroupID string) (bool, error)
+	ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, RoleID string, PermissionID string) error
 	SelectAccessPath(ctx context.Context) ([]*SelectAccessPathsModel, error)
+	SelectAccessRequest(ctx context.Context, id string) (*AccessRequestModel, error)
 	SelectChatMessagesBySessionId(ctx context.Context, SessionID string, UserID string) ([]*ChatMessageModel, error)
 	SelectChatSessionById(ctx context.Context, ID string, UserID string) (*ChatSessionModel, error)
 	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSessionModel, error)
@@ -280,6 +303,35 @@ func (p *PostgreSQLQuerier) AddPermissionToRole(ctx context.Context, RoleID stri
 	return p.q.AddPermissionToRole(ctx, postgressqlc.AddPermissionToRoleParams{
 		RoleID:       RoleID,
 		PermissionID: PermissionID,
+	})
+
+}
+
+func (p *PostgreSQLQuerier) CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string) (int64, error) {
+	row, err := p.q.CountAccessRequests(ctx, postgressqlc.CountAccessRequestsParams{
+		RequesterUserID: sql.NullString{String: RequesterUserID, Valid: RequesterUserID != ""},
+		SubjectUserID:   sql.NullString{String: SubjectUserID, Valid: SubjectUserID != ""},
+		GroupID:         sql.NullString{String: GroupID, Valid: GroupID != ""},
+		Status:          sql.NullString{String: Status, Valid: Status != ""},
+	})
+	if err != nil {
+		return 0, err
+	}
+	return row, nil
+
+}
+
+func (p *PostgreSQLQuerier) CreateAccessRequest(ctx context.Context, ID string, RequesterUserID string, SubjectUserID string, GroupID string, Reason string, RequestedUntil sql.NullTime, Status string, Origin string, SessionID string) error {
+	return p.q.CreateAccessRequest(ctx, postgressqlc.CreateAccessRequestParams{
+		ID:              ID,
+		RequesterUserID: RequesterUserID,
+		SubjectUserID:   SubjectUserID,
+		GroupID:         GroupID,
+		Reason:          Reason,
+		RequestedUntil:  RequestedUntil,
+		Status:          Status,
+		Origin:          Origin,
+		SessionID:       sql.NullString{String: SessionID, Valid: SessionID != ""},
 	})
 
 }
@@ -454,6 +506,36 @@ func (p *PostgreSQLQuerier) CreateUserGroup(ctx context.Context, UserID string, 
 
 }
 
+func (p *PostgreSQLQuerier) DecideAccessRequest(ctx context.Context, Status string, DecidedByUserID string, DecidedAt sql.NullTime, DecisionComment string, ID string) (*AccessRequestModel, error) {
+	row, err := p.q.DecideAccessRequest(ctx, postgressqlc.DecideAccessRequestParams{
+		Status:          Status,
+		DecidedByUserID: sql.NullString{String: DecidedByUserID, Valid: DecidedByUserID != ""},
+		DecidedAt:       DecidedAt,
+		DecisionComment: DecisionComment,
+		ID:              ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &AccessRequestModel{
+		ID:              row.ID,
+		RequesterUserID: row.RequesterUserID,
+		SubjectUserID:   row.SubjectUserID,
+		GroupID:         row.GroupID,
+		Reason:          row.Reason,
+		RequestedUntil:  row.RequestedUntil,
+		Status:          row.Status,
+		Origin:          row.Origin,
+		SessionID:       row.SessionID.String,
+		DecidedByUserID: row.DecidedByUserID.String,
+		DecidedAt:       row.DecidedAt,
+		DecisionComment: row.DecisionComment,
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       row.UpdatedAt,
+	}, nil
+
+}
+
 func (p *PostgreSQLQuerier) DecideChatToolProposal(ctx context.Context, ID string, Status string) (*ChatToolProposalModel, error) {
 	row, err := p.q.DecideChatToolProposal(ctx, postgressqlc.DecideChatToolProposalParams{
 		ID:     ID,
@@ -563,6 +645,41 @@ func (p *PostgreSQLQuerier) IsUserInGroup(ctx context.Context, UserID string, Gr
 
 }
 
+func (p *PostgreSQLQuerier) ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error) {
+	rows, err := p.q.ListAccessRequests(ctx, postgressqlc.ListAccessRequestsParams{
+		RequesterUserID: sql.NullString{String: RequesterUserID, Valid: RequesterUserID != ""},
+		SubjectUserID:   sql.NullString{String: SubjectUserID, Valid: SubjectUserID != ""},
+		GroupID:         sql.NullString{String: GroupID, Valid: GroupID != ""},
+		Status:          sql.NullString{String: Status, Valid: Status != ""},
+		RowOffset:       RowOffset,
+		RowLimit:        RowLimit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*AccessRequestModel, len(rows))
+	for i, row := range rows {
+		res[i] = &AccessRequestModel{
+			ID:              row.ID,
+			RequesterUserID: row.RequesterUserID,
+			SubjectUserID:   row.SubjectUserID,
+			GroupID:         row.GroupID,
+			Reason:          row.Reason,
+			RequestedUntil:  row.RequestedUntil,
+			Status:          row.Status,
+			Origin:          row.Origin,
+			SessionID:       row.SessionID.String,
+			DecidedByUserID: row.DecidedByUserID.String,
+			DecidedAt:       row.DecidedAt,
+			DecisionComment: row.DecisionComment,
+			CreatedAt:       row.CreatedAt,
+			UpdatedAt:       row.UpdatedAt,
+		}
+	}
+	return res, nil
+
+}
+
 func (p *PostgreSQLQuerier) RemoveAllUsersFromGroup(ctx context.Context, groupID string) error {
 	return p.q.RemoveAllUsersFromGroup(ctx, groupID)
 
@@ -595,6 +712,30 @@ func (p *PostgreSQLQuerier) SelectAccessPath(ctx context.Context) ([]*SelectAcce
 		}
 	}
 	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectAccessRequest(ctx context.Context, id string) (*AccessRequestModel, error) {
+	row, err := p.q.SelectAccessRequest(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &AccessRequestModel{
+		ID:              row.ID,
+		RequesterUserID: row.RequesterUserID,
+		SubjectUserID:   row.SubjectUserID,
+		GroupID:         row.GroupID,
+		Reason:          row.Reason,
+		RequestedUntil:  row.RequestedUntil,
+		Status:          row.Status,
+		Origin:          row.Origin,
+		SessionID:       row.SessionID.String,
+		DecidedByUserID: row.DecidedByUserID.String,
+		DecidedAt:       row.DecidedAt,
+		DecisionComment: row.DecisionComment,
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       row.UpdatedAt,
+	}, nil
 
 }
 

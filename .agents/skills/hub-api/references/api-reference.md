@@ -85,6 +85,66 @@ Send a message and stream the assistant response.
 | `--id` | `id` | path | string | uuid |
 | `--content` | `content` | body | string | length 1..8192 |
 
+## system.access.v1.AccessRequestService
+
+### CancelAccessRequest
+
+Withdraw a request you raised, while it is still pending.
+
+- command: `hub access-request cancel-access-request`
+- endpoint: `POST /api/v1/access-requests/{id}/cancel`
+- rbac: none, any authenticated caller may use this rpc
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### CreateAccessRequest
+
+Ask for a user to be put in a group, giving a reason and how long for.
+
+- command: `hub access-request create-access-request`
+- endpoint: `POST /api/v1/access-requests`
+- rbac: none, any authenticated caller may use this rpc
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--subject-user-id` | `subjectUserId` | body | string | uuid |
+| `--group-id` | `groupId` | body | string | uuid |
+| `--reason` | `reason` | body | string | length 1..1024 |
+| `--requested-until` | `requestedUntil` | body | message |  |
+
+### DecideAccessRequest
+
+Approve or reject a request. Approving performs the grant, for the term asked for.
+
+- command: `hub access-request decide-access-request`
+- endpoint: `POST /api/v1/access-requests/{id}/decide`
+- rbac: `DecideAccessRequest` on `api.system.access.v1.AccessRequestService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--approved` | `approved` | body | bool |  |
+| `--comment` | `comment` | body | string | length <= 1024 |
+
+### ListAccessRequests
+
+List access requests, optionally filtered by requester, subject, group or status.
+
+- command: `hub access-request list-access-requests`
+- endpoint: `GET /api/v1/access-requests`
+- rbac: `ListAccessRequests` on `api.system.access.v1.AccessRequestService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--requester-user-id` | `requesterUserId` | query | string | uuid |
+| `--subject-user-id` | `subjectUserId` | query | string | uuid |
+| `--group-id` | `groupId` | query | string | uuid |
+| `--status` | `status` | query | `REQUEST_STATUS_UNSPECIFIED` \| `REQUEST_STATUS_PENDING` \| `REQUEST_STATUS_APPROVED` \| `REQUEST_STATUS_REJECTED` \| `REQUEST_STATUS_CANCELLED` |  |
+
 ## system.access.v1.AccessService
 
 ### ExplainUserAccess

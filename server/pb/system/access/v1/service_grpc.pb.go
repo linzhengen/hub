@@ -171,3 +171,235 @@ var AccessService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "system/access/v1/service.proto",
 }
+
+const (
+	AccessRequestService_CreateAccessRequest_FullMethodName = "/system.access.v1.AccessRequestService/CreateAccessRequest"
+	AccessRequestService_ListAccessRequests_FullMethodName  = "/system.access.v1.AccessRequestService/ListAccessRequests"
+	AccessRequestService_CancelAccessRequest_FullMethodName = "/system.access.v1.AccessRequestService/CancelAccessRequest"
+	AccessRequestService_DecideAccessRequest_FullMethodName = "/system.access.v1.AccessRequestService/DecideAccessRequest"
+)
+
+// AccessRequestServiceClient is the client API for AccessRequestService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// AccessRequestService is the way into a group that does not require being able
+// to grant it yourself: ask, and have somebody else agree.
+//
+// The decision is deliberately a separate rpc from the request, guarded by its
+// own permission, and refused when the decider is the person who asked. That
+// split is what lets a request be raised from anywhere - including by the
+// assistant, on behalf of the user it is answering - while the change itself
+// still waits on a person who is not the one asking for it.
+type AccessRequestServiceClient interface {
+	CreateAccessRequest(ctx context.Context, in *CreateAccessRequestRequest, opts ...grpc.CallOption) (*CreateAccessRequestResponse, error)
+	ListAccessRequests(ctx context.Context, in *ListAccessRequestsRequest, opts ...grpc.CallOption) (*ListAccessRequestsResponse, error)
+	CancelAccessRequest(ctx context.Context, in *CancelAccessRequestRequest, opts ...grpc.CallOption) (*CancelAccessRequestResponse, error)
+	DecideAccessRequest(ctx context.Context, in *DecideAccessRequestRequest, opts ...grpc.CallOption) (*DecideAccessRequestResponse, error)
+}
+
+type accessRequestServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAccessRequestServiceClient(cc grpc.ClientConnInterface) AccessRequestServiceClient {
+	return &accessRequestServiceClient{cc}
+}
+
+func (c *accessRequestServiceClient) CreateAccessRequest(ctx context.Context, in *CreateAccessRequestRequest, opts ...grpc.CallOption) (*CreateAccessRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateAccessRequestResponse)
+	err := c.cc.Invoke(ctx, AccessRequestService_CreateAccessRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accessRequestServiceClient) ListAccessRequests(ctx context.Context, in *ListAccessRequestsRequest, opts ...grpc.CallOption) (*ListAccessRequestsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAccessRequestsResponse)
+	err := c.cc.Invoke(ctx, AccessRequestService_ListAccessRequests_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accessRequestServiceClient) CancelAccessRequest(ctx context.Context, in *CancelAccessRequestRequest, opts ...grpc.CallOption) (*CancelAccessRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelAccessRequestResponse)
+	err := c.cc.Invoke(ctx, AccessRequestService_CancelAccessRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accessRequestServiceClient) DecideAccessRequest(ctx context.Context, in *DecideAccessRequestRequest, opts ...grpc.CallOption) (*DecideAccessRequestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DecideAccessRequestResponse)
+	err := c.cc.Invoke(ctx, AccessRequestService_DecideAccessRequest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AccessRequestServiceServer is the server API for AccessRequestService service.
+// All implementations should embed UnimplementedAccessRequestServiceServer
+// for forward compatibility.
+//
+// AccessRequestService is the way into a group that does not require being able
+// to grant it yourself: ask, and have somebody else agree.
+//
+// The decision is deliberately a separate rpc from the request, guarded by its
+// own permission, and refused when the decider is the person who asked. That
+// split is what lets a request be raised from anywhere - including by the
+// assistant, on behalf of the user it is answering - while the change itself
+// still waits on a person who is not the one asking for it.
+type AccessRequestServiceServer interface {
+	CreateAccessRequest(context.Context, *CreateAccessRequestRequest) (*CreateAccessRequestResponse, error)
+	ListAccessRequests(context.Context, *ListAccessRequestsRequest) (*ListAccessRequestsResponse, error)
+	CancelAccessRequest(context.Context, *CancelAccessRequestRequest) (*CancelAccessRequestResponse, error)
+	DecideAccessRequest(context.Context, *DecideAccessRequestRequest) (*DecideAccessRequestResponse, error)
+}
+
+// UnimplementedAccessRequestServiceServer should be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedAccessRequestServiceServer struct{}
+
+func (UnimplementedAccessRequestServiceServer) CreateAccessRequest(context.Context, *CreateAccessRequestRequest) (*CreateAccessRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAccessRequest not implemented")
+}
+func (UnimplementedAccessRequestServiceServer) ListAccessRequests(context.Context, *ListAccessRequestsRequest) (*ListAccessRequestsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAccessRequests not implemented")
+}
+func (UnimplementedAccessRequestServiceServer) CancelAccessRequest(context.Context, *CancelAccessRequestRequest) (*CancelAccessRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelAccessRequest not implemented")
+}
+func (UnimplementedAccessRequestServiceServer) DecideAccessRequest(context.Context, *DecideAccessRequestRequest) (*DecideAccessRequestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DecideAccessRequest not implemented")
+}
+func (UnimplementedAccessRequestServiceServer) testEmbeddedByValue() {}
+
+// UnsafeAccessRequestServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AccessRequestServiceServer will
+// result in compilation errors.
+type UnsafeAccessRequestServiceServer interface {
+	mustEmbedUnimplementedAccessRequestServiceServer()
+}
+
+func RegisterAccessRequestServiceServer(s grpc.ServiceRegistrar, srv AccessRequestServiceServer) {
+	// If the following call panics, it indicates UnimplementedAccessRequestServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&AccessRequestService_ServiceDesc, srv)
+}
+
+func _AccessRequestService_CreateAccessRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAccessRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccessRequestServiceServer).CreateAccessRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccessRequestService_CreateAccessRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccessRequestServiceServer).CreateAccessRequest(ctx, req.(*CreateAccessRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccessRequestService_ListAccessRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAccessRequestsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccessRequestServiceServer).ListAccessRequests(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccessRequestService_ListAccessRequests_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccessRequestServiceServer).ListAccessRequests(ctx, req.(*ListAccessRequestsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccessRequestService_CancelAccessRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelAccessRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccessRequestServiceServer).CancelAccessRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccessRequestService_CancelAccessRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccessRequestServiceServer).CancelAccessRequest(ctx, req.(*CancelAccessRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccessRequestService_DecideAccessRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DecideAccessRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccessRequestServiceServer).DecideAccessRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccessRequestService_DecideAccessRequest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccessRequestServiceServer).DecideAccessRequest(ctx, req.(*DecideAccessRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AccessRequestService_ServiceDesc is the grpc.ServiceDesc for AccessRequestService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AccessRequestService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "system.access.v1.AccessRequestService",
+	HandlerType: (*AccessRequestServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateAccessRequest",
+			Handler:    _AccessRequestService_CreateAccessRequest_Handler,
+		},
+		{
+			MethodName: "ListAccessRequests",
+			Handler:    _AccessRequestService_ListAccessRequests_Handler,
+		},
+		{
+			MethodName: "CancelAccessRequest",
+			Handler:    _AccessRequestService_CancelAccessRequest_Handler,
+		},
+		{
+			MethodName: "DecideAccessRequest",
+			Handler:    _AccessRequestService_DecideAccessRequest_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "system/access/v1/service.proto",
+}

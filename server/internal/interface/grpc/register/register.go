@@ -52,6 +52,7 @@ func New(
 	chatServiceServer pbchatv1.ChatServiceServer,
 	auditServiceServer pbauditv1.AuditServiceServer,
 	accessServiceServer pbaccessv1.AccessServiceServer,
+	accessRequestServiceServer pbaccessv1.AccessRequestServiceServer,
 ) *grpc.Server {
 	store, err := memorystore.New(&memorystore.Config{
 		Tokens:   opts.APIRateLimit,
@@ -116,6 +117,7 @@ func New(
 	pbchatv1.RegisterChatServiceServer(grpcServer, chatServiceServer)
 	pbauditv1.RegisterAuditServiceServer(grpcServer, auditServiceServer)
 	pbaccessv1.RegisterAccessServiceServer(grpcServer, accessServiceServer)
+	pbaccessv1.RegisterAccessRequestServiceServer(grpcServer, accessRequestServiceServer)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 	return grpcServer
 }

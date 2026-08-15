@@ -37,3 +37,56 @@ message Principal {
   string username = 2;
   repeated AccessPath paths = 3;
 }
+
+// RequestStatus is where an access request has got to. A request is decided
+// once; there is no route back to pending.
+//
+// The per-value comments this would normally carry are left out on purpose: the
+// OpenAPI generator renders them into a description that the web client's
+// schema generator cannot parse.
+enum RequestStatus {
+  REQUEST_STATUS_UNSPECIFIED = 0;
+  REQUEST_STATUS_PENDING = 1;
+  REQUEST_STATUS_APPROVED = 2;
+  REQUEST_STATUS_REJECTED = 3;
+  REQUEST_STATUS_CANCELLED = 4;
+}
+
+// RequestOrigin is the surface a request came in by.
+enum RequestOrigin {
+  REQUEST_ORIGIN_UNSPECIFIED = 0;
+  REQUEST_ORIGIN_CONSOLE = 1;
+  REQUEST_ORIGIN_CLI = 2;
+  REQUEST_ORIGIN_AI_CHAT = 3;
+}
+
+// AccessRequest is one person asking for another to be put in a group, and
+// somebody else agreeing.
+//
+// requester and subject are separate because the interesting requests are made
+// on somebody else's behalf: a manager for a report, the assistant for whoever
+// it is answering.
+message AccessRequest {
+  string id = 1;
+  string requester_user_id = 2;
+  string subject_user_id = 3;
+  string group_id = 4;
+  string reason = 5;
+  // The term asked for, unset for "permanently". On approval it becomes the
+  // membership's expiry, so a request for a week grants a week.
+  optional google.protobuf.Timestamp requested_until = 6;
+  RequestStatus status = 7;
+  // Which surface raised this. REQUEST_ORIGIN_AI_CHAT is the one that changes
+  // how it should be read: the assistant can neither exceed anyone's
+  // permissions nor decide anything, but it composes requests out of text other
+  // people wrote, so an approver needs to know one came from a conversation.
+  RequestOrigin origin = 8;
+  // The chat session the assistant raised this in. Empty for every other
+  // origin.
+  string session_id = 9;
+  string decided_by_user_id = 10;
+  optional google.protobuf.Timestamp decided_at = 11;
+  string decision_comment = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}

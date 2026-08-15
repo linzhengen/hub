@@ -24,6 +24,18 @@ export const chatServiceOperations = {
   sendMessage: { method: 'POST', path: '/chat/sessions/{id}/messages', pathParams: ['id'] },
 } as const satisfies Record<string, ApiOperation>;
 
+/** Operations of system.access.v1.AccessRequestService. */
+export const accessRequestServiceOperations = {
+  /** Withdraw a request you raised, while it is still pending. */
+  cancelAccessRequest: { method: 'POST', path: '/access-requests/{id}/cancel', pathParams: ['id'] },
+  /** Ask for a user to be put in a group, giving a reason and how long for. */
+  createAccessRequest: { method: 'POST', path: '/access-requests', pathParams: [] },
+  /** Approve or reject a request. Approving performs the grant, for the term asked for. */
+  decideAccessRequest: { method: 'POST', path: '/access-requests/{id}/decide', pathParams: ['id'] },
+  /** List access requests, optionally filtered by requester, subject, group or status. */
+  listAccessRequests: { method: 'GET', path: '/access-requests', pathParams: [] },
+} as const satisfies Record<string, ApiOperation>;
+
 /** Operations of system.access.v1.AccessService. */
 export const accessServiceOperations = {
   /** Explain whether a user is allowed an operation, listing every route that allows it. */

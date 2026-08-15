@@ -4,6 +4,7 @@ package system.access.v1;
 
 import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 import "hub/annotations/v1/annotations.proto";
 import "system/access/v1/model.proto";
 
@@ -63,4 +64,103 @@ message ListPrincipalsForOperationRequest {
 
 message ListPrincipalsForOperationResponse {
   repeated Principal principals = 1;
+}
+
+// AccessRequestService is the way into a group that does not require being able
+// to grant it yourself: ask, and have somebody else agree.
+//
+// The decision is deliberately a separate rpc from the request, guarded by its
+// own permission, and refused when the decider is the person who asked. That
+// split is what lets a request be raised from anywhere - including by the
+// assistant, on behalf of the user it is answering - while the change itself
+// still waits on a person who is not the one asking for it.
+service AccessRequestService {
+  rpc CreateAccessRequest(CreateAccessRequestRequest) returns (CreateAccessRequestResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/access-requests"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {
+      // Anyone signed in may ask. Asking grants nothing, and a queue of
+      // requests nobody may raise is a queue nobody uses.
+      public: true
+      summary: "Ask for a user to be put in a group, giving a reason and how long for."
+    };
+  }
+  rpc ListAccessRequests(ListAccessRequestsRequest) returns (ListAccessRequestsResponse) {
+    option (google.api.http) = {get: "/api/v1/access-requests"};
+    option (hub.annotations.v1.method_rule) = {summary: "List access requests, optionally filtered by requester, subject, group or status."};
+  }
+  rpc CancelAccessRequest(CancelAccessRequestRequest) returns (CancelAccessRequestResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/access-requests/{id}/cancel"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {
+      // Withdrawing your own ask needs no permission; the use case refuses
+      // anyone who is not the requester.
+      public: true
+      summary: "Withdraw a request you raised, while it is still pending."
+    };
+  }
+  rpc DecideAccessRequest(DecideAccessRequestRequest) returns (DecideAccessRequestResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/access-requests/{id}/decide"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Approve or reject a request. Approving performs the grant, for the term asked for."};
+  }
+}
+
+message CreateAccessRequestRequest {
+  // Who the access is for. Leave it unset to ask for yourself.
+  optional string subject_user_id = 1 [(buf.validate.field).string.uuid = true];
+  string group_id = 2 [(buf.validate.field).string.uuid = true];
+  // Why. Required, because a request nobody explained is a request nobody can
+  // judge.
+  string reason = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 1024
+  }];
+  // How long for. Leave it unset to ask permanently, which is a bigger ask and
+  // reads as one on the approval screen.
+  optional google.protobuf.Timestamp requested_until = 4 [(buf.validate.field).timestamp.gt_now = true];
+}
+
+message CreateAccessRequestResponse {
+  AccessRequest access_request = 1;
+}
+
+message ListAccessRequestsRequest {
+  uint32 limit = 1 [(buf.validate.field).uint32.lte = 200];
+  uint32 offset = 2;
+  optional string requester_user_id = 3 [(buf.validate.field).string.uuid = true];
+  optional string subject_user_id = 4 [(buf.validate.field).string.uuid = true];
+  optional string group_id = 5 [(buf.validate.field).string.uuid = true];
+  RequestStatus status = 6;
+}
+
+message ListAccessRequestsResponse {
+  repeated AccessRequest access_requests = 1;
+  int64 total = 2;
+}
+
+message CancelAccessRequestRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message CancelAccessRequestResponse {
+  AccessRequest access_request = 1;
+}
+
+message DecideAccessRequestRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // True performs the grant; false records the refusal. There is no third
+  // state: a request is decided once.
+  bool approved = 2;
+  string comment = 3 [(buf.validate.field).string.max_len = 1024];
+}
+
+message DecideAccessRequestResponse {
+  AccessRequest access_request = 1;
 }

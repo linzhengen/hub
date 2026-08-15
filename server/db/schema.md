@@ -28,6 +28,23 @@ erDiagram
         TIMESTAMP expires_at "NULL means the membership does not end"
     }
 
+    access_requests {
+        CHAR_36_ id PK "Access request ID"
+        CHAR_36_ requester_user_id FK "Who asked"
+        CHAR_36_ subject_user_id FK "Who the access is for"
+        CHAR_36_ group_id FK "Group asked for"
+        TEXT reason
+        TIMESTAMP requested_until "NULL asks for it permanently"
+        VARCHAR_50_ status "Pending | Approved | Rejected | Cancelled"
+        VARCHAR_50_ origin "Console | CLI | AIChat"
+        CHAR_36_ session_id "Chat session, for origin AIChat"
+        CHAR_36_ decided_by_user_id
+        TIMESTAMP decided_at
+        TEXT decision_comment
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
     roles {
         CHAR_36_ id PK "Role ID"
         VARCHAR_255_ name
@@ -68,6 +85,8 @@ erDiagram
         CHAR_36_ permission_id PK, FK "Permission ID"
     }
 
+    users           ||--o{ access_requests  : "raises and is the subject of"
+    groups          ||--o{ access_requests  : "asked for"
     users           ||--o{ user_groups      : "many-to-many"
     groups          ||--o{ user_groups      : "many-to-many"
     groups          ||--o{ group_roles      : "many-to-many"

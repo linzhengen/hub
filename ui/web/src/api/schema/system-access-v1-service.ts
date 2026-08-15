@@ -4,6 +4,54 @@
  */
 
 export interface paths {
+    "/api/v1/access-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AccessRequestService_ListAccessRequests"];
+        put?: never;
+        post: operations["AccessRequestService_CreateAccessRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AccessRequestService_CancelAccessRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-requests/{id}/decide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AccessRequestService_DecideAccessRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/access/explain": {
         parameters: {
             query?: never;
@@ -40,6 +88,15 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AccessRequestServiceCancelAccessRequestBody: Record<string, never>;
+        AccessRequestServiceDecideAccessRequestBody: {
+            /**
+             * @description True performs the grant; false records the refusal. There is no third
+             *     state: a request is decided once.
+             */
+            approved?: boolean;
+            comment?: string;
+        };
         protobufAny: {
             "@type"?: string;
         } & {
@@ -82,6 +139,67 @@ export interface components {
             roleId?: string;
             roleName?: string;
         };
+        /**
+         * @description AccessRequest is one person asking for another to be put in a group, and
+         *     somebody else agreeing.
+         *
+         *     requester and subject are separate because the interesting requests are made
+         *     on somebody else's behalf: a manager for a report, the assistant for whoever
+         *     it is answering.
+         */
+        v1AccessRequest: {
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            decidedAt?: string;
+            decidedByUserId?: string;
+            decisionComment?: string;
+            groupId?: string;
+            id?: string;
+            origin?: components["schemas"]["v1RequestOrigin"];
+            reason?: string;
+            /**
+             * Format: date-time
+             * @description The term asked for, unset for "permanently". On approval it becomes the
+             *     membership's expiry, so a request for a week grants a week.
+             */
+            requestedUntil?: string;
+            requesterUserId?: string;
+            /**
+             * @description The chat session the assistant raised this in. Empty for every other
+             *     origin.
+             */
+            sessionId?: string;
+            status?: components["schemas"]["v1RequestStatus"];
+            subjectUserId?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        v1CancelAccessRequestResponse: {
+            accessRequest?: components["schemas"]["v1AccessRequest"];
+        };
+        v1CreateAccessRequestRequest: {
+            groupId?: string;
+            /**
+             * @description Why. Required, because a request nobody explained is a request nobody can
+             *     judge.
+             */
+            reason?: string;
+            /**
+             * Format: date-time
+             * @description How long for. Leave it unset to ask permanently, which is a bigger ask and
+             *     reads as one on the approval screen.
+             */
+            requestedUntil?: string;
+            /** @description Who the access is for. Leave it unset to ask for yourself. */
+            subjectUserId?: string;
+        };
+        v1CreateAccessRequestResponse: {
+            accessRequest?: components["schemas"]["v1AccessRequest"];
+        };
+        v1DecideAccessRequestResponse: {
+            accessRequest?: components["schemas"]["v1AccessRequest"];
+        };
         v1ExplainUserAccessResponse: {
             /**
              * @description Allowed is the answer the authorization interceptor would give the same
@@ -90,6 +208,11 @@ export interface components {
              */
             allowed?: boolean;
             paths?: components["schemas"]["v1AccessPath"][];
+        };
+        v1ListAccessRequestsResponse: {
+            accessRequests?: components["schemas"]["v1AccessRequest"][];
+            /** Format: int64 */
+            total?: string;
         };
         v1ListPrincipalsForOperationResponse: {
             principals?: components["schemas"]["v1Principal"][];
@@ -100,6 +223,23 @@ export interface components {
             userId?: string;
             username?: string;
         };
+        /**
+         * @description RequestOrigin is the surface a request came in by.
+         * @default REQUEST_ORIGIN_UNSPECIFIED
+         * @enum {string}
+         */
+        v1RequestOrigin: "REQUEST_ORIGIN_UNSPECIFIED" | "REQUEST_ORIGIN_CONSOLE" | "REQUEST_ORIGIN_CLI" | "REQUEST_ORIGIN_AI_CHAT";
+        /**
+         * @description RequestStatus is where an access request has got to. A request is decided
+         *     once; there is no route back to pending.
+         *
+         *     The per-value comments this would normally carry are left out on purpose: the
+         *     OpenAPI generator renders them into a description that the web client's
+         *     schema generator cannot parse.
+         * @default REQUEST_STATUS_UNSPECIFIED
+         * @enum {string}
+         */
+        v1RequestStatus: "REQUEST_STATUS_UNSPECIFIED" | "REQUEST_STATUS_PENDING" | "REQUEST_STATUS_APPROVED" | "REQUEST_STATUS_REJECTED" | "REQUEST_STATUS_CANCELLED";
     };
     responses: never;
     parameters: never;
@@ -109,6 +249,145 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    AccessRequestService_ListAccessRequests: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                requesterUserId?: string;
+                subjectUserId?: string;
+                groupId?: string;
+                status?: "REQUEST_STATUS_UNSPECIFIED" | "REQUEST_STATUS_PENDING" | "REQUEST_STATUS_APPROVED" | "REQUEST_STATUS_REJECTED" | "REQUEST_STATUS_CANCELLED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A successful response. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["v1ListAccessRequestsResponse"];
+                };
+            };
+            /** @description An unexpected error response. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["rpcStatus"];
+                };
+            };
+        };
+    };
+    AccessRequestService_CreateAccessRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["v1CreateAccessRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description A successful response. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["v1CreateAccessRequestResponse"];
+                };
+            };
+            /** @description An unexpected error response. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["rpcStatus"];
+                };
+            };
+        };
+    };
+    AccessRequestService_CancelAccessRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessRequestServiceCancelAccessRequestBody"];
+            };
+        };
+        responses: {
+            /** @description A successful response. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["v1CancelAccessRequestResponse"];
+                };
+            };
+            /** @description An unexpected error response. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["rpcStatus"];
+                };
+            };
+        };
+    };
+    AccessRequestService_DecideAccessRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessRequestServiceDecideAccessRequestBody"];
+            };
+        };
+        responses: {
+            /** @description A successful response. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["v1DecideAccessRequestResponse"];
+                };
+            };
+            /** @description An unexpected error response. */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["rpcStatus"];
+                };
+            };
+        };
+    };
     AccessService_ExplainUserAccess: {
         parameters: {
             query?: {

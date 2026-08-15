@@ -100,17 +100,24 @@ AccessRequest
   id
   requester_user_id    申請した人
   subject_user_id      権限を受け取る人（自分への申請なら requester と同じ）
-  kind                 GROUP | ROLE
-  target_id            group_id または role_id
+  group_id             入りたいグループ
   reason               申請理由（必須）
   requested_until      いつまで欲しいか（NULL = 無期限申請）
-  status               PENDING | APPROVED | REJECTED | CANCELLED | EXPIRED
+  status               PENDING | APPROVED | REJECTED | CANCELLED
   origin               CONSOLE | CLI | AI_CHAT
   session_id           origin = AI_CHAT のときの chat セッション
   decided_by_user_id
   decided_at
   decision_comment
 ```
+
+> **実装時の訂正**: このメモは当初 `kind = GROUP | ROLE` と `target_id` を持たせる
+> 設計にしていたが、hub のモデルでは**ロールはユーザーではなくグループに付く**ため、
+> `subject_user_id` を持つ申請で ROLE を表現できない。申請は「ユーザーをグループに
+> 入れる」ことに一本化した。JIT アクセスの用途はこれで足り、`AddGroupsToUser` という
+> 単一の実行経路を保てる。グループへのロール付与は構造的な変更で、
+> `escalation` リストの対象でもあるので、コンソールで人が行う。
+> 種別が実際に 2 つになった時点で `kind` を足せばよい。
 
 rpc は `CreateAccessRequest` / `ListAccessRequests` / `CancelAccessRequest` /
 `DecideAccessRequest`。
