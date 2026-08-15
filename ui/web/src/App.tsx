@@ -16,6 +16,9 @@ const Roles = lazy(() => import("@/pages/system/Roles.tsx").then((m) => ({ defau
 const Menus = lazy(() => import("@/pages/system/Menus.tsx").then((m) => ({ default: m.Menus })));
 const My = lazy(() => import("@/pages/My.tsx").then((m) => ({ default: m.My })));
 const Chat = lazy(() => import("@/pages/Chat.tsx").then((m) => ({ default: m.Chat })));
+const AccessRequests = lazy(() =>
+  import("@/pages/AccessRequests.tsx").then((m) => ({ default: m.AccessRequests })),
+);
 
 const PageFallback = () => (
   <div className="flex justify-center py-12">
@@ -52,6 +55,7 @@ export default function App() {
                   <Route path="/system/menus" element={<Menus />} />
                   <Route path="/my" element={<My />} />
                   <Route path="/chat" element={<Chat />} />
+                  <Route path="/access-requests" element={<AccessRequests />} />
                 </Route>
 
                 {/* Fallback Route */}
