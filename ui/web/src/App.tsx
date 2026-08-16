@@ -22,6 +22,9 @@ const AccessRequests = lazy(() =>
 const ServiceAccounts = lazy(() =>
   import("@/pages/system/ServiceAccounts.tsx").then((m) => ({ default: m.ServiceAccounts })),
 );
+const AuditLogs = lazy(() =>
+  import("@/pages/system/AuditLogs.tsx").then((m) => ({ default: m.AuditLogs })),
+);
 
 const PageFallback = () => (
   <div className="flex justify-center py-12">
@@ -60,6 +63,7 @@ export default function App() {
                   <Route path="/chat" element={<Chat />} />
                   <Route path="/access-requests" element={<AccessRequests />} />
                   <Route path="/system/service-accounts" element={<ServiceAccounts />} />
+                  <Route path="/system/audit-logs" element={<AuditLogs />} />
                 </Route>
 
                 {/* Fallback Route */}

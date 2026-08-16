@@ -91,3 +91,13 @@ menus:
         metadata:
           icon: "plug-in"
         status: "Active"
+      - id: "00000000-0000-0000-9000-500000000000"
+        name: "監査ログ"
+        type: "menu"
+        path: "/system/audit-logs"
+        component: "system/AuditLogs"
+        displayOrder: 5
+        description: ""
+        metadata:
+          icon: "list"
+        status: "Active"
