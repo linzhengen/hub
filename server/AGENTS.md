@@ -402,6 +402,32 @@ Auth is handled via gRPC interceptors defined in `internal/interface/grpc/interc
     is the one place that says so; `Enforce`, `Explain` and `PrincipalsFor` all
     go through it. **Do not add an `expires_at > now()` predicate to a policy
     query.**
+-   **Organizations:** a grant is held *within* an organization. `groups.org_id`
+    says which, so every route from a user to a permission passes through one,
+    and `auth.Request` carries the organization the request is about.
+
+    A caller names it with the `hub-org` header, which the authentication
+    interceptor reads into the context (`contextx.GetOrgID`). **Absent is not an
+    error.** It is the question every caller asked before organizations existed
+    - "may I, anywhere I hold access?" - so a client that has never heard of the
+    header keeps working, and narrowing only happens when somebody names a
+    place.
+
+    Two rules make the whole model work, and both are stated once:
+
+    -   A grant reached through the **platform** organization answers about
+        every organization (`organization.Kind.AppliesEverywhere`). Migration
+        000002 creates it and the seed's groups belong to it, so an operator's
+        grants reach every tenant.
+    -   The organization is **not** filtered in SQL, for the same reason the
+        expiry is not. The query returns it on the policy and `grant.reaches`
+        drops what does not apply, so the cache holds a set of policies rather
+        than the answer to one question. **Do not add an `org_id = $n` predicate
+        to a policy query.**
+
+    `organizations` has an `rbac_revisions` trigger, because a decision reads it
+    - an inactive organization drops every policy inside it.
+    `TestLiveOrganizationInvalidation` is the guard.
 -   **Inspecting permissions:** `hub api describe <rpc>` reports the resource
     and action an rpc needs, which is the quickest way to explain a 403.
 

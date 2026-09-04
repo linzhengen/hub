@@ -56,17 +56,27 @@ menus:
         type: "menu"
         path: "/system/roles"
         component: "system/Roles"
-        displayOrder: 1
+        displayOrder: 2
         description: ""
         metadata:
           icon: "Key"
+        status: "Active"
+      - id: "00000000-0000-0000-9000-600000000000"
+        name: "組織管理"
+        type: "menu"
+        path: "/system/organizations"
+        component: "system/Organizations"
+        displayOrder: 1
+        description: ""
+        metadata:
+          icon: "building"
         status: "Active"
       - id: "00000000-0000-0000-9000-200000000000"
         name: "グループ管理"
         type: "menu"
         path: "/system/groups"
         component: "system/Groups"
-        displayOrder: 2
+        displayOrder: 3
         description: ""
         metadata:
           icon: "GroupIcon"
@@ -76,7 +86,7 @@ menus:
         type: "menu"
         path: "/system/menus"
         component: "system/Menus"
-        displayOrder: 3
+        displayOrder: 4
         description: ""
         metadata:
           icon: "FolderIcon"
@@ -86,7 +96,7 @@ menus:
         type: "menu"
         path: "/system/service-accounts"
         component: "system/ServiceAccounts"
-        displayOrder: 4
+        displayOrder: 5
         description: ""
         metadata:
           icon: "plug-in"
@@ -96,7 +106,7 @@ menus:
         type: "menu"
         path: "/system/audit-logs"
         component: "system/AuditLogs"
-        displayOrder: 5
+        displayOrder: 6
         description: ""
         metadata:
           icon: "list"

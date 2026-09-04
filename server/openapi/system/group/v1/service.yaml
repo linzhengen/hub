@@ -91,6 +91,11 @@ components:
                     type: string
                 name:
                     type: string
+                orgId:
+                    description: |-
+                        Which organization the group belongs to. Required: a group with no
+                        organization would be a route to a permission that no boundary contains.
+                    type: string
                 status:
                     $ref: '#/components/schemas/v1GroupStatus'
             type: object
@@ -116,6 +121,16 @@ components:
                 id:
                     type: string
                 name:
+                    type: string
+                orgId:
+                    description: |-
+                        The organization this group belongs to.
+
+                        It is the group that carries the boundary, because the group is the only
+                        edge that joins a user to a permission: placing it here places every route
+                        through it. A group does not move between organizations - that would carry
+                        its members' access across a tenant boundary in one statement - so this is
+                        set at creation and never updated.
                     type: string
                 roles:
                     items:
@@ -215,6 +230,17 @@ paths:
                     items:
                         type: string
                     type: array
+                - description: |-
+                    Narrow to one organization. Absent lists every organization the caller can
+                    reach, which is what every caller asked for before organizations existed.
+
+                    optional, so the uuid rule is skipped when the filter is not used at all -
+                    a bare `string` is validated even when it is empty, and every unfiltered
+                    listing would be refused. Same as the other filters in this API.
+                  in: query
+                  name: orgId
+                  schema:
+                    type: string
             responses:
                 "200":
                     content:

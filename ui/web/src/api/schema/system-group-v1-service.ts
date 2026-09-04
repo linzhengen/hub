@@ -161,6 +161,11 @@ export interface components {
         v1CreateGroupRequest: {
             description?: string;
             name?: string;
+            /**
+             * @description Which organization the group belongs to. Required: a group with no
+             *     organization would be a route to a permission that no boundary contains.
+             */
+            orgId?: string;
             status?: components["schemas"]["v1GroupStatus"];
         };
         v1CreateGroupResponse: {
@@ -176,6 +181,16 @@ export interface components {
             description?: string;
             id?: string;
             name?: string;
+            /**
+             * @description The organization this group belongs to.
+             *
+             *     It is the group that carries the boundary, because the group is the only
+             *     edge that joins a user to a permission: placing it here places every route
+             *     through it. A group does not move between organizations - that would carry
+             *     its members' access across a tenant boundary in one statement - so this is
+             *     set at creation and never updated.
+             */
+            orgId?: string;
             roles?: components["schemas"]["v1RoleGrant"][];
             status?: components["schemas"]["v1GroupStatus"];
             /** Format: date-time */
@@ -228,6 +243,15 @@ export interface operations {
                 groupName?: string;
                 status?: "STATUS_UNSPECIFIED" | "STATUS_ACTIVE" | "STATUS_INACTIVE";
                 roleIds?: string[];
+                /**
+                 * @description Narrow to one organization. Absent lists every organization the caller can
+                 *     reach, which is what every caller asked for before organizations existed.
+                 *
+                 *     optional, so the uuid rule is skipped when the filter is not used at all -
+                 *     a bare `string` is validated even when it is empty, and every unfiltered
+                 *     listing would be refused. Same as the other filters in this API.
+                 */
+                orgId?: string;
             };
             header?: never;
             path?: never;

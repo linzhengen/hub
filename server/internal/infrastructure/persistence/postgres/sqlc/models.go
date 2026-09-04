@@ -32,6 +32,7 @@ type AccessRequest struct {
 type AuditLog struct {
 	ID          string
 	ActorUserID string
+	OrgID       sql.NullString
 	Channel     string
 	AiSessionID sql.NullString
 	Resource    string
@@ -77,6 +78,7 @@ type Group struct {
 	Name        string
 	Description string
 	Status      string
+	OrgID       string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -87,6 +89,17 @@ type GroupRole struct {
 	ExpiresAt sql.NullTime
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Organization struct {
+	ID          string
+	Name        string
+	Slug        string
+	Kind        string
+	Description string
+	Status      string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Permission struct {
@@ -124,6 +137,7 @@ type Role struct {
 	ID          string
 	Name        string
 	Description string
+	OrgID       sql.NullString
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

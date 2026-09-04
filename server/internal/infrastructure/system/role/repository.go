@@ -34,11 +34,12 @@ func (r repositoryImpl) FindOne(ctx context.Context, id string) (*role.Role, err
 		Id:          rl.ID,
 		Name:        rl.Name,
 		Description: rl.Description,
+		OrgId:       rl.OrgID,
 	}, nil
 }
 
 func (r repositoryImpl) Create(ctx context.Context, u *role.Role) error {
-	return persistence.GetQ(ctx, r.q).CreateRole(ctx, u.Id, u.Name, u.Description)
+	return persistence.GetQ(ctx, r.q).CreateRole(ctx, u.Id, u.Name, u.Description, u.OrgId)
 }
 
 func (r repositoryImpl) Update(ctx context.Context, u *role.Role) error {

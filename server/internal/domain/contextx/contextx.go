@@ -7,6 +7,7 @@ type (
 	transLockCtx struct{}
 	noTransCtx   struct{}
 	userIDCtx    struct{}
+	orgIDCtx     struct{}
 )
 
 func NewTrans(ctx context.Context, trans interface{}) context.Context {
@@ -48,6 +49,27 @@ func GetUserID(ctx context.Context) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// WithOrgID records which organization the request is about.
+//
+// It is a property of the request rather than of the caller: a person can hold
+// access in several organizations, and which one they are acting in is
+// something they say, not something hub infers for them. An absent value is
+// therefore not an error - it is the question every caller asked before
+// organizations existed, "may I, anywhere I hold access?" - and it is what
+// keeps every client that predates this header working unchanged.
+func WithOrgID(ctx context.Context, orgID string) context.Context {
+	return context.WithValue(ctx, orgIDCtx{}, orgID)
+}
+
+// GetOrgID returns the organization the request is about, empty when it names
+// none.
+func GetOrgID(ctx context.Context) string {
+	if v, ok := ctx.Value(orgIDCtx{}).(string); ok {
+		return v
+	}
+	return ""
 }
 
 func FindOne[T any](

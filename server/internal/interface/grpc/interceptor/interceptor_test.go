@@ -104,6 +104,10 @@ func (m *MockAuthService) PrincipalsFor(_ context.Context, _ auth.Request) ([]au
 	return nil, nil
 }
 
+func (m *MockAuthService) VisibleOrgs(_ context.Context, _, _ string) (auth.Scope, error) {
+	return auth.Scope{All: true}, nil
+}
+
 // Mock gRPC server stream
 type MockServerStream struct {
 	mock.Mock
@@ -1062,4 +1066,63 @@ func TestAuthServerStreamExposesTheAuthenticatedContext(t *testing.T) {
 	got, ok := user.FromContext(stream.Context())
 	assert.True(t, ok)
 	assert.Equal(t, u, got)
+}
+
+// TestRequestedOrg covers reading the organization off the request.
+//
+// Both spellings are checked because grpc-gateway renames an HTTP header it has
+// not been told to forward, and a caller reaching the REST surface must be able
+// to name an organization the same way a gRPC caller does.
+func TestRequestedOrg(t *testing.T) {
+	const orgId = "11111111-1111-1111-1111-111111111111"
+
+	t.Run("reads the gRPC metadata key", func(t *testing.T) {
+		ctx := metadata.NewIncomingContext(context.Background(),
+			metadata.Pairs(HubOrgHeader, orgId))
+		assert.Equal(t, orgId, requestedOrg(ctx))
+	})
+
+	t.Run("reads the key grpc-gateway rewrites an HTTP header to", func(t *testing.T) {
+		ctx := metadata.NewIncomingContext(context.Background(),
+			metadata.Pairs("grpcgateway-"+HubOrgHeader, orgId))
+		assert.Equal(t, orgId, requestedOrg(ctx))
+	})
+
+	t.Run("is empty when the caller names none", func(t *testing.T) {
+		assert.Empty(t, requestedOrg(context.Background()))
+		assert.Empty(t, requestedOrg(metadata.NewIncomingContext(
+			context.Background(), metadata.Pairs("other", "x"))))
+	})
+}
+
+// TestAuthzCarriesTheOrganizationIntoTheDecision is the point of the whole
+// change: the organization the caller named has to reach Enforce, or the
+// narrowing is decorative.
+func TestAuthzCarriesTheOrganizationIntoTheDecision(t *testing.T) {
+	const (
+		userID = "user1"
+		orgId  = "11111111-1111-1111-1111-111111111111"
+	)
+
+	ctx := contextx.WithOrgID(contextx.WithUserID(context.Background(), userID), orgId)
+
+	mockUserRepo := new(MockUserRepository)
+	mockUserRepo.On("FindOne", mock.Anything, userID).
+		Return(&user.User{Id: userID, Status: user.Active}, nil)
+
+	mockAuthSvc := new(MockAuthService)
+	mockAuthSvc.On("Enforce", mock.Anything, mock.MatchedBy(func(req auth.Request) bool {
+		return req.Subject == userID && req.OrgId == orgId
+	})).Return(false, nil)
+
+	interceptor := UnaryAuthzInterceptor(mockAuthSvc, mockUserRepo, apicatalog.Default())
+	info := &grpc.UnaryServerInfo{FullMethod: "/test.Service/Method"}
+
+	resp, err := interceptor(ctx, nil, info, func(ctx context.Context, req interface{}) (interface{}, error) {
+		return "should not reach here", nil
+	})
+
+	assert.Nil(t, resp)
+	assert.Equal(t, codes.PermissionDenied, status.Code(err))
+	mockAuthSvc.AssertExpectations(t)
 }

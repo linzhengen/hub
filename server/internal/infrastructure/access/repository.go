@@ -53,6 +53,7 @@ func (r repositoryImpl) List(
 		params.SubjectUserId,
 		params.GroupId,
 		string(params.Status),
+		params.OrgIds,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -64,6 +65,7 @@ func (r repositoryImpl) List(
 		params.SubjectUserId,
 		params.GroupId,
 		string(params.Status),
+		params.OrgIds,
 		int32(params.Offset), //nolint:gosec // bounded by the request's limit rule
 		int32(params.Limit),  //nolint:gosec // bounded by the request's limit rule
 	)

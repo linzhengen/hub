@@ -53,6 +53,9 @@ type ListRoleQueryParams struct {
 	RoleIds       []string
 	RoleName      string
 	PermissionIds []string
+	// OrgId narrows to the roles one organization defines. Empty lists every
+	// role, shared and organization-defined alike.
+	OrgId string
 }
 
 func (uc roleUseCase) Get(ctx context.Context, roleId string) (*role.Role, error) {
@@ -96,6 +99,9 @@ func (uc roleUseCase) List(ctx context.Context, params *ListRoleQueryParams) ([]
 	}
 	if params.RoleName != "" {
 		b = b.Where(goqu.C("name").Like(fmt.Sprintf("%%%s%%", params.RoleName)))
+	}
+	if params.OrgId != "" {
+		b = b.Where(goqu.Ex{"roles.org_id": params.OrgId})
 	}
 	if params.PermissionIds != nil {
 		// Create a subquery to check if the role belongs to any of the specified permissions
@@ -198,15 +204,22 @@ func (uc roleUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*role.
 	var items []*role.Role
 	for rows.Next() {
 		var i role.Role
+		// org_id is nullable - a NULL is a role shared by every organization -
+		// so it cannot be scanned straight into a string. The columns are read
+		// positionally from SELECT *, so the order here has to follow the
+		// column order in 000005.
+		var orgId sql.NullString
 		if err := rows.Scan(
 			&i.Id,
 			&i.Name,
 			&i.Description,
+			&orgId,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
+		i.OrgId = orgId.String
 		items = append(items, &i)
 	}
 	if err := rows.Err(); err != nil {

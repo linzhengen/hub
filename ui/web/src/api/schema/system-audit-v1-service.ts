@@ -54,6 +54,14 @@ export interface components {
             error?: string;
             id?: string;
             /**
+             * @description The organization the caller was acting in, empty when they named none.
+             *
+             *     The listing is already narrowed to the organizations the reader can reach,
+             *     so this is not what keeps a tenant out; it is what lets somebody who can
+             *     read several tell them apart.
+             */
+            orgId?: string;
+            /**
              * @description The RBAC resource and verb of the operation, so a record reads the same way
              *     a permission does.
              */

@@ -45,6 +45,7 @@ func groupDomainToPb(m *group.Group) *pbgroupv1.Group {
 		Name:        m.Name,
 		Status:      toGroupPbStatus(m.Status),
 		Description: m.Description,
+		OrgId:       m.OrgId,
 		CreatedAt:   timestamppb.New(m.CreatedAt),
 		UpdatedAt:   timestamppb.New(m.UpdatedAt),
 
@@ -81,6 +82,7 @@ func roleDomainToPb(m *role.Role) *pbrolev1.Role {
 		CreatedAt:     timestamppb.New(m.CreatedAt),
 		UpdatedAt:     timestamppb.New(m.UpdatedAt),
 		PermissionIds: m.PermissionIds,
+		OrgId:         m.OrgId,
 	}
 }
 

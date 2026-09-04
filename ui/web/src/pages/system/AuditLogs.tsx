@@ -9,6 +9,7 @@ import { auditService } from '@/services/audit';
 import type { AuditChannel, AuditLog, ListAuditLogParams } from '@/services/audit';
 
 import { userService } from '@/services/user';
+import { organizationService } from '@/services/organization';
 
 // The generated query type is optional as a whole, since every filter is. The
 // page always holds one, so it is narrowed here rather than guarded at each of
@@ -85,6 +86,11 @@ export const AuditLogs: React.FC = () => {
     queryFn: () => userService.listUsers({ limit: 200 }),
   });
 
+  const organizations = useQuery({
+    queryKey: ['organizations', 'forAuditLogs'],
+    queryFn: () => organizationService.list({ limit: 200 }),
+  });
+
   const userName = useMemo(() => {
     const byId = new Map((users.data?.users ?? []).map((u) => [u.id, u.username]));
     // Falling back to the id rather than to "unknown": an id a reader can look
@@ -95,6 +101,11 @@ export const AuditLogs: React.FC = () => {
 
   const narrow = (next: Partial<Filters>) =>
     setFilters((current) => ({ ...current, ...next, offset: 0 }));
+
+  const organizationName = useMemo(() => {
+    const byId = new Map((organizations.data?.organizations ?? []).map((o) => [o.id, o.name]));
+    return (id?: string) => (id ? (byId.get(id) ?? id) : '—');
+  }, [organizations.data]);
 
   const columns: ColumnsType<AuditLog> = [
     {
@@ -113,6 +124,15 @@ export const AuditLogs: React.FC = () => {
             <ChannelTag channel={log.channel} sessionId={log.sessionId} />
           </div>
         </div>
+      ),
+    },
+    {
+      // The listing is already narrowed to what the reader may see; this is for
+      // somebody who may see several tenants and has to tell them apart.
+      title: 'Where',
+      key: 'where',
+      render: (_, log) => (
+        <span className="text-sm">{organizationName(log.orgId)}</span>
       ),
     },
     {

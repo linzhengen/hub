@@ -8,6 +8,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 
 	"github.com/linzhengen/hub/server/internal/domain/audit"
+	"github.com/linzhengen/hub/server/internal/domain/auth"
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres"
 	"github.com/linzhengen/hub/server/internal/usecase/pagination"
@@ -22,13 +23,18 @@ type AuditUseCase interface {
 	List(ctx context.Context, params *ListAuditLogQueryParams) ([]*audit.Entry, int64, error)
 }
 
-func NewAuditUseCase(db *sql.DB, dialectWrapper persistence.DialectWrapper) AuditUseCase {
-	return &auditUseCase{db: db, dialectWrapper: dialectWrapper}
+func NewAuditUseCase(
+	db *sql.DB,
+	dialectWrapper persistence.DialectWrapper,
+	authSvc auth.Service,
+) AuditUseCase {
+	return &auditUseCase{db: db, dialectWrapper: dialectWrapper, authSvc: authSvc}
 }
 
 type auditUseCase struct {
 	db             *sql.DB
 	dialectWrapper persistence.DialectWrapper
+	authSvc        auth.Service
 }
 
 type ListAuditLogQueryParams struct {
@@ -47,7 +53,20 @@ func (uc auditUseCase) List(
 	ctx context.Context,
 	params *ListAuditLogQueryParams,
 ) ([]*audit.Entry, int64, error) {
+	// The log is the one place every change in the installation is written
+	// down, so an unnarrowed read of it is a way around every other boundary.
+	scope, err := visibleOrgs(ctx, uc.authSvc)
+	if err != nil {
+		return nil, 0, err
+	}
+	if scope.Empty() {
+		return nil, 0, nil
+	}
+
 	b := uc.dialectWrapper.From("audit_logs")
+	if !scope.All {
+		b = b.Where(goqu.Ex{"org_id": scope.OrgIds})
+	}
 	if params.ActorUserId != "" {
 		b = b.Where(goqu.Ex{"actor_user_id": params.ActorUserId})
 	}
@@ -105,6 +124,7 @@ func (uc auditUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*audi
 	for rows.Next() {
 		var (
 			entry      audit.Entry
+			orgId      sql.NullString
 			channel    string
 			sessionId  sql.NullString
 			approvalId sql.NullString
@@ -113,6 +133,7 @@ func (uc auditUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*audi
 		if err := rows.Scan(
 			&entry.Id,
 			&entry.ActorUserId,
+			&orgId,
 			&channel,
 			&sessionId,
 			&entry.Resource,
@@ -128,6 +149,7 @@ func (uc auditUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*audi
 			return nil, err
 		}
 		entry.Channel = audit.Channel(channel)
+		entry.OrgId = orgId.String
 		entry.SessionId = sessionId.String
 		entry.ApprovalId = approvalId.String
 		entry.Arguments = arguments

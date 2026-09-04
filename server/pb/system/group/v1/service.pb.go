@@ -114,13 +114,20 @@ func (x *GetGroupResponse) GetGroup() *Group {
 }
 
 type ListGroupRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Limit         uint32                 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
-	Offset        uint32                 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
-	GroupIds      []string               `protobuf:"bytes,3,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
-	GroupName     string                 `protobuf:"bytes,4,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
-	Status        Group_Status           `protobuf:"varint,5,opt,name=status,proto3,enum=system.group.v1.Group_Status" json:"status,omitempty"`
-	RoleIds       []string               `protobuf:"bytes,6,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Limit     uint32                 `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset    uint32                 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	GroupIds  []string               `protobuf:"bytes,3,rep,name=group_ids,json=groupIds,proto3" json:"group_ids,omitempty"`
+	GroupName string                 `protobuf:"bytes,4,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	Status    Group_Status           `protobuf:"varint,5,opt,name=status,proto3,enum=system.group.v1.Group_Status" json:"status,omitempty"`
+	RoleIds   []string               `protobuf:"bytes,6,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	// Narrow to one organization. Absent lists every organization the caller can
+	// reach, which is what every caller asked for before organizations existed.
+	//
+	// optional, so the uuid rule is skipped when the filter is not used at all -
+	// a bare `string` is validated even when it is empty, and every unfiltered
+	// listing would be refused. Same as the other filters in this API.
+	OrgId         *string `protobuf:"bytes,7,opt,name=org_id,json=orgId,proto3,oneof" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -197,6 +204,13 @@ func (x *ListGroupRequest) GetRoleIds() []string {
 	return nil
 }
 
+func (x *ListGroupRequest) GetOrgId() string {
+	if x != nil && x.OrgId != nil {
+		return *x.OrgId
+	}
+	return ""
+}
+
 type ListGroupResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Groups        []*Group               `protobuf:"bytes,1,rep,name=groups,proto3" json:"groups,omitempty"`
@@ -250,10 +264,13 @@ func (x *ListGroupResponse) GetTotal() int64 {
 }
 
 type CreateGroupRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Status        Group_Status           `protobuf:"varint,2,opt,name=status,proto3,enum=system.group.v1.Group_Status" json:"status,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Status      Group_Status           `protobuf:"varint,2,opt,name=status,proto3,enum=system.group.v1.Group_Status" json:"status,omitempty"`
+	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// Which organization the group belongs to. Required: a group with no
+	// organization would be a route to a permission that no boundary contains.
+	OrgId         string `protobuf:"bytes,4,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -305,6 +322,13 @@ func (x *CreateGroupRequest) GetStatus() Group_Status {
 func (x *CreateGroupRequest) GetDescription() string {
 	if x != nil {
 		return x.Description
+	}
+	return ""
+}
+
+func (x *CreateGroupRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
 	}
 	return ""
 }
@@ -965,7 +989,7 @@ const file_system_group_v1_service_proto_rawDesc = "" +
 	"\x0fGetGroupRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\"@\n" +
 	"\x10GetGroupResponse\x12,\n" +
-	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"\xff\x01\n" +
+	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"\xb0\x02\n" +
 	"\x10ListGroupRequest\x12\x1e\n" +
 	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x02 \x01(\rR\x06offset\x12*\n" +
@@ -975,14 +999,17 @@ const file_system_group_v1_service_proto_rawDesc = "" +
 	"group_name\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18@R\tgroupName\x125\n" +
 	"\x06status\x18\x05 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12(\n" +
 	"\brole_ids\x18\x06 \x03(\tB\r\xbaH\n" +
-	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\aroleIds\"Y\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\aroleIds\x12$\n" +
+	"\x06org_id\x18\a \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\x05orgId\x88\x01\x01B\t\n" +
+	"\a_org_id\"Y\n" +
 	"\x11ListGroupResponse\x12.\n" +
 	"\x06groups\x18\x01 \x03(\v2\x16.system.group.v1.GroupR\x06groups\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"\x96\x01\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\xb7\x01\n" +
 	"\x12CreateGroupRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x125\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12*\n" +
-	"\vdescription\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\"C\n" +
+	"\vdescription\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\x12\x1f\n" +
+	"\x06org_id\x18\x04 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x05orgId\"C\n" +
 	"\x13CreateGroupResponse\x12,\n" +
 	"\x05group\x18\x01 \x01(\v2\x16.system.group.v1.GroupR\x05group\"\xb0\x01\n" +
 	"\x12UpdateGroupRequest\x12\x18\n" +
@@ -1113,6 +1140,7 @@ func file_system_group_v1_service_proto_init() {
 		return
 	}
 	file_system_group_v1_model_proto_init()
+	file_system_group_v1_service_proto_msgTypes[2].OneofWrappers = []any{}
 	file_system_group_v1_service_proto_msgTypes[10].OneofWrappers = []any{}
 	file_system_group_v1_service_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}

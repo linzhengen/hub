@@ -72,6 +72,22 @@ export const groupServiceOperations = {
   updateGroup: { method: 'PUT', path: '/groups/{id}', pathParams: ['id'] },
 } as const satisfies Record<string, ApiOperation>;
 
+/** Operations of system.organization.v1.OrganizationService. */
+export const organizationServiceOperations = {
+  /** Create an organization: a boundary that groups and permissions are held within. */
+  createOrganization: { method: 'POST', path: '/organizations', pathParams: [] },
+  /** Delete an organization and every group in it. The platform organization cannot be deleted. */
+  deleteOrganization: { method: 'DELETE', path: '/organizations/{id}', pathParams: ['id'] },
+  /** Get a single organization by id. */
+  getOrganization: { method: 'GET', path: '/organizations/{id}', pathParams: ['id'] },
+  /** List the organizations the authenticated user belongs to. */
+  listMyOrganizations: { method: 'GET', path: '/me/organizations', pathParams: [] },
+  /** List organizations, optionally narrowed by name, slug or kind. */
+  listOrganization: { method: 'GET', path: '/organizations', pathParams: [] },
+  /** Rename an organization or change its status. The kind cannot be changed. */
+  updateOrganization: { method: 'PUT', path: '/organizations/{id}', pathParams: ['id'] },
+} as const satisfies Record<string, ApiOperation>;
+
 /** Operations of system.permission.v1.PermissionService. */
 export const permissionServiceOperations = {
   /** Create a permission binding a verb to a resource. */

@@ -40,8 +40,8 @@ func TestRoleUseCase_List_WithPagination(t *testing.T) {
 	}
 
 	now := time.Now()
-	rows := sqlmock.NewRows([]string{"id", "name", "description", "created_at", "updated_at"}).
-		AddRow("role1", "Role 1", "Description 1", now, now)
+	rows := sqlmock.NewRows([]string{"id", "name", "description", "org_id", "created_at", "updated_at"}).
+		AddRow("role1", "Role 1", "Description 1", nil, now, now)
 
 	countRows := sqlmock.NewRows([]string{"count"}).AddRow(1)
 
@@ -111,9 +111,9 @@ func TestRoleUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 	}
 
 	now := time.Now()
-	rows := sqlmock.NewRows([]string{"id", "name", "description", "created_at", "updated_at"}).
-		AddRow("role1", "Role 1", "Description 1", now, now).
-		AddRow("role2", "Role 2", "Description 2", now, now)
+	rows := sqlmock.NewRows([]string{"id", "name", "description", "org_id", "created_at", "updated_at"}).
+		AddRow("role1", "Role 1", "Description 1", nil, now, now).
+		AddRow("role2", "Role 2", "Description 2", nil, now, now)
 
 	countRows := sqlmock.NewRows([]string{"count"}).AddRow(2)
 

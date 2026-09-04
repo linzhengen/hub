@@ -18,8 +18,12 @@ SELECT g.id     AS group_id,
        p.id     AS permission_id,
        res.identifier,
        p.verb,
-       gr.expires_at
+       gr.expires_at,
+       g.org_id,
+       o.name   AS org_name,
+       o.kind   AS org_kind
 FROM "groups" AS g
+         INNER JOIN organizations AS o ON o.id = g.org_id AND o.status = 'Active'
          INNER JOIN group_roles AS gr ON g.id = gr.group_id
          INNER JOIN roles AS r ON r.id = gr.role_id
          INNER JOIN role_permissions AS rp ON gr.role_id = rp.role_id
@@ -38,6 +42,9 @@ type SelectAccessPathsRow struct {
 	Identifier   string
 	Verb         string
 	ExpiresAt    sql.NullTime
+	OrgID        string
+	OrgName      string
+	OrgKind      string
 }
 
 func (q *Queries) SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRow, error) {
@@ -58,6 +65,9 @@ func (q *Queries) SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRo
 			&i.Identifier,
 			&i.Verb,
 			&i.ExpiresAt,
+			&i.OrgID,
+			&i.OrgName,
+			&i.OrgKind,
 		); err != nil {
 			return nil, err
 		}
@@ -127,10 +137,14 @@ SELECT g.id     AS group_id,
        res.identifier,
        p.verb,
        ug.expires_at AS group_expires_at,
-       gr.expires_at AS role_expires_at
+       gr.expires_at AS role_expires_at,
+       g.org_id,
+       o.name        AS org_name,
+       o.kind        AS org_kind
 FROM users AS u
          INNER JOIN user_groups AS ug ON u.id = ug.user_id
          INNER JOIN "groups" AS g ON g.id = ug.group_id AND g.status = 'Active'
+         INNER JOIN organizations AS o ON o.id = g.org_id AND o.status = 'Active'
          INNER JOIN group_roles AS gr ON ug.group_id = gr.group_id
          INNER JOIN roles AS r ON r.id = gr.role_id
          INNER JOIN role_permissions AS rp ON gr.role_id = rp.role_id
@@ -151,6 +165,9 @@ type SelectUserAccessPathsRow struct {
 	Verb           string
 	GroupExpiresAt sql.NullTime
 	RoleExpiresAt  sql.NullTime
+	OrgID          string
+	OrgName        string
+	OrgKind        string
 }
 
 func (q *Queries) SelectUserAccessPaths(ctx context.Context, id string) ([]*SelectUserAccessPathsRow, error) {
@@ -172,6 +189,9 @@ func (q *Queries) SelectUserAccessPaths(ctx context.Context, id string) ([]*Sele
 			&i.Verb,
 			&i.GroupExpiresAt,
 			&i.RoleExpiresAt,
+			&i.OrgID,
+			&i.OrgName,
+			&i.OrgKind,
 		); err != nil {
 			return nil, err
 		}
@@ -187,10 +207,17 @@ func (q *Queries) SelectUserAccessPaths(ctx context.Context, id string) ([]*Sele
 }
 
 const selectUserAuthorizedPolices = `-- name: SelectUserAuthorizedPolices :many
-SELECT u.id, res.identifier, p.verb, ug.expires_at AS group_expires_at, gr.expires_at AS role_expires_at
+SELECT u.id,
+       res.identifier,
+       p.verb,
+       ug.expires_at AS group_expires_at,
+       gr.expires_at AS role_expires_at,
+       g.org_id,
+       o.kind         AS org_kind
 FROM users AS u
          INNER JOIN user_groups AS ug ON u.id = ug.user_id
          INNER JOIN "groups" AS g ON g.id = ug.group_id AND g.status = 'Active'
+         INNER JOIN organizations AS o ON o.id = g.org_id AND o.status = 'Active'
          INNER JOIN group_roles AS gr ON ug.group_id = gr.group_id
          INNER JOIN role_permissions AS rp ON gr.role_id = rp.role_id
          INNER JOIN permissions AS p ON rp.permission_id = p.id
@@ -205,6 +232,8 @@ type SelectUserAuthorizedPolicesRow struct {
 	Verb           string
 	GroupExpiresAt sql.NullTime
 	RoleExpiresAt  sql.NullTime
+	OrgID          string
+	OrgKind        string
 }
 
 // The expiry is not filtered here on purpose: see the note on expires_at in
@@ -214,6 +243,11 @@ type SelectUserAuthorizedPolicesRow struct {
 // "the route expires with whichever edge expires first" is stated once, in Go,
 // where it is under test - and so that a NULL keeps meaning "never" rather than
 // depending on how LEAST treats it.
+//
+// The organization is returned for the same reason and read the same way. It is
+// the group's, because the group is the edge that joins a user to a permission,
+// and it is returned rather than compared here so that the policy cache holds a
+// set of policies rather than the answer to one question.
 func (q *Queries) SelectUserAuthorizedPolices(ctx context.Context, id string) ([]*SelectUserAuthorizedPolicesRow, error) {
 	rows, err := q.db.QueryContext(ctx, selectUserAuthorizedPolices, id)
 	if err != nil {
@@ -229,6 +263,8 @@ func (q *Queries) SelectUserAuthorizedPolices(ctx context.Context, id string) ([
 			&i.Verb,
 			&i.GroupExpiresAt,
 			&i.RoleExpiresAt,
+			&i.OrgID,
+			&i.OrgKind,
 		); err != nil {
 			return nil, err
 		}

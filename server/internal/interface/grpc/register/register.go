@@ -19,6 +19,7 @@ import (
 	pbaccessv1 "github.com/linzhengen/hub/server/pb/system/access/v1"
 	pbauditv1 "github.com/linzhengen/hub/server/pb/system/audit/v1"
 	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
+	pborganizationv1 "github.com/linzhengen/hub/server/pb/system/organization/v1"
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
 	pbrolev1 "github.com/linzhengen/hub/server/pb/system/role/v1"
@@ -50,6 +51,7 @@ func New(
 	permissionServiceServer pbpermissionv1.PermissionServiceServer,
 	resourceServiceServer pbresourcev1.ResourceServiceServer,
 	groupServiceServer pbgroupv1.GroupServiceServer,
+	organizationServiceServer pborganizationv1.OrganizationServiceServer,
 	chatServiceServer pbchatv1.ChatServiceServer,
 	auditServiceServer pbauditv1.AuditServiceServer,
 	accessServiceServer pbaccessv1.AccessServiceServer,
@@ -116,6 +118,7 @@ func New(
 	pbpermissionv1.RegisterPermissionServiceServer(grpcServer, permissionServiceServer)
 	pbresourcev1.RegisterResourceServiceServer(grpcServer, resourceServiceServer)
 	pbgroupv1.RegisterGroupServiceServer(grpcServer, groupServiceServer)
+	pborganizationv1.RegisterOrganizationServiceServer(grpcServer, organizationServiceServer)
 	pbchatv1.RegisterChatServiceServer(grpcServer, chatServiceServer)
 	pbauditv1.RegisterAuditServiceServer(grpcServer, auditServiceServer)
 	pbaccessv1.RegisterAccessServiceServer(grpcServer, accessServiceServer)

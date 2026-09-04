@@ -17,6 +17,7 @@ import (
 
 	"github.com/linzhengen/hub/server/internal/domain/system/group"
 	"github.com/linzhengen/hub/server/internal/domain/system/group/grouprole"
+	"github.com/linzhengen/hub/server/internal/domain/system/organization"
 	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
 )
 
@@ -279,8 +280,8 @@ func TestGroupUseCase_List_WithPagination(t *testing.T) {
 	}
 
 	now := time.Now()
-	rows := sqlmock.NewRows([]string{"id", "name", "description", "status", "created_at", "updated_at"}).
-		AddRow("group1", "Group 1", "Description 1", "active", now, now)
+	rows := sqlmock.NewRows([]string{"id", "name", "description", "status", "org_id", "created_at", "updated_at"}).
+		AddRow("group1", "Group 1", "Description 1", "active", organization.PlatformOrgId, now, now)
 
 	countRows := sqlmock.NewRows([]string{"count"}).AddRow(1)
 
@@ -356,9 +357,9 @@ func TestGroupUseCase_List_DefaultsToABoundedPage(t *testing.T) {
 	}
 
 	now := time.Now()
-	rows := sqlmock.NewRows([]string{"id", "name", "description", "status", "created_at", "updated_at"}).
-		AddRow("group1", "Group 1", "Description 1", "active", now, now).
-		AddRow("group2", "Group 2", "Description 2", "active", now, now)
+	rows := sqlmock.NewRows([]string{"id", "name", "description", "status", "org_id", "created_at", "updated_at"}).
+		AddRow("group1", "Group 1", "Description 1", "active", organization.PlatformOrgId, now, now).
+		AddRow("group2", "Group 2", "Description 2", "active", organization.PlatformOrgId, now, now)
 
 	countRows := sqlmock.NewRows([]string{"count"}).AddRow(2)
 

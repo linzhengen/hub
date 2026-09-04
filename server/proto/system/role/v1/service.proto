@@ -66,6 +66,11 @@ message ListRoleRequest {
   repeated string role_ids = 3 [(buf.validate.field).repeated.items.string.uuid = true];
   string role_name = 4 [(buf.validate.field).string.max_len = 64];
   repeated string permission_ids = 5 [(buf.validate.field).repeated.items.string.uuid = true];
+  // Narrow to the roles one organization defines. Absent lists every role,
+  // shared and organization-defined alike.
+  //
+  // optional, so the uuid rule is skipped when the filter is not used at all.
+  optional string org_id = 6 [(buf.validate.field).string.uuid = true];
 }
 
 message ListRoleResponse {
@@ -79,6 +84,10 @@ message CreateRoleRequest {
     max_len: 64
   }];
   string description = 2 [(buf.validate.field).string.max_len = 255];
+  // Which organization defines the role. Empty creates one this installation
+  // shares with every organization, which is a bigger thing to do than it
+  // looks: a shared role can be held by any tenant's groups.
+  optional string org_id = 3 [(buf.validate.field).string.uuid = true];
 }
 
 message CreateRoleResponse {

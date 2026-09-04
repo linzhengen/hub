@@ -36,6 +36,47 @@ if (!globalThis.ResizeObserver) {
 }
 
 /**
+ * Node 26 は `localStorage` をグローバルに持つが、`--localstorage-file` が無いと
+ * 参照した時点で例外になる。これが jsdom の実装を覆い隠すため、
+ * ブラウザでは動くコードがテストでだけ「保存できない」状態になる。
+ *
+ * 保存された値を読む側（組織スイッチャなど）は例外を握り潰して既定値に倒すので
+ * テストは落ちずに素通りしてしまい、壊れていることに気づけない。
+ * そのため、メモリ上に持つ最小の実装へ差し替える。
+ */
+const localStorageAvailable = (() => {
+  try {
+    return typeof globalThis.localStorage?.getItem === 'function';
+  } catch {
+    return false;
+  }
+})();
+
+if (!localStorageAvailable) {
+  const store = new Map<string, string>();
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    writable: true,
+    value: {
+      get length() {
+        return store.size;
+      },
+      key: (index: number) => [...store.keys()][index] ?? null,
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        store.set(key, String(value));
+      },
+      removeItem: (key: string) => {
+        store.delete(key);
+      },
+      clear: () => {
+        store.clear();
+      },
+    } satisfies Storage,
+  });
+}
+
+/**
  * jsdom は scrollIntoView を実装していない。会話が伸びたときに末尾へ追従する
  * 実装がこれを呼ぶため、何もしないスタブを用意する。
  */

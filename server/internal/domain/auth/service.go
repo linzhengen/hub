@@ -19,6 +19,13 @@ type Service interface {
 	// that allow them. It reads the graph rather than asking Enforce once per
 	// user, so it costs the same whether one person is allowed or everybody is.
 	PrincipalsFor(ctx context.Context, req Request) ([]Principal, error)
+	// VisibleOrgs returns the organizations a subject may be shown data from,
+	// narrowed to orgId when they named one.
+	//
+	// It answers for a listing what Enforce answers for an operation, from the
+	// same policies - so it is served by the same cache, and a grant that has
+	// lapsed disappears from both at the same moment.
+	VisibleOrgs(ctx context.Context, subject, orgId string) (Scope, error)
 }
 
 type service struct {
@@ -50,11 +57,53 @@ func (s *service) Enforce(ctx context.Context, req Request) (bool, error) {
 	}
 	now := s.now()
 	for _, policy := range policies {
-		if allows(policy.Object, policy.Action, policy.ExpiresAt, req, now) {
+		if allows(policy.grant(), req, now) {
 			return true, nil
 		}
 	}
 	return false, nil
+}
+
+// VisibleOrgs returns the organizations the subject may be shown data from.
+//
+// A subject holding a grant through the platform organization sees everything,
+// which is what keeps a single-tenant installation reading exactly as it did
+// before organizations existed: every group the seed makes is the platform's.
+//
+// Naming an organization narrows the answer to that one, and to nothing at all
+// when the subject holds no grant there. That is deliberately not an error: a
+// caller asking about a tenant they cannot see is answered with an empty list,
+// not told whether it exists.
+func (s *service) VisibleOrgs(ctx context.Context, subject, orgId string) (Scope, error) {
+	policies, err := s.authRepo.FindUserAuthorizedPolicies(ctx, subject)
+	if err != nil {
+		return Scope{}, fmt.Errorf("failed to get user polices: %w", err)
+	}
+
+	now := s.now()
+	scope := Scope{}
+	seen := map[string]bool{}
+	for _, policy := range policies {
+		if expired(policy.ExpiresAt, now) {
+			continue
+		}
+		if policy.OrgWide {
+			scope.All = true
+			continue
+		}
+		if policy.OrgId != "" && !seen[policy.OrgId] {
+			seen[policy.OrgId] = true
+			scope.OrgIds = append(scope.OrgIds, policy.OrgId)
+		}
+	}
+
+	if orgId == "" {
+		return scope, nil
+	}
+	if scope.All || seen[orgId] {
+		return Scope{OrgIds: []string{orgId}}, nil
+	}
+	return Scope{}, nil
 }
 
 // Explain returns every route by which the subject is allowed the request.
@@ -122,7 +171,7 @@ func (s *service) PrincipalsFor(ctx context.Context, req Request) ([]Principal, 
 func matching(paths []AccessPath, req Request, now time.Time) []AccessPath {
 	var allowed []AccessPath
 	for _, path := range paths {
-		if allows(path.Object, path.Action, path.ExpiresAt, req, now) {
+		if allows(path.grant(), req, now) {
 			allowed = append(allowed, path)
 		}
 	}
@@ -148,16 +197,18 @@ func expired(expiresAt *time.Time, now time.Time) bool {
 	return expiresAt != nil && !now.Before(*expiresAt)
 }
 
-// allows reports whether a grant of object and action covers req.
+// allows reports whether a grant covers req: it has not lapsed, it reaches the
+// organization asked about, and its patterns cover the resource and the action.
 //
 // Enforce, Explain and PrincipalsFor all decide through this one function, so
 // an answer and its explanation cannot disagree about what a pattern means.
 // Splitting them would let `api.*` be enforced one way and explained another,
 // and the explanation is only worth having if it is the same rule.
-func allows(object, action string, expiresAt *time.Time, req Request, now time.Time) bool {
-	return !expired(expiresAt, now) &&
-		matchString(object, req.Object) &&
-		matchString(action, req.Action)
+func allows(g grant, req Request, now time.Time) bool {
+	return !expired(g.ExpiresAt, now) &&
+		g.reaches(req.OrgId) &&
+		matchString(g.Object, req.Object) &&
+		matchString(g.Action, req.Action)
 }
 
 // matchString reports whether str satisfies a policy pattern. `*` stands for

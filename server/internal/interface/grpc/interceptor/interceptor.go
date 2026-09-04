@@ -53,6 +53,17 @@ func PanicLoggerStreamServerInterceptor() grpc.StreamServerInterceptor {
 
 const (
 	HubVersionHeader = "hub-version"
+	// HubOrgHeader names the organization a request is about.
+	//
+	// It is a header rather than a field on every request message because it
+	// qualifies the question rather than being part of it: the same ListUser
+	// asked in two organizations is the same rpc. Absent means "anywhere I hold
+	// access", which is what every caller meant before organizations existed,
+	// so a client that has never heard of this header keeps working.
+	//
+	// grpc-gateway forwards an HTTP header as `grpcgateway-<name>` unless it is
+	// permitted, and lowercases it either way; both spellings are read.
+	HubOrgHeader = "hub-org"
 )
 
 var (
@@ -183,10 +194,32 @@ func StreamAuthInterceptor(tokenOpe token.Operator, userSvc user.Service) grpc.S
 	}
 }
 
-// authenticated records who the caller is, and the row proving they still
-// exist, for the rest of the request to read.
+// authenticated records who the caller is, the row proving they still exist,
+// and which organization they are asking about, for the rest of the request to
+// read.
 func authenticated(ctx context.Context, userID string, u *user.User) context.Context {
-	return user.NewContext(contextx.WithUserID(ctx, userID), u)
+	ctx = contextx.WithOrgID(contextx.WithUserID(ctx, userID), requestedOrg(ctx))
+	return user.NewContext(ctx, u)
+}
+
+// requestedOrg reads the organization off the request metadata, empty when the
+// caller named none.
+//
+// Nothing is inferred when it is absent. hub could pick one - the caller's only
+// organization, say - but a default that changes as somebody's memberships
+// change is a decision that silently changes with them; a caller who cares
+// which organization they are acting in has to say so.
+func requestedOrg(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	for _, key := range []string{HubOrgHeader, "grpcgateway-" + HubOrgHeader} {
+		if values := md.Get(key); len(values) > 0 {
+			return strings.TrimSpace(values[0])
+		}
+	}
+	return ""
 }
 
 func userFactory(t *token.Token) *user.User {
@@ -306,6 +339,7 @@ func authorize(
 		Subject: userID,
 		Object:  resource,
 		Action:  action,
+		OrgId:   contextx.GetOrgID(ctx),
 	})
 	if err != nil {
 		return status.Errorf(codes.Internal, "authorization error: %v", err)

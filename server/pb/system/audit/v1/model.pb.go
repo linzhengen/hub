@@ -103,8 +103,14 @@ type AuditLog struct {
 	Succeeded bool   `protobuf:"varint,9,opt,name=succeeded,proto3" json:"succeeded,omitempty"`
 	Error     string `protobuf:"bytes,10,opt,name=error,proto3" json:"error,omitempty"`
 	// What the caller said it was - a user agent. Unverified.
-	Client        string                 `protobuf:"bytes,11,opt,name=client,proto3" json:"client,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Client    string                 `protobuf:"bytes,11,opt,name=client,proto3" json:"client,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// The organization the caller was acting in, empty when they named none.
+	//
+	// The listing is already narrowed to the organizations the reader can reach,
+	// so this is not what keeps a tenant out; it is what lets somebody who can
+	// read several tell them apart.
+	OrgId         string `protobuf:"bytes,13,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -223,11 +229,18 @@ func (x *AuditLog) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *AuditLog) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
 var File_system_audit_v1_model_proto protoreflect.FileDescriptor
 
 const file_system_audit_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x1bsystem/audit/v1/model.proto\x12\x0fsystem.audit.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x87\x03\n" +
+	"\x1bsystem/audit/v1/model.proto\x12\x0fsystem.audit.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9e\x03\n" +
 	"\bAuditLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
 	"\ractor_user_id\x18\x02 \x01(\tR\vactorUserId\x122\n" +
@@ -243,7 +256,8 @@ const file_system_audit_v1_model_proto_rawDesc = "" +
 	" \x01(\tR\x05error\x12\x16\n" +
 	"\x06client\x18\v \x01(\tR\x06client\x129\n" +
 	"\n" +
-	"created_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt*H\n" +
+	"created_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x15\n" +
+	"\x06org_id\x18\r \x01(\tR\x05orgId*H\n" +
 	"\aChannel\x12\x17\n" +
 	"\x13CHANNEL_UNSPECIFIED\x10\x00\x12\x0f\n" +
 	"\vCHANNEL_API\x10\x01\x12\x13\n" +

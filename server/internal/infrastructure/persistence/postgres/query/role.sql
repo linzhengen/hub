@@ -19,11 +19,13 @@ WHERE id = $3;
 INSERT INTO roles (id,
                     name,
                     description,
+                    org_id,
                     created_at,
                     updated_at)
 VALUES ($1,
         $2,
         $3,
+        sqlc.narg(org_id),
         now(),
         now());
 

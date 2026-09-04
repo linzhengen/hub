@@ -7,9 +7,11 @@ import { AuditLogs } from '@/pages/system/AuditLogs';
 import { auditService } from '@/services/audit';
 import type { AuditLog } from '@/services/audit';
 import { userService } from '@/services/user';
+import { organizationService } from '@/services/organization';
 
 vi.mock('@/services/audit', () => ({ auditService: { list: vi.fn() } }));
 vi.mock('@/services/user', () => ({ userService: { listUsers: vi.fn() } }));
+vi.mock('@/services/organization', () => ({ organizationService: { list: vi.fn() } }));
 
 const atTheConsole: AuditLog = {
   id: 'log-1',
@@ -64,6 +66,10 @@ const lastQuery = () => vi.mocked(auditService.list).mock.calls.at(-1)?.[0];
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(organizationService.list).mockResolvedValue({
+    organizations: [{ id: 'org-1', name: 'Acme Inc.', slug: 'acme' }],
+    total: '1',
+  });
   vi.mocked(userService.listUsers).mockResolvedValue({
     users: [
       { id: 'user-1', username: 'hanako' },

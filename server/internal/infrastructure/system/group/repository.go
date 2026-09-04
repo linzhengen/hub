@@ -34,13 +34,14 @@ func (r repositoryImpl) FindOne(ctx context.Context, id string) (*group.Group, e
 		Name:        g.Name,
 		Description: g.Description,
 		Status:      group.Status(g.Status),
+		OrgId:       g.OrgID,
 		CreatedAt:   g.CreatedAt,
 		UpdatedAt:   g.UpdatedAt,
 	}, nil
 }
 
 func (r repositoryImpl) Create(ctx context.Context, g *group.Group) error {
-	return persistence.GetQ(ctx, r.q).CreateGroup(ctx, g.Id, g.Name, string(g.Status), g.Description)
+	return persistence.GetQ(ctx, r.q).CreateGroup(ctx, g.Id, g.Name, string(g.Status), g.Description, g.OrgId)
 }
 
 func (r repositoryImpl) Update(ctx context.Context, g *group.Group) error {

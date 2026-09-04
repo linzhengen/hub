@@ -59,6 +59,16 @@ CREATE TRIGGER bump_rbac_revision_on_groups
     ON "groups"
 EXECUTE FUNCTION bump_rbac_revision();
 
+-- A decision reads this one too: a policy carries the organization of the group
+-- it was reached through, and an inactive organization drops every policy
+-- inside it. Deactivating a tenant is not a write to any other table here, so
+-- without this trigger everyone in it would keep working for the length of the
+-- TTL.
+CREATE TRIGGER bump_rbac_revision_on_organizations
+    AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE
+    ON "organizations"
+EXECUTE FUNCTION bump_rbac_revision();
+
 CREATE TRIGGER bump_rbac_revision_on_group_roles
     AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE
     ON "group_roles"

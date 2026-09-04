@@ -13,6 +13,7 @@ import (
 	pbaccessv1 "github.com/linzhengen/hub/server/pb/system/access/v1"
 	pbauditv1 "github.com/linzhengen/hub/server/pb/system/audit/v1"
 	pbgrouupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
+	pborganizationv1 "github.com/linzhengen/hub/server/pb/system/organization/v1"
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	pbresourcev1 "github.com/linzhengen/hub/server/pb/system/resource/v1"
 	pbrolev1 "github.com/linzhengen/hub/server/pb/system/role/v1"
@@ -44,6 +45,7 @@ func New(
 	must(pbpermissionv1.RegisterPermissionServiceHandler(ctx, mux, conn))
 	must(pbresourcev1.RegisterResourceServiceHandler(ctx, mux, conn))
 	must(pbgrouupv1.RegisterGroupServiceHandler(ctx, mux, conn))
+	must(pborganizationv1.RegisterOrganizationServiceHandler(ctx, mux, conn))
 	must(pbchatv1.RegisterChatServiceHandler(ctx, mux, conn))
 	return mux
 }

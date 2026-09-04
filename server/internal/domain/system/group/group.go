@@ -22,8 +22,16 @@ type Group struct {
 	Name        string
 	Description string
 	Status      Status
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	// OrgId is the organization this group belongs to.
+	//
+	// The group is where the tenant boundary lives, because the group is the
+	// only edge that joins a user to a permission: every route through this
+	// group is a route inside this organization. It is set when the group is
+	// created and never changed - moving a group would carry its members'
+	// access across a boundary in one write.
+	OrgId     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 
 	Roles []RoleGrant
 }
@@ -55,11 +63,13 @@ func (g *Group) RoleIds() []string {
 func Factory(
 	Name string,
 	Description string,
+	OrgId string,
 ) *Group {
 	return &Group{
 		Id:          uuid.MustUUID().String(),
 		Name:        Name,
 		Description: Description,
+		OrgId:       OrgId,
 		Status:      Active,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),

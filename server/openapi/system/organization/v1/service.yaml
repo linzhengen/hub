@@ -1,0 +1,323 @@
+components:
+    schemas:
+        OrganizationServiceUpdateOrganizationBody:
+            properties:
+                description:
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/v1OrganizationStatus'
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1CreateOrganizationRequest:
+            properties:
+                description:
+                    type: string
+                kind:
+                    $ref: '#/components/schemas/v1OrganizationKind'
+                name:
+                    type: string
+                slug:
+                    description: |-
+                        Lowercase letters, digits and hyphens. It travels in URLs and identifiers,
+                        so anything that would have to be escaped somewhere is refused here.
+                    type: string
+            type: object
+        v1CreateOrganizationResponse:
+            properties:
+                organization:
+                    $ref: '#/components/schemas/v1Organization'
+            type: object
+        v1DeleteOrganizationResponse:
+            type: object
+        v1GetOrganizationResponse:
+            properties:
+                organization:
+                    $ref: '#/components/schemas/v1Organization'
+            type: object
+        v1ListMyOrganizationsResponse:
+            properties:
+                organizations:
+                    items:
+                        $ref: '#/components/schemas/v1Organization'
+                    type: array
+            type: object
+        v1ListOrganizationResponse:
+            properties:
+                organizations:
+                    items:
+                        $ref: '#/components/schemas/v1Organization'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1Organization:
+            description: |-
+                Organization is the boundary a permission is held within.
+
+                A group belongs to one, so every route from a user to a permission passes
+                through one, and an authorization decision can be about a place rather than
+                only about a verb.
+            properties:
+                createdAt:
+                    format: date-time
+                    type: string
+                description:
+                    type: string
+                id:
+                    type: string
+                kind:
+                    $ref: '#/components/schemas/v1OrganizationKind'
+                name:
+                    type: string
+                slug:
+                    description: |-
+                        The handle an operator types and a URL carries. Unique, because it names
+                        the tenant where a UUID would be unreadable.
+                    type: string
+                status:
+                    $ref: '#/components/schemas/v1OrganizationStatus'
+                updatedAt:
+                    format: date-time
+                    type: string
+            type: object
+        v1OrganizationKind:
+            default: ORGANIZATION_KIND_UNSPECIFIED
+            description: |-
+                OrganizationKind says what sort of tenant this is.
+
+                Nothing decides what is allowed from this field - that is what the permission
+                graph is for. It exists so a reader can tell a company from an individual,
+                and so that PLATFORM can carry the one cross-organization rule.
+
+                PLATFORM operates this installation, and grants held through it are
+                answerable about every organization. BUSINESS is a company: many people and
+                groups it defines itself. PERSONAL is one person's own organization, because
+                an individual is not a special case anywhere in hub - they are a tenant of
+                one.
+
+                The values carry no comments of their own, and must not. protoc-gen-openapiv2
+                folds per-value comments into one description for every query parameter of
+                this type, and emits it as a block scalar with an explicit indentation
+                indicator that its own continuation lines do not satisfy. The YAML is invalid
+                and nothing notices until openapi-typescript fails on it, several generator
+                steps later. Describing the values here reaches the same readers - the proto,
+                the CLI and the generated API reference - without going through that path.
+            enum:
+                - ORGANIZATION_KIND_UNSPECIFIED
+                - ORGANIZATION_KIND_PLATFORM
+                - ORGANIZATION_KIND_BUSINESS
+                - ORGANIZATION_KIND_PERSONAL
+            type: string
+        v1OrganizationStatus:
+            default: ORGANIZATION_STATUS_UNSPECIFIED
+            enum:
+                - ORGANIZATION_STATUS_UNSPECIFIED
+                - ORGANIZATION_STATUS_ACTIVE
+                - ORGANIZATION_STATUS_INACTIVE
+            type: string
+        v1UpdateOrganizationResponse:
+            properties:
+                organization:
+                    $ref: '#/components/schemas/v1Organization'
+            type: object
+info:
+    title: system/organization/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/me/organizations:
+        get:
+            description: |-
+                It is public in the same sense GetMe is: a signed-in user has to be able to
+                find out which organizations they are in before they can be granted
+                anything in one, and the answer is derived from their own memberships so it
+                discloses nothing they could not already see.
+            operationId: OrganizationService_ListMyOrganizations
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListMyOrganizationsResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            summary: ListMyOrganizations answers "where am I?" for the caller.
+            tags:
+                - OrganizationService
+    /api/v1/organizations:
+        get:
+            operationId: OrganizationService_ListOrganization
+            parameters:
+                - in: query
+                  name: name
+                  schema:
+                    type: string
+                - in: query
+                  name: slug
+                  schema:
+                    type: string
+                - in: query
+                  name: kind
+                  schema:
+                    default: ORGANIZATION_KIND_UNSPECIFIED
+                    enum:
+                        - ORGANIZATION_KIND_UNSPECIFIED
+                        - ORGANIZATION_KIND_PLATFORM
+                        - ORGANIZATION_KIND_BUSINESS
+                        - ORGANIZATION_KIND_PERSONAL
+                    type: string
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListOrganizationResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - OrganizationService
+        post:
+            operationId: OrganizationService_CreateOrganization
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateOrganizationRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateOrganizationResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - OrganizationService
+    /api/v1/organizations/{id}:
+        delete:
+            operationId: OrganizationService_DeleteOrganization
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeleteOrganizationResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - OrganizationService
+        get:
+            operationId: OrganizationService_GetOrganization
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetOrganizationResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - OrganizationService
+        put:
+            operationId: OrganizationService_UpdateOrganization
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/OrganizationServiceUpdateOrganizationBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1UpdateOrganizationResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - OrganizationService
+tags:
+    - name: OrganizationService

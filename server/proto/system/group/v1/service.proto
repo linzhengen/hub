@@ -82,6 +82,13 @@ message ListGroupRequest {
   string group_name = 4 [(buf.validate.field).string.max_len = 64];
   Group.Status status = 5;
   repeated string role_ids = 6 [(buf.validate.field).repeated.items.string.uuid = true];
+  // Narrow to one organization. Absent lists every organization the caller can
+  // reach, which is what every caller asked for before organizations existed.
+  //
+  // optional, so the uuid rule is skipped when the filter is not used at all -
+  // a bare `string` is validated even when it is empty, and every unfiltered
+  // listing would be refused. Same as the other filters in this API.
+  optional string org_id = 7 [(buf.validate.field).string.uuid = true];
 }
 
 message ListGroupResponse {
@@ -96,6 +103,9 @@ message CreateGroupRequest {
   }];
   Group.Status status = 2;
   string description = 3 [(buf.validate.field).string.max_len = 255];
+  // Which organization the group belongs to. Required: a group with no
+  // organization would be a route to a permission that no boundary contains.
+  string org_id = 4 [(buf.validate.field).string.uuid = true];
 }
 
 message CreateGroupResponse {

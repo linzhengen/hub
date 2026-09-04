@@ -13,4 +13,10 @@ message Role {
   google.protobuf.Timestamp created_at = 4;
   google.protobuf.Timestamp updated_at = 5;
   repeated string permission_ids = 6;
+  // The organization that defines this role, empty for a role this
+  // installation provides to every organization.
+  //
+  // Both live in one table so that a group's grants are looked up the same way
+  // whichever kind it holds. `admin-role` from the seed is a shared one.
+  string org_id = 7;
 }
