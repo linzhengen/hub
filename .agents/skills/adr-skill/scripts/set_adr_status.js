@@ -132,6 +132,31 @@ function setSectionStatus(lines, newStatus) {
   return { lines: out, changed };
 }
 
+// updateIndexStatus rewrites the status the index carries for this ADR.
+//
+// The index repeats a fact the ADR already states, which is the one thing this
+// project avoids everywhere else - so if the repetition is kept, it has to be
+// kept true. Changing a status without this leaves the index claiming the ADR
+// is still proposed, and an index nobody trusts is worse than no index.
+function updateIndexStatus(adrPath, newStatus) {
+  const dir = path.dirname(adrPath);
+  const indexFile = ['README.md', 'index.md']
+    .map(name => path.join(dir, name))
+    .find(p => fs.existsSync(p));
+  if (!indexFile) return false;
+
+  const base = path.basename(adrPath);
+  const content = fs.readFileSync(indexFile, 'utf8');
+  // `- [Title](2026-09-04-slug.md) (proposed, 2026-09-04)` -> swap the status.
+  const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const entry = new RegExp(`(\\]\\(\\.?/?${escaped}\\)\\s*\\()([^,)]+)`, 'g');
+  const next = content.replace(entry, `$1${newStatus}`);
+  if (next === content) return false;
+
+  fs.writeFileSync(indexFile, next, 'utf8');
+  return true;
+}
+
 function main() {
   const args = parseArgs(process.argv);
   const filePath = path.resolve(process.cwd(), args.file);
@@ -153,6 +178,8 @@ function main() {
   const newContent = r.lines.join('\n') + (hadTrailingNewline ? '\n' : '');
   fs.writeFileSync(filePath, newContent, 'utf8');
 
+  const indexUpdated = updateIndexStatus(filePath, args.status);
+
   if (args.json) {
     process.stdout.write(
       `${JSON.stringify({
@@ -160,6 +187,7 @@ function main() {
         fileRelPath: toPosix(path.relative(process.cwd(), filePath)),
         status: args.status,
         changed: true,
+        indexUpdated,
       })}\n`,
     );
   } else {

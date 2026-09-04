@@ -37,7 +37,7 @@ function parseArgs(argv) {
     noCreateDir: false,
     title: null,
     status: 'proposed',
-    template: 'simple', // simple | madr
+    template: 'brief', // brief | simple | madr
     strategy: 'auto', // auto | date | slug
     deciders: '',
     consulted: '',
@@ -81,7 +81,7 @@ function parseArgs(argv) {
           '  --dir <path>           ADR directory (default: auto-detect, else adr/)',
           '  --no-create-dir        Do not create ADR directory if missing',
           '  --status <value>       ADR status (default: proposed)',
-          '  --template simple|madr Template (default: simple)',
+          '  --template brief|simple|madr Template (default: brief)',
           '  --strategy auto|date|slug  Filename strategy (default: auto)',
           '  --deciders "a,b"      Deciders list',
           '  --consulted "a,b"     Consulted experts (RACI)',
@@ -102,7 +102,7 @@ function parseArgs(argv) {
 
   if (!out.title) die('Missing required --title');
 
-  if (!['simple', 'madr'].includes(out.template))
+  if (!['brief', 'simple', 'madr'].includes(out.template))
     die(`Invalid --template: ${out.template}`);
   if (!['auto', 'date', 'slug'].includes(out.strategy))
     die(`Invalid --strategy: ${out.strategy}`);
@@ -288,8 +288,11 @@ function updateIndex(indexFile, { relLink, title, status, date }) {
   const r = insertIndexEntryUnderHeading(lines, /^##\s+ADRs\s*$/i, entryLine);
   const nextLines = r.inserted ? r.lines : [...lines, entryLine];
 
-  let next = nextLines.join('\n');
-  if (hadTrailingNewline) next += '\n';
+  // Always end the file with a newline. The index is appended to over and over,
+  // so a missing one glues the next entry to the last line - and this repo's
+  // pre-commit hook rewrites the file anyway.
+  let next = `${nextLines.join('\n')}\n`;
+  void hadTrailingNewline;
 
   fs.mkdirSync(path.dirname(indexFile), { recursive: true });
   fs.writeFileSync(indexFile, next, 'utf8');
