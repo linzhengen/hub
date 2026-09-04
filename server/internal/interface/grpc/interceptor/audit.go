@@ -35,12 +35,23 @@ var audited = map[string]bool{
 	"/system.serviceaccount.v1.ServiceAccountService/CreateServiceAccount":       true,
 	"/system.serviceaccount.v1.ServiceAccountService/RotateServiceAccountSecret": true,
 	"/system.serviceaccount.v1.ServiceAccountService/DeleteServiceAccount":       true,
-	"/user.v1.UserService/CreateUser":                                            true,
-	"/user.v1.UserService/UpdateUser":                                            true,
-	"/user.v1.UserService/DeleteUser":                                            true,
-	"/user.v1.UserService/UpdateMe":                                              true,
-	"/user.v1.UserService/AddGroupsToUser":                                       true,
-	"/user.v1.UserService/RemoveGroupsFromUser":                                  true,
+	// An agent is a machine identity too. Registering one, rotating its
+	// credential and removing it are each a change to who can call the API.
+	//
+	// This is also the only place a *person* appears in an agent's story. An
+	// agent acts as itself, so its own calls are recorded against the agent and
+	// nothing says who asked it; the record of who registered it is therefore
+	// what an investigation has to start from, until delegation gives the audit
+	// log a chain to write.
+	"/ai.agent.v1.AgentService/CreateAgent":       true,
+	"/ai.agent.v1.AgentService/RotateAgentSecret": true,
+	"/ai.agent.v1.AgentService/DeleteAgent":       true,
+	"/user.v1.UserService/CreateUser":             true,
+	"/user.v1.UserService/UpdateUser":             true,
+	"/user.v1.UserService/DeleteUser":             true,
+	"/user.v1.UserService/UpdateMe":               true,
+	"/user.v1.UserService/AddGroupsToUser":        true,
+	"/user.v1.UserService/RemoveGroupsFromUser":   true,
 	// An organization is the boundary a permission is held within, so creating,
 	// renaming, deactivating or deleting one changes what every grant inside it
 	// reaches. Deleting one takes every group in it with it, which is the

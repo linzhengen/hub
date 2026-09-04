@@ -9,6 +9,7 @@ import (
 	healthv1pb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/linzhengen/hub/server/config"
+	pbagentv1 "github.com/linzhengen/hub/server/pb/ai/agent/v1"
 	pbchatv1 "github.com/linzhengen/hub/server/pb/ai/chat/v1"
 	pbaccessv1 "github.com/linzhengen/hub/server/pb/system/access/v1"
 	pbauditv1 "github.com/linzhengen/hub/server/pb/system/audit/v1"
@@ -47,6 +48,7 @@ func New(
 	must(pbgrouupv1.RegisterGroupServiceHandler(ctx, mux, conn))
 	must(pborganizationv1.RegisterOrganizationServiceHandler(ctx, mux, conn))
 	must(pbchatv1.RegisterChatServiceHandler(ctx, mux, conn))
+	must(pbagentv1.RegisterAgentServiceHandler(ctx, mux, conn))
 	return mux
 }
 

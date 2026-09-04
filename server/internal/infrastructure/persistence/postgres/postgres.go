@@ -47,3 +47,21 @@ func SelectCount(ctx context.Context, db *sql.DB, b *goqu.SelectDataset) (int64,
 func NewQuerier(db *sql.DB) *sqlc.Queries {
 	return sqlc.New(db)
 }
+
+// In is `column IN (values)`, and matches nothing when values is empty.
+//
+// goqu renders an empty slice as `IN ()`, which PostgreSQL rejects as a syntax
+// error rather than returning no rows - so a listing narrowed to an empty set
+// used to fail with a 500 instead of an empty page. `GetMe` was the case that
+// showed it: a principal in no group asks for its groups, the set is empty, and
+// the one rpc that is public precisely so a caller with no grants can read its
+// own profile was the one that broke.
+//
+// The rule is written here rather than at each call site because it was
+// previously written at two of them, by hand, and not at the third.
+func In(column string, values []string) goqu.Expression {
+	if len(values) == 0 {
+		return goqu.L("FALSE")
+	}
+	return goqu.Ex{column: values}
+}

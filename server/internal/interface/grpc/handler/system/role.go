@@ -59,7 +59,10 @@ func (h roleHandler) ListRole(ctx context.Context, request *pbv1.ListRoleRequest
 		OrgId:    request.GetOrgId(),
 	}
 
-	// Only add permission_ids filter if it's not empty
+	// An empty repeated field means "no filter" rather than "match nothing":
+	// absent and empty are the same value over the wire. See the note on
+	// ListUser; postgres.In is what keeps the empty set from becoming invalid
+	// SQL, and this is a separate decision about what the API means.
 	if len(request.PermissionIds) > 0 {
 		params.PermissionIds = request.PermissionIds
 	}

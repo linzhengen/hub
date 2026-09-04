@@ -30,7 +30,7 @@ CLI は素の HTTP クライアントです。エンドポイントとトーク�
 ```bash
 hub config set --endpoint http://localhost:9090 \
   --oidc-issuer http://localhost:8080/realms/hub \
-  --oidc-client-id hub
+  --oidc-client-id hub-web
 
 hub config show     # 実際に解決された設定。トークンは伏字
 hub config path     # 設定ファイルの場所
@@ -39,7 +39,7 @@ hub config path     # 設定ファイルの場所
 ```json
 {
   "endpoint": "http://localhost:9090",
-  "oidcClientId": "hub",
+  "oidcClientId": "hub-web",
   "oidcClientSecret": "",
   "oidcIssuer": "http://localhost:8080/realms/hub",
   "token": "***"

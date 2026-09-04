@@ -165,7 +165,11 @@ func (h userHandler) ListUser(ctx context.Context, request *pbv1.ListUserRequest
 		Status:     status,
 	}
 
-	// Only add group_ids filter if it's not empty
+	// An absent repeated field and an empty one are the same value over the
+	// wire, so an empty one means "no filter" rather than "match nothing".
+	// This is the API's meaning, not a guard against the empty-set SQL:
+	// postgres.In handles that. Removing it would turn `?groupIds=` from
+	// every user into none.
 	if len(request.GroupIds) > 0 {
 		params.GroupIds = request.GroupIds
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/linzhengen/hub/server/internal/domain/trans"
 	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
 	"github.com/linzhengen/hub/server/internal/usecase/pagination"
+	"github.com/linzhengen/hub/server/internal/usecase/scope"
 )
 
 var (
@@ -96,15 +97,15 @@ func (uc accessRequestUseCase) List(
 ) ([]*access.Request, int64, error) {
 	// A request names a user, a group and a reason somebody wrote, so an
 	// unnarrowed queue would show one tenant what another is asking for.
-	scope, err := visibleOrgs(ctx, uc.authSvc)
+	visible, err := scope.VisibleOrgs(ctx, uc.authSvc)
 	if err != nil {
 		return nil, 0, err
 	}
-	if scope.Empty() {
+	if visible.Empty() {
 		return nil, 0, nil
 	}
-	if !scope.All {
-		params.OrgIds = scope.OrgIds
+	if !visible.All {
+		params.OrgIds = visible.OrgIds
 	}
 
 	page := pagination.New(params.Limit, params.Offset)

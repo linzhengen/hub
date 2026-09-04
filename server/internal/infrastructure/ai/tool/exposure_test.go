@@ -104,3 +104,35 @@ func TestPublicRpcsAreOfferedWithoutAPermission(t *testing.T) {
 		t.Error("CreateAccessRequest is no longer public; asking for access now needs a permission, which is a deadlock")
 	}
 }
+
+// TestMachineIdentityIsNeverExposed fixes the rule that the assistant cannot
+// create a principal.
+//
+// Registering a service account or an agent mints credentials that hold
+// permissions with no person attached, which is precisely what the approval
+// flow exists to keep out of automation. An agent is the sharper case: it is
+// the thing an assistant has the most obvious reason to want, and it will later
+// be able to act on a user's behalf, so an assistant able to register one could
+// manufacture a second actor and then delegate to it.
+//
+// Both services are opt-in like everything else, so this test does not change
+// behaviour. It records that leaving them out is a decision rather than an
+// omission, and fails if a later edit adds one of their rpcs.
+func TestMachineIdentityIsNeverExposed(t *testing.T) {
+	catalog := defaultCatalog(t)
+	for _, service := range []string{
+		"ai.agent.v1.AgentService",
+		"system.serviceaccount.v1.ServiceAccountService",
+	} {
+		ops := catalog.OperationsOf(service)
+		if len(ops) == 0 {
+			t.Errorf("%s is not in the API catalog, so this guard is checking nothing", service)
+			continue
+		}
+		for _, op := range ops {
+			if _, listed := exposed[op.FullMethod]; listed {
+				t.Errorf("%s is exposed; the assistant must not be able to create or hold a machine identity", op.FullMethod)
+			}
+		}
+	}
+}

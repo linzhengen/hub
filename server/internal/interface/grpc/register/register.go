@@ -15,6 +15,7 @@ import (
 	"github.com/linzhengen/hub/server/internal/domain/trans"
 	"github.com/linzhengen/hub/server/internal/domain/user"
 	"github.com/linzhengen/hub/server/internal/interface/grpc/interceptor"
+	pbagentv1 "github.com/linzhengen/hub/server/pb/ai/agent/v1"
 	pbchatv1 "github.com/linzhengen/hub/server/pb/ai/chat/v1"
 	pbaccessv1 "github.com/linzhengen/hub/server/pb/system/access/v1"
 	pbauditv1 "github.com/linzhengen/hub/server/pb/system/audit/v1"
@@ -57,6 +58,7 @@ func New(
 	accessServiceServer pbaccessv1.AccessServiceServer,
 	accessRequestServiceServer pbaccessv1.AccessRequestServiceServer,
 	serviceAccountServiceServer pbserviceaccountv1.ServiceAccountServiceServer,
+	agentServiceServer pbagentv1.AgentServiceServer,
 ) *grpc.Server {
 	store, err := memorystore.New(&memorystore.Config{
 		Tokens:   opts.APIRateLimit,
@@ -124,6 +126,7 @@ func New(
 	pbaccessv1.RegisterAccessServiceServer(grpcServer, accessServiceServer)
 	pbaccessv1.RegisterAccessRequestServiceServer(grpcServer, accessRequestServiceServer)
 	pbserviceaccountv1.RegisterServiceAccountServiceServer(grpcServer, serviceAccountServiceServer)
+	pbagentv1.RegisterAgentServiceServer(grpcServer, agentServiceServer)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 	return grpcServer
 }

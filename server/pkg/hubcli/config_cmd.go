@@ -69,7 +69,7 @@ func (c *CLI) newConfigSetCommand() *cobra.Command {
 Only the flags given are changed; the rest of the profile is left alone.
 
   hub config set --endpoint http://localhost:9090 \
-      --oidc-issuer http://localhost:8080/realms/hub --oidc-client-id hub`,
+      --oidc-issuer http://localhost:8080/realms/hub --oidc-client-id hub-web`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			path, err := ConfigPath()

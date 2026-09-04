@@ -72,9 +72,21 @@ agents
   name
   client_id          Keycloak client（hub-agent-<name>）
   keycloak_id
+  auth_method        CLIENT_SECRET / PRIVATE_KEY_JWT
+  secret_rotated_at  現在の資格情報がいつ発行されたか
   parent_agent_id    サブ Agent。NULL はルート
   created_by_user_id
 ```
+
+資格情報は当面 client secret のままだが、方式は列にしてある。共有シークレットは
+機械の身元として今すすめられている形（短命・非共有・鍵にバインド）から最も離れた部分で、
+Keycloak は既に `private_key_jwt` を持っているので、移行の受け皿だけ先に作った。
+ADR: [Keep the agent credential a client secret and record its method](../decisions/2026-09-04-keep-the-agent-credential-a-client-secret-and-record-its-method.md)
+
+`org_id` / `parent_agent_id` / `created_by_user_id` の外部キーはすべて `RESTRICT` である。
+`CASCADE` にすると、組織・親 Agent・作成者のどれかを消したときに `agents` 行だけが消え、
+**Keycloak の client と `users` 行は生き残る** —— 記録の無い、生きた資格情報になる。
+「Agent を誰も持っていない状態を作らない」は、この 3 本の外部キーが持つ。
 
 これで Agent はグループに入り、ロールを持ち、期限付き付与を受け、アクセス申請の
 subject になり、監査ログに actor として現れる。`Enforce` も `audit_logs` も無改造で効く。
@@ -88,7 +100,12 @@ subject になり、監査ログに actor として現れる。`Enforce` も `au
 「ユーザーから Agent への権限委任」を、Agent の権限を**増やす**操作として実装しては
 ならない。それは委譲ではなく昇格である。委譲の定義は 1 行で書ける。
 
-> **Agent の実効権限 = Agent 自身の権限 ∩ 委譲元ユーザーの権限**
+> **Agent の実効権限 = Agent 自身の権限 ∩ 委譲元ユーザーの権限 ∩ その委譲のスコープ**
+
+3 項目は委譲そのものを狭める。ユーザーが「自分の権限を全部渡すか、何も渡さないか」しか
+選べないのは委譲ではないので、`delegations` 行がスコープを持つ。`NULL` は委譲元の全権
+（二項だった頃と同じ挙動）で、狭い委譲が普通・全権が例外である。
+ADR: [Narrow a delegation with its own scope](../decisions/2026-09-04-narrow-a-delegation-with-its-own-scope.md)
 
 交差は**付与時ではなく判定時**に取る。
 
@@ -199,7 +216,7 @@ Agent がどれだけ強い委譲を受けていても、`AddPermissionsToRole` 
 | # | Phase | 内容 | 依存 | 状態 |
 |:--|:--|:--|:--|:--|
 | 1 | 組織 + スコープ付き Enforce | 穴 1・穴 2 を同時に埋める。全体の土台 | — | **完了** |
-| 2 | Agent Identity | `agents` 登録簿 + Keycloak client + `users` 行 | 1 | 未着手 |
+| 2 | Agent Identity | `agents` 登録簿 + Keycloak client + `users` 行 | 1 | **完了** |
 | 3 | 委譲 | `delegations` + 代理チェーン付き `Enforce` + 監査 | 2 | 未着手 |
 | 4 | Agent 構成 | MCP サーバー / Skill / サブ Agent の登録と紐付け | 2 | 未着手 |
 | 5 | Runtime 抽象 + Agent Engine デプロイ | `Runtime` interface + agentengine 実装 | 4 | 未着手 |
@@ -220,6 +237,10 @@ Phase 1 は地味で、Agent は 1 体も動かない。それでも先にやっ
 - **Agent ごとの RBAC インスタンススコープ**: §4.5 の二重ゲートで足りる。
   構成の許可リストと組織スコープの両方が既にあるのに三つ目を足すと、
   どれが効いているのか説明できなくなる。
+
+  ここで退けているのは「この Agent はこのリソースの**どの行**に触れてよいか」という軸
+  であって、§4.2 の委譲スコープではない。後者は同じ `Enforce` の中で単調減少するだけで、
+  仕組みが 2 つ並ぶことにはならない。
 - **Keycloak Token Exchange**: §4.4 のとおり、組織をまたぐ外部 A2A が
   現実の要求になってから。
 - **Agent の課金・レート制限**: `ANTHROPIC_SESSION_TOKEN_BUDGET` と同じ問題を

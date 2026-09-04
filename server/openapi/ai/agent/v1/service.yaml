@@ -1,0 +1,304 @@
+components:
+    schemas:
+        AgentServiceRotateAgentSecretBody:
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1Agent:
+            description: |-
+                Agent is one program's identity: an agent hub deploys, a sub-agent one of
+                those calls, an assistant wired to a set of tools.
+
+                Authentication is still Keycloak's - an agent is a Keycloak client and gets a
+                token through the client credentials grant. This is the register that says
+                the client exists, which tenant it belongs to, what it is for and who set it
+                up.
+            properties:
+                authMethod:
+                    $ref: '#/components/schemas/v1AuthMethod'
+                clientId:
+                    description: |-
+                        What an operator configures. Derived from the name, so two agents cannot
+                        claim the same client.
+                    type: string
+                createdAt:
+                    format: date-time
+                    type: string
+                createdByUserId:
+                    description: |-
+                        The human the agent answers to. An agent with no identifiable controller is
+                        the one nobody turns off.
+                    type: string
+                description:
+                    description: |-
+                        What the agent is for. This is what a public Agent Card will say, so it is
+                        meant to be read rather than kept as an internal note.
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                orgId:
+                    description: The tenant the agent belongs to.
+                    type: string
+                parentAgentId:
+                    description: |-
+                        The agent that owns this one, empty for a root agent. It records lineage;
+                        what a sub-agent may do is bounded by the delegation chain, not by this.
+                    type: string
+                secretRotatedAt:
+                    description: |-
+                        When the current credential was issued. hub never stores the credential, so
+                        its age is the only thing that can be reported about it.
+                    format: date-time
+                    type: string
+                updatedAt:
+                    format: date-time
+                    type: string
+                userId:
+                    description: |-
+                        The hub user the agent acts as. It is a row in `users` like any other,
+                        which is what lets an agent join groups, hold roles and appear in the audit
+                        log through the same machinery a person does.
+                    type: string
+            type: object
+        v1AuthMethod:
+            default: AUTH_METHOD_UNSPECIFIED
+            description: |-
+                AuthMethod is how an agent proves it is its Keycloak client. Only
+                CLIENT_SECRET is issued today; PRIVATE_KEY_JWT is the migration away from a
+                shared secret, which Keycloak already supports.
+            enum:
+                - AUTH_METHOD_UNSPECIFIED
+                - AUTH_METHOD_CLIENT_SECRET
+                - AUTH_METHOD_PRIVATE_KEY_JWT
+            type: string
+        v1CreateAgentRequest:
+            properties:
+                description:
+                    type: string
+                name:
+                    description: |-
+                        Lowercase letters, digits and hyphens. The name becomes a Keycloak client
+                        id and a username, so anything that would need escaping somewhere is
+                        refused here instead. It is unique across the installation, not within the
+                        organization, because Keycloak's client namespace is the realm.
+                    type: string
+                orgId:
+                    description: The tenant the agent belongs to.
+                    type: string
+                parentAgentId:
+                    description: |-
+                        The agent that owns this one, absent for a root agent. It must be in the
+                        same organization. Recording it grants nothing: what a sub-agent may do is
+                        bounded by the delegation chain, which does not exist yet.
+                    type: string
+            type: object
+        v1CreateAgentResponse:
+            properties:
+                agent:
+                    $ref: '#/components/schemas/v1Agent'
+                credentials:
+                    $ref: '#/components/schemas/v1Credentials'
+            type: object
+        v1Credentials:
+            description: |-
+                Credentials are what an agent needs to authenticate.
+
+                The secret is returned once, when it is issued, and never again: hub does not
+                store it and Keycloak cannot always show it back. Losing it means rotating
+                it, which is the right cost for a credential.
+            properties:
+                clientId:
+                    type: string
+                secret:
+                    type: string
+            type: object
+        v1DeleteAgentResponse:
+            type: object
+        v1GetAgentResponse:
+            properties:
+                agent:
+                    $ref: '#/components/schemas/v1Agent'
+            type: object
+        v1ListAgentsResponse:
+            properties:
+                agents:
+                    items:
+                        $ref: '#/components/schemas/v1Agent'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1RotateAgentSecretResponse:
+            properties:
+                credentials:
+                    $ref: '#/components/schemas/v1Credentials'
+            type: object
+info:
+    title: ai/agent/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/agents:
+        get:
+            operationId: AgentService_ListAgents
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - description: |-
+                    Narrow to one tenant. Absent is every organization the caller can reach,
+                    which is never every organization unless they hold a platform grant.
+                  in: query
+                  name: orgId
+                  schema:
+                    type: string
+                - description: Narrow to one agent's children.
+                  in: query
+                  name: parentAgentId
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListAgentsResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AgentService
+        post:
+            operationId: AgentService_CreateAgent
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateAgentRequest'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateAgentResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AgentService
+    /api/v1/agents/{id}:
+        delete:
+            operationId: AgentService_DeleteAgent
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1DeleteAgentResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AgentService
+        get:
+            operationId: AgentService_GetAgent
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1GetAgentResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AgentService
+    /api/v1/agents/{id}/rotate-secret:
+        post:
+            operationId: AgentService_RotateAgentSecret
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AgentServiceRotateAgentSecretBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1RotateAgentSecretResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - AgentService
+tags:
+    - name: AgentService

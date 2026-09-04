@@ -108,7 +108,7 @@ func (uc groupUseCase) Delete(ctx context.Context, groupId string) error {
 func (uc groupUseCase) List(ctx context.Context, params *ListGroupQueryParams) ([]*group.Group, int64, error) {
 	b := uc.dialectWrapper.From("groups")
 	if params.GroupIds != nil {
-		b = b.Where(goqu.Ex{"id": params.GroupIds})
+		b = b.Where(postgres.In("id", params.GroupIds))
 	}
 	if params.GroupName != "" {
 		b = b.Where(goqu.C("name").Like(fmt.Sprintf("%%%s%%", params.GroupName)))
@@ -125,8 +125,7 @@ func (uc groupUseCase) List(ctx context.Context, params *ListGroupQueryParams) (
 			Select(goqu.L("1")).
 			Where(goqu.Ex{
 				"group_roles.group_id": goqu.I("groups.id"),
-				"group_roles.role_id":  params.RoleIds,
-			})
+			}).Where(postgres.In("group_roles.role_id", params.RoleIds))
 
 		// Use EXISTS with the subquery
 		b = b.Where(goqu.L("EXISTS ?", subquery))

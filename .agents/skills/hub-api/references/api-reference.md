@@ -11,6 +11,74 @@ Every operation below is reachable three ways:
 `rbac` is the permission the caller needs: the verb (`action`) on the
 resource identifier. A role granting `*` on `api.*` covers everything.
 
+## ai.agent.v1.AgentService
+
+### CreateAgent
+
+Register an agent and return its credentials, which are shown once.
+
+- command: `hub agent create-agent`
+- endpoint: `POST /api/v1/agents`
+- rbac: `CreateAgent` on `api.ai.agent.v1.AgentService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--name` | `name` | body | string | length 3..64 |
+| `--org-id` | `orgId` | body | string | uuid |
+| `--description` | `description` | body | string | length <= 1024 |
+| `--parent-agent-id` | `parentAgentId` | body | string | uuid |
+
+### DeleteAgent
+
+Remove an agent's identity, its credentials and its group memberships.
+
+- command: `hub agent delete-agent`
+- endpoint: `DELETE /api/v1/agents/{id}`
+- rbac: `DeleteAgent` on `api.ai.agent.v1.AgentService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### GetAgent
+
+Get a single agent by id.
+
+- command: `hub agent get-agent`
+- endpoint: `GET /api/v1/agents/{id}`
+- rbac: `GetAgent` on `api.ai.agent.v1.AgentService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### ListAgents
+
+List the registered agents the caller can reach.
+
+- command: `hub agent list-agents`
+- endpoint: `GET /api/v1/agents`
+- rbac: `ListAgents` on `api.ai.agent.v1.AgentService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--org-id` | `orgId` | query | string | uuid |
+| `--parent-agent-id` | `parentAgentId` | query | string | uuid |
+
+### RotateAgentSecret
+
+Issue a new secret for an agent and invalidate the old one.
+
+- command: `hub agent rotate-agent-secret`
+- endpoint: `POST /api/v1/agents/{id}/rotate-secret`
+- rbac: `RotateAgentSecret` on `api.ai.agent.v1.AgentService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
 ## ai.chat.v1.ChatService
 
 ### ConfirmToolCall

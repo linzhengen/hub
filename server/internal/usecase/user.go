@@ -16,6 +16,7 @@ import (
 	"github.com/linzhengen/hub/server/internal/domain/user"
 	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
+	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres"
 	"github.com/linzhengen/hub/server/internal/usecase/pagination"
 
 	"github.com/linzhengen/hub/server/pkg/logger"
@@ -275,7 +276,7 @@ func (uc userUseCase) List(ctx context.Context, params *ListUserQueryParams) ([]
 
 	// Apply filters
 	if params.UserIds != nil {
-		b = b.Where(goqu.Ex{"users.id": params.UserIds})
+		b = b.Where(postgres.In("users.id", params.UserIds))
 	}
 	if params.UserEmails != nil {
 		b = b.Where(goqu.Ex{"users.email": params.UserEmails})
@@ -292,9 +293,9 @@ func (uc userUseCase) List(ctx context.Context, params *ListUserQueryParams) ([]
 		// Create a subquery to check if the user belongs to any of the specified groups
 		subquery := uc.dialectWrapper.From("user_groups").
 			Select(goqu.L("1")).
+			Where(postgres.In("user_groups.group_id", params.GroupIds)).
 			Where(goqu.Ex{
-				"user_groups.user_id":  goqu.I("users.id"),
-				"user_groups.group_id": params.GroupIds,
+				"user_groups.user_id": goqu.I("users.id"),
 			})
 
 		// Use EXISTS with the subquery
