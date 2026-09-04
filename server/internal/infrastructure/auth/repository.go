@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/linzhengen/hub/server/internal/domain/auth"
+	"github.com/linzhengen/hub/server/internal/domain/system/organization"
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 )
 
@@ -16,6 +17,17 @@ func expiry(v sql.NullTime) *time.Time {
 	}
 	t := v.Time
 	return &t
+}
+
+// orgWide decides, once and here, whether a grant reached through this kind of
+// organization answers about every organization.
+//
+// The rule itself lives in organization.Kind.AppliesEverywhere. It is applied
+// where the graph is read rather than carried into the decision as a kind,
+// because a decision should only ever have to ask "does this reach here?" - and
+// because auth would otherwise have to know what kinds of organization exist.
+func orgWide(kind string) bool {
+	return organization.Kind(kind).AppliesEverywhere()
 }
 
 // Repository is the implementation of the auth.Repository interface
@@ -43,6 +55,8 @@ func (r *Repository) FindUserAuthorizedPolicies(ctx context.Context, userId stri
 			Object:    row.Identifier,
 			Action:    row.Verb,
 			ExpiresAt: auth.Earliest(expiry(row.GroupExpiresAt), expiry(row.RoleExpiresAt)),
+			OrgId:     row.OrgID,
+			OrgWide:   orgWide(row.OrgKind),
 		})
 	}
 
@@ -70,6 +84,9 @@ func (r *Repository) FindUserAccessPaths(ctx context.Context, userId string) ([]
 			Object:       row.Identifier,
 			Action:       row.Verb,
 			ExpiresAt:    auth.Earliest(expiry(row.GroupExpiresAt), expiry(row.RoleExpiresAt)),
+			OrgId:        row.OrgID,
+			OrgName:      row.OrgName,
+			OrgWide:      orgWide(row.OrgKind),
 		})
 	}
 	return paths, nil
@@ -92,6 +109,9 @@ func (r *Repository) FindAccessPaths(ctx context.Context) ([]auth.AccessPath, er
 			Object:       row.Identifier,
 			Action:       row.Verb,
 			ExpiresAt:    expiry(row.ExpiresAt),
+			OrgId:        row.OrgID,
+			OrgName:      row.OrgName,
+			OrgWide:      orgWide(row.OrgKind),
 		})
 	}
 	return paths, nil

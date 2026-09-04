@@ -239,6 +239,7 @@ Create a group.
 | `--name` | `name` | body | string | length 1..64 |
 | `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
 | `--description` | `description` | body | string | length <= 255 |
+| `--org-id` | `orgId` | body | string | uuid |
 
 ### DeleteGroup
 
@@ -280,6 +281,7 @@ List groups, optionally filtered by id, name, status or role.
 | `--group-name` | `groupName` | query | string | length <= 64 |
 | `--status` | `status` | query | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
 | `--role-ids` | `roleIds` | query | repeated string | each uuid |
+| `--org-id` | `orgId` | query | string | uuid |
 
 ### RemoveRolesFromGroup
 
@@ -321,6 +323,89 @@ Update a group's name, status or description.
 | `--name` | `name` | body | string | length 1..64 |
 | `--status` | `status` | body | `STATUS_UNSPECIFIED` \| `STATUS_ACTIVE` \| `STATUS_INACTIVE` |  |
 | `--description` | `description` | body | string | length <= 255 |
+
+## system.organization.v1.OrganizationService
+
+### CreateOrganization
+
+Create an organization: a boundary that groups and permissions are held within.
+
+- command: `hub organization create-organization`
+- endpoint: `POST /api/v1/organizations`
+- rbac: `CreateOrganization` on `api.system.organization.v1.OrganizationService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--name` | `name` | body | string | length 1..255 |
+| `--slug` | `slug` | body | string | length 3..64 |
+| `--kind` | `kind` | body | `ORGANIZATION_KIND_UNSPECIFIED` \| `ORGANIZATION_KIND_PLATFORM` \| `ORGANIZATION_KIND_BUSINESS` \| `ORGANIZATION_KIND_PERSONAL` |  |
+| `--description` | `description` | body | string | length <= 1024 |
+
+### DeleteOrganization
+
+Delete an organization and every group in it. The platform organization cannot be deleted.
+
+- command: `hub organization delete-organization`
+- endpoint: `DELETE /api/v1/organizations/{id}`
+- rbac: `DeleteOrganization` on `api.system.organization.v1.OrganizationService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### GetOrganization
+
+Get a single organization by id.
+
+- command: `hub organization get-organization`
+- endpoint: `GET /api/v1/organizations/{id}`
+- rbac: `GetOrganization` on `api.system.organization.v1.OrganizationService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
+### ListMyOrganizations
+
+List the organizations the authenticated user belongs to.
+
+- command: `hub organization list-my-organizations`
+- endpoint: `GET /api/v1/me/organizations`
+- rbac: none, any authenticated caller may use this rpc
+
+Takes no parameters.
+
+### ListOrganization
+
+List organizations, optionally narrowed by name, slug or kind.
+
+- command: `hub organization list-organization`
+- endpoint: `GET /api/v1/organizations`
+- rbac: `ListOrganization` on `api.system.organization.v1.OrganizationService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--name` | `name` | query | string | length <= 255 |
+| `--slug` | `slug` | query | string | length <= 64 |
+| `--kind` | `kind` | query | `ORGANIZATION_KIND_UNSPECIFIED` \| `ORGANIZATION_KIND_PLATFORM` \| `ORGANIZATION_KIND_BUSINESS` \| `ORGANIZATION_KIND_PERSONAL` |  |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+
+### UpdateOrganization
+
+Rename an organization or change its status. The kind cannot be changed.
+
+- command: `hub organization update-organization`
+- endpoint: `PUT /api/v1/organizations/{id}`
+- rbac: `UpdateOrganization` on `api.system.organization.v1.OrganizationService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+| `--name` | `name` | body | string | length 1..255 |
+| `--slug` | `slug` | body | string | length 3..64 |
+| `--description` | `description` | body | string | length <= 1024 |
+| `--status` | `status` | body | `ORGANIZATION_STATUS_UNSPECIFIED` \| `ORGANIZATION_STATUS_ACTIVE` \| `ORGANIZATION_STATUS_INACTIVE` |  |
 
 ## system.permission.v1.PermissionService
 
@@ -559,6 +644,7 @@ Create a role.
 | --- | --- | --- | --- | --- |
 | `--name` | `name` | body | string | length 1..64 |
 | `--description` | `description` | body | string | length <= 255 |
+| `--org-id` | `orgId` | body | string | uuid |
 
 ### DeleteRole
 
@@ -599,6 +685,7 @@ List roles, optionally filtered by id, name or permission.
 | `--role-ids` | `roleIds` | query | repeated string | each uuid |
 | `--role-name` | `roleName` | query | string | length <= 64 |
 | `--permission-ids` | `permissionIds` | query | repeated string | each uuid |
+| `--org-id` | `orgId` | query | string | uuid |
 
 ### RemovePermissionsFromRole
 

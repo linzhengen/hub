@@ -119,6 +119,11 @@ type ListRoleRequest struct {
 	RoleIds       []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	RoleName      string                 `protobuf:"bytes,4,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
 	PermissionIds []string               `protobuf:"bytes,5,rep,name=permission_ids,json=permissionIds,proto3" json:"permission_ids,omitempty"`
+	// Narrow to the roles one organization defines. Absent lists every role,
+	// shared and organization-defined alike.
+	//
+	// optional, so the uuid rule is skipped when the filter is not used at all.
+	OrgId         *string `protobuf:"bytes,6,opt,name=org_id,json=orgId,proto3,oneof" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -188,6 +193,13 @@ func (x *ListRoleRequest) GetPermissionIds() []string {
 	return nil
 }
 
+func (x *ListRoleRequest) GetOrgId() string {
+	if x != nil && x.OrgId != nil {
+		return *x.OrgId
+	}
+	return ""
+}
+
 type ListRoleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Roles         []*Role                `protobuf:"bytes,1,rep,name=roles,proto3" json:"roles,omitempty"`
@@ -241,9 +253,13 @@ func (x *ListRoleResponse) GetTotal() int64 {
 }
 
 type CreateRoleRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// Which organization defines the role. Empty creates one this installation
+	// shares with every organization, which is a bigger thing to do than it
+	// looks: a shared role can be held by any tenant's groups.
+	OrgId         *string `protobuf:"bytes,3,opt,name=org_id,json=orgId,proto3,oneof" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -288,6 +304,13 @@ func (x *CreateRoleRequest) GetName() string {
 func (x *CreateRoleRequest) GetDescription() string {
 	if x != nil {
 		return x.Description
+	}
+	return ""
+}
+
+func (x *CreateRoleRequest) GetOrgId() string {
+	if x != nil && x.OrgId != nil {
+		return *x.OrgId
 	}
 	return ""
 }
@@ -720,7 +743,7 @@ const file_system_role_v1_service_proto_rawDesc = "" +
 	"\x0eGetRoleRequest\x12\x18\n" +
 	"\x02id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x02id\";\n" +
 	"\x0fGetRoleResponse\x12(\n" +
-	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"\xcf\x01\n" +
+	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"\x80\x02\n" +
 	"\x0fListRoleRequest\x12\x1e\n" +
 	"\x05limit\x18\x01 \x01(\rB\b\xbaH\x05*\x03\x18\xc8\x01R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x02 \x01(\rR\x06offset\x12(\n" +
@@ -728,13 +751,17 @@ const file_system_role_v1_service_proto_rawDesc = "" +
 	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\aroleIds\x12$\n" +
 	"\trole_name\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18@R\broleName\x124\n" +
 	"\x0epermission_ids\x18\x05 \x03(\tB\r\xbaH\n" +
-	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\rpermissionIds\"T\n" +
+	"\x92\x01\a\"\x05r\x03\xb0\x01\x01R\rpermissionIds\x12$\n" +
+	"\x06org_id\x18\x06 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\x05orgId\x88\x01\x01B\t\n" +
+	"\a_org_id\"T\n" +
 	"\x10ListRoleResponse\x12*\n" +
 	"\x05roles\x18\x01 \x03(\v2\x14.system.role.v1.RoleR\x05roles\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"^\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\x8f\x01\n" +
 	"\x11CreateRoleRequest\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x04name\x12*\n" +
-	"\vdescription\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\">\n" +
+	"\vdescription\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xff\x01R\vdescription\x12$\n" +
+	"\x06org_id\x18\x03 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01H\x00R\x05orgId\x88\x01\x01B\t\n" +
+	"\a_org_id\">\n" +
 	"\x12CreateRoleResponse\x12(\n" +
 	"\x04role\x18\x01 \x01(\v2\x14.system.role.v1.RoleR\x04role\"x\n" +
 	"\x11UpdateRoleRequest\x12\x18\n" +
@@ -832,6 +859,8 @@ func file_system_role_v1_service_proto_init() {
 		return
 	}
 	file_system_role_v1_model_proto_init()
+	file_system_role_v1_service_proto_msgTypes[2].OneofWrappers = []any{}
+	file_system_role_v1_service_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

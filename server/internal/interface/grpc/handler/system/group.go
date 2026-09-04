@@ -23,6 +23,7 @@ func (h groupHandler) CreateGroup(ctx context.Context, request *pbv1.CreateGroup
 	g, err := h.groupUseCase.Create(ctx, group.Factory(
 		request.Name,
 		request.Description,
+		request.OrgId,
 	))
 	if err != nil {
 		return nil, err
@@ -54,6 +55,7 @@ func (h groupHandler) ListGroup(ctx context.Context, request *pbv1.ListGroupRequ
 		GroupName: request.GroupName,
 		Status:    status,
 		RoleIds:   request.RoleIds,
+		OrgId:     request.GetOrgId(),
 	})
 	if err != nil {
 		return nil, err

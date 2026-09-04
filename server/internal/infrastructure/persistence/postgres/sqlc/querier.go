@@ -21,6 +21,7 @@ type Querier interface {
 	CreateChatToolProposal(ctx context.Context, arg CreateChatToolProposalParams) (*ChatToolProposal, error)
 	CreateGroup(ctx context.Context, arg CreateGroupParams) error
 	CreateGroupRole(ctx context.Context, arg CreateGroupRoleParams) error
+	CreateOrganization(ctx context.Context, arg CreateOrganizationParams) error
 	CreatePermission(ctx context.Context, arg CreatePermissionParams) error
 	CreateResource(ctx context.Context, arg CreateResourceParams) error
 	CreateRole(ctx context.Context, arg CreateRoleParams) error
@@ -37,6 +38,7 @@ type Querier interface {
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
 	DeleteGroupRole(ctx context.Context, arg DeleteGroupRoleParams) error
+	DeleteOrganization(ctx context.Context, id string) error
 	DeletePermissions(ctx context.Context, id string) error
 	DeleteResource(ctx context.Context, id string) error
 	DeleteRole(ctx context.Context, id string) error
@@ -74,6 +76,10 @@ type Querier interface {
 	SelectGroupForUpdate(ctx context.Context, id string) (*Group, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRole, error)
 	SelectMemberships(ctx context.Context) ([]*SelectMembershipsRow, error)
+	SelectOrganization(ctx context.Context, id string) (*Organization, error)
+	// The slug is how an operator and a URL name a tenant, so it is looked up as
+	// often as the id is.
+	SelectOrganizationBySlug(ctx context.Context, slug string) (*Organization, error)
 	SelectPermissionById(ctx context.Context, id string) (*Permission, error)
 	SelectPermissionByResourceId(ctx context.Context, resourceID string) ([]*Permission, error)
 	SelectPermissionForUpdate(ctx context.Context, id string) (*Permission, error)
@@ -93,12 +99,28 @@ type Querier interface {
 	// "the route expires with whichever edge expires first" is stated once, in Go,
 	// where it is under test - and so that a NULL keeps meaning "never" rather than
 	// depending on how LEAST treats it.
+	//
+	// The organization is returned for the same reason and read the same way. It is
+	// the group's, because the group is the edge that joins a user to a permission,
+	// and it is returned rather than compared here so that the policy cache holds a
+	// set of policies rather than the answer to one question.
 	SelectUserAuthorizedPolices(ctx context.Context, id string) ([]*SelectUserAuthorizedPolicesRow, error)
 	SelectUserById(ctx context.Context, id string) (*User, error)
 	SelectUserForUpdate(ctx context.Context, id string) (*User, error)
 	SelectUserGroupByGroupId(ctx context.Context, groupID string) ([]*UserGroup, error)
 	SelectUserGroupByUserId(ctx context.Context, userID string) ([]*UserGroup, error)
+	// The organizations a user can reach, by way of the groups they are in. There
+	// is no membership table of its own: belonging to an organization is having a
+	// group in it, which is the same edge an authorization decision reads.
+	SelectUserOrganizations(ctx context.Context, userID string) ([]*Organization, error)
+	// org_id is not updatable. Moving a group to another organization would carry
+	// every member's access across a tenant boundary in one statement, which is a
+	// migration rather than an edit.
 	UpdateGroup(ctx context.Context, arg UpdateGroupParams) error
+	// The kind is not updatable. Changing an organization from BUSINESS to PLATFORM
+	// would hand it every tenant's data in one statement, and changing it the other
+	// way would revoke every administrator; neither is an edit, both are migrations.
+	UpdateOrganization(ctx context.Context, arg UpdateOrganizationParams) error
 	UpdatePermission(ctx context.Context, arg UpdatePermissionParams) error
 	UpdateResource(ctx context.Context, arg UpdateResourceParams) error
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) error

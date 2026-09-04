@@ -41,26 +41,33 @@ var audited = map[string]bool{
 	"/user.v1.UserService/UpdateMe":                                              true,
 	"/user.v1.UserService/AddGroupsToUser":                                       true,
 	"/user.v1.UserService/RemoveGroupsFromUser":                                  true,
-	"/system.group.v1.GroupService/CreateGroup":                                  true,
-	"/system.group.v1.GroupService/UpdateGroup":                                  true,
-	"/system.group.v1.GroupService/DeleteGroup":                                  true,
-	"/system.group.v1.GroupService/AddRolesToGroup":                              true,
-	"/system.group.v1.GroupService/RemoveRolesFromGroup":                         true,
-	"/system.group.v1.GroupService/AddUsersToGroup":                              true,
-	"/system.group.v1.GroupService/RemoveUsersFromGroup":                         true,
-	"/system.role.v1.RoleService/CreateRole":                                     true,
-	"/system.role.v1.RoleService/UpdateRole":                                     true,
-	"/system.role.v1.RoleService/DeleteRole":                                     true,
-	"/system.role.v1.RoleService/AddPermissionsToRole":                           true,
-	"/system.role.v1.RoleService/RemovePermissionsFromRole":                      true,
-	"/system.permission.v1.PermissionService/CreatePermission":                   true,
-	"/system.permission.v1.PermissionService/UpdatePermission":                   true,
-	"/system.permission.v1.PermissionService/DeletePermission":                   true,
-	"/system.resource.v1.ResourceService/CreateResource":                         true,
-	"/system.resource.v1.ResourceService/UpdateResource":                         true,
-	"/system.resource.v1.ResourceService/DeleteResource":                         true,
-	"/system.resource.v1.ResourceService/CreateMenuResource":                     true,
-	"/system.resource.v1.ResourceService/UpdateMenuResource":                     true,
+	// An organization is the boundary a permission is held within, so creating,
+	// renaming, deactivating or deleting one changes what every grant inside it
+	// reaches. Deleting one takes every group in it with it, which is the
+	// largest single revocation the API can perform.
+	"/system.organization.v1.OrganizationService/CreateOrganization": true,
+	"/system.organization.v1.OrganizationService/UpdateOrganization": true,
+	"/system.organization.v1.OrganizationService/DeleteOrganization": true,
+	"/system.group.v1.GroupService/CreateGroup":                      true,
+	"/system.group.v1.GroupService/UpdateGroup":                      true,
+	"/system.group.v1.GroupService/DeleteGroup":                      true,
+	"/system.group.v1.GroupService/AddRolesToGroup":                  true,
+	"/system.group.v1.GroupService/RemoveRolesFromGroup":             true,
+	"/system.group.v1.GroupService/AddUsersToGroup":                  true,
+	"/system.group.v1.GroupService/RemoveUsersFromGroup":             true,
+	"/system.role.v1.RoleService/CreateRole":                         true,
+	"/system.role.v1.RoleService/UpdateRole":                         true,
+	"/system.role.v1.RoleService/DeleteRole":                         true,
+	"/system.role.v1.RoleService/AddPermissionsToRole":               true,
+	"/system.role.v1.RoleService/RemovePermissionsFromRole":          true,
+	"/system.permission.v1.PermissionService/CreatePermission":       true,
+	"/system.permission.v1.PermissionService/UpdatePermission":       true,
+	"/system.permission.v1.PermissionService/DeletePermission":       true,
+	"/system.resource.v1.ResourceService/CreateResource":             true,
+	"/system.resource.v1.ResourceService/UpdateResource":             true,
+	"/system.resource.v1.ResourceService/DeleteResource":             true,
+	"/system.resource.v1.ResourceService/CreateMenuResource":         true,
+	"/system.resource.v1.ResourceService/UpdateMenuResource":         true,
 }
 
 // notAudited lists the mutating rpcs deliberately left out, so that leaving one
@@ -197,14 +204,18 @@ func newEntry(ctx context.Context, op apicatalog.Operation, req any, actor strin
 	source := audit.FromContext(ctx)
 	return &audit.Entry{
 		ActorUserId: actor,
-		Channel:     source.Channel,
-		SessionId:   source.SessionId,
-		Resource:    op.Resource,
-		Action:      op.Action,
-		TargetId:    targetId(req, nil),
-		Arguments:   arguments(req),
-		Client:      clientOf(ctx),
-		ApprovalId:  source.ApprovalId,
+		// The organization the caller named, empty when they named none. Taken
+		// from the context rather than from the request, because it qualifies
+		// every rpc rather than being a field on any of them.
+		OrgId:      contextx.GetOrgID(ctx),
+		Channel:    source.Channel,
+		SessionId:  source.SessionId,
+		Resource:   op.Resource,
+		Action:     op.Action,
+		TargetId:   targetId(req, nil),
+		Arguments:  arguments(req),
+		Client:     clientOf(ctx),
+		ApprovalId: source.ApprovalId,
 	}
 }
 

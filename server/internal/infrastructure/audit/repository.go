@@ -26,6 +26,7 @@ func (r repositoryImpl) Create(ctx context.Context, e *auditDomain.Entry) error 
 	row, err := persistence.GetQ(ctx, r.q).CreateAuditLog(
 		ctx,
 		e.ActorUserId,
+		e.OrgId,
 		string(e.Channel),
 		e.SessionId,
 		e.Resource,

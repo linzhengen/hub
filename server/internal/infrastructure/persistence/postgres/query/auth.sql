@@ -6,10 +6,22 @@
 -- "the route expires with whichever edge expires first" is stated once, in Go,
 -- where it is under test - and so that a NULL keeps meaning "never" rather than
 -- depending on how LEAST treats it.
-SELECT u.id, res.identifier, p.verb, ug.expires_at AS group_expires_at, gr.expires_at AS role_expires_at
+--
+-- The organization is returned for the same reason and read the same way. It is
+-- the group's, because the group is the edge that joins a user to a permission,
+-- and it is returned rather than compared here so that the policy cache holds a
+-- set of policies rather than the answer to one question.
+SELECT u.id,
+       res.identifier,
+       p.verb,
+       ug.expires_at AS group_expires_at,
+       gr.expires_at AS role_expires_at,
+       g.org_id,
+       o.kind         AS org_kind
 FROM users AS u
          INNER JOIN user_groups AS ug ON u.id = ug.user_id
          INNER JOIN "groups" AS g ON g.id = ug.group_id AND g.status = 'Active'
+         INNER JOIN organizations AS o ON o.id = g.org_id AND o.status = 'Active'
          INNER JOIN group_roles AS gr ON ug.group_id = gr.group_id
          INNER JOIN role_permissions AS rp ON gr.role_id = rp.role_id
          INNER JOIN permissions AS p ON rp.permission_id = p.id
@@ -26,10 +38,14 @@ SELECT g.id     AS group_id,
        res.identifier,
        p.verb,
        ug.expires_at AS group_expires_at,
-       gr.expires_at AS role_expires_at
+       gr.expires_at AS role_expires_at,
+       g.org_id,
+       o.name        AS org_name,
+       o.kind        AS org_kind
 FROM users AS u
          INNER JOIN user_groups AS ug ON u.id = ug.user_id
          INNER JOIN "groups" AS g ON g.id = ug.group_id AND g.status = 'Active'
+         INNER JOIN organizations AS o ON o.id = g.org_id AND o.status = 'Active'
          INNER JOIN group_roles AS gr ON ug.group_id = gr.group_id
          INNER JOIN roles AS r ON r.id = gr.role_id
          INNER JOIN role_permissions AS rp ON gr.role_id = rp.role_id
@@ -47,8 +63,12 @@ SELECT g.id     AS group_id,
        p.id     AS permission_id,
        res.identifier,
        p.verb,
-       gr.expires_at
+       gr.expires_at,
+       g.org_id,
+       o.name   AS org_name,
+       o.kind   AS org_kind
 FROM "groups" AS g
+         INNER JOIN organizations AS o ON o.id = g.org_id AND o.status = 'Active'
          INNER JOIN group_roles AS gr ON g.id = gr.group_id
          INNER JOIN roles AS r ON r.id = gr.role_id
          INNER JOIN role_permissions AS rp ON gr.role_id = rp.role_id

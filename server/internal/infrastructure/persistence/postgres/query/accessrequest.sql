@@ -50,6 +50,8 @@ WHERE (sqlc.narg(requester_user_id)::uuid IS NULL OR requester_user_id = sqlc.na
   AND (sqlc.narg(subject_user_id)::uuid IS NULL OR subject_user_id = sqlc.narg(subject_user_id)::uuid)
   AND (sqlc.narg(group_id)::uuid IS NULL OR group_id = sqlc.narg(group_id)::uuid)
   AND (sqlc.narg(status)::varchar IS NULL OR status = sqlc.narg(status)::varchar)
+  AND (sqlc.narg(org_ids)::uuid[] IS NULL
+       OR group_id IN (SELECT id FROM "groups" WHERE org_id = ANY (sqlc.narg(org_ids)::uuid[])))
 -- Newest first: a queue is read from the top.
 ORDER BY created_at DESC
 LIMIT sqlc.arg(row_limit) OFFSET sqlc.arg(row_offset);
@@ -60,4 +62,6 @@ FROM access_requests
 WHERE (sqlc.narg(requester_user_id)::uuid IS NULL OR requester_user_id = sqlc.narg(requester_user_id)::uuid)
   AND (sqlc.narg(subject_user_id)::uuid IS NULL OR subject_user_id = sqlc.narg(subject_user_id)::uuid)
   AND (sqlc.narg(group_id)::uuid IS NULL OR group_id = sqlc.narg(group_id)::uuid)
-  AND (sqlc.narg(status)::varchar IS NULL OR status = sqlc.narg(status)::varchar);
+  AND (sqlc.narg(status)::varchar IS NULL OR status = sqlc.narg(status)::varchar)
+  AND (sqlc.narg(org_ids)::uuid[] IS NULL
+       OR group_id IN (SELECT id FROM "groups" WHERE org_id = ANY (sqlc.narg(org_ids)::uuid[])));

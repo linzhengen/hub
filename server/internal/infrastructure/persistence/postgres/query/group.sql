@@ -10,6 +10,9 @@ WHERE id = $1 LIMIT 1 FOR
 UPDATE;
 
 -- name: UpdateGroup :exec
+-- org_id is not updatable. Moving a group to another organization would carry
+-- every member's access across a tenant boundary in one statement, which is a
+-- migration rather than an edit.
 UPDATE "groups"
 SET name        = $1,
     description = $2,
@@ -22,12 +25,14 @@ INSERT INTO "groups" (id,
                       name,
                       status,
                       description,
+                      org_id,
                       created_at,
                       updated_at)
 VALUES ($1,
         $2,
         $3,
         $4,
+        $5,
         now(),
         now());
 

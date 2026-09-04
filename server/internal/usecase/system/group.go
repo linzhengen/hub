@@ -66,6 +66,9 @@ type ListGroupQueryParams struct {
 	GroupName string
 	Status    group.Status
 	RoleIds   []string
+	// OrgId narrows the listing to one organization. Empty is every
+	// organization, which is what this query meant before there were any.
+	OrgId string
 }
 
 func (uc groupUseCase) Create(ctx context.Context, g *group.Group) (*group.Group, error) {
@@ -112,6 +115,9 @@ func (uc groupUseCase) List(ctx context.Context, params *ListGroupQueryParams) (
 	}
 	if params.Status != "" {
 		b = b.Where(goqu.Ex{"groups.status": params.Status})
+	}
+	if params.OrgId != "" {
+		b = b.Where(goqu.Ex{"groups.org_id": params.OrgId})
 	}
 	if params.RoleIds != nil {
 		// Create a subquery to check if the role belongs to any of the specified permissions
@@ -164,6 +170,9 @@ func (uc groupUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*grou
 			&i.Name,
 			&i.Description,
 			&i.Status,
+			// Scanned positionally from SELECT *, so the order here has to
+			// follow the column order in 000002.
+			&i.OrgID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -175,6 +184,7 @@ func (uc groupUseCase) list(ctx context.Context, b *goqu.SelectDataset) ([]*grou
 			Name:        i.Name,
 			Description: i.Description,
 			Status:      group.Status(i.Status),
+			OrgId:       i.OrgID,
 			CreatedAt:   i.CreatedAt,
 			UpdatedAt:   i.UpdatedAt,
 		})

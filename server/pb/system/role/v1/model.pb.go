@@ -30,6 +30,12 @@ type Role struct {
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	PermissionIds []string               `protobuf:"bytes,6,rep,name=permission_ids,json=permissionIds,proto3" json:"permission_ids,omitempty"`
+	// The organization that defines this role, empty for a role this
+	// installation provides to every organization.
+	//
+	// Both live in one table so that a group's grants are looked up the same way
+	// whichever kind it holds. `admin-role` from the seed is a shared one.
+	OrgId         string `protobuf:"bytes,7,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -106,11 +112,18 @@ func (x *Role) GetPermissionIds() []string {
 	return nil
 }
 
+func (x *Role) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
 var File_system_role_v1_model_proto protoreflect.FileDescriptor
 
 const file_system_role_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x1asystem/role/v1/model.proto\x12\x0esystem.role.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe9\x01\n" +
+	"\x1asystem/role/v1/model.proto\x12\x0esystem.role.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x80\x02\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -119,7 +132,8 @@ const file_system_role_v1_model_proto_rawDesc = "" +
 	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12%\n" +
-	"\x0epermission_ids\x18\x06 \x03(\tR\rpermissionIdsB4Z2github.com/linzhengen/hub/server/pb/system/role/v1b\x06proto3"
+	"\x0epermission_ids\x18\x06 \x03(\tR\rpermissionIds\x12\x15\n" +
+	"\x06org_id\x18\a \x01(\tR\x05orgIdB4Z2github.com/linzhengen/hub/server/pb/system/role/v1b\x06proto3"
 
 var (
 	file_system_role_v1_model_proto_rawDescOnce sync.Once

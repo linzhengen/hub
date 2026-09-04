@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { groupService, Group, CreateGroupRequest, UpdateGroupRequest } from '@/services/group.ts';
 import { roleService, Role } from '@/services/role.ts';
 import { userService, User } from '@/services/user.ts';
+import { organizationService } from '@/services/organization';
+import { getActiveOrgId } from '@/lib/active-org';
 import { Button, Modal, Input, Table, Form, Select, Space, Card, Drawer, Checkbox, Tooltip } from 'antd';
 
 const { Option } = Select;
@@ -48,6 +50,38 @@ export function Groups() {
     queryKey: ['users', 'all'],
     queryFn: () => userService.listUsers({ limit: MAX_PAGE_SIZE }),
   });
+
+  // A group belongs to exactly one organization and cannot be moved afterwards,
+  // so the choice is made once, here, and shown on every row.
+  const { data: organizationsData } = useQuery({
+    queryKey: ['organizations', 'all'],
+    queryFn: () => organizationService.list({ limit: MAX_PAGE_SIZE }),
+  });
+
+  const organizations = useMemo(
+    () => organizationsData?.organizations ?? [],
+    [organizationsData],
+  );
+
+  const organizationName = useMemo(() => {
+    const byId = new Map(organizations.map((o) => [o.id, o.name]));
+    return (id?: string) => (id ? (byId.get(id) ?? id) : '-');
+  }, [organizations]);
+
+  // Opening the form preselects whatever the header switcher is set to, and
+  // falls back to the only organization there is. It is a starting point rather
+  // than a decision: the field stays required, because the choice cannot be
+  // undone once the group exists.
+  const openCreate = () => {
+    const active = getActiveOrgId();
+    const preselected = organizations.some((o) => o.id === active)
+      ? active
+      : organizations.length === 1
+        ? (organizations[0].id ?? '')
+        : '';
+    createForm.setFieldsValue({ orgId: preselected || undefined });
+    setIsCreateOpen(true);
+  };
 
   const createMutation = useMutation({
     mutationFn: groupService.createGroup,
@@ -141,6 +175,7 @@ export function Groups() {
       name: values.name,
       description: values.description,
       status: values.status || 'STATUS_UNSPECIFIED',
+      orgId: values.orgId,
     });
   };
 
@@ -172,6 +207,12 @@ export function Groups() {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+    },
+    {
+      title: 'Organization',
+      dataIndex: 'orgId',
+      key: 'orgId',
+      render: (orgId?: string) => organizationName(orgId),
     },
     {
       title: 'Status',
@@ -317,7 +358,7 @@ export function Groups() {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setIsCreateOpen(true)}
+            onClick={openCreate}
             style={{ borderRadius: '8px' }}
           >
             Add Group
@@ -362,6 +403,22 @@ export function Groups() {
             label="Description"
           >
             <Input />
+          </Form.Item>
+          <Form.Item
+            name="orgId"
+            label="Organization"
+            extra="A group cannot be moved to another organization later: that would carry every member's access across a tenant boundary."
+            rules={[{ required: true, message: 'Please select an organization!' }]}
+          >
+            <Select
+              showSearch
+              optionFilterProp="label"
+              placeholder="Select an organization"
+              options={organizations.map((o) => ({
+                value: o.id ?? '',
+                label: o.name ?? o.slug ?? '',
+              }))}
+            />
           </Form.Item>
           <Form.Item
             name="status"

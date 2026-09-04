@@ -8,6 +8,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 
+	"github.com/linzhengen/hub/server/internal/domain/auth"
 	"github.com/linzhengen/hub/server/internal/domain/contextx"
 	oidcUserDomain "github.com/linzhengen/hub/server/internal/domain/oidc/user"
 	"github.com/linzhengen/hub/server/internal/domain/system/resource/menu"
@@ -42,6 +43,7 @@ func NewUserUseCase(
 	userGroupRepo usergroup.Repository,
 	oidcUserRepo oidcUserDomain.Repository,
 	userFinder UserFinder,
+	authSvc auth.Service,
 ) UserUseCase {
 	return &userUseCase{
 		db:             db,
@@ -52,6 +54,7 @@ func NewUserUseCase(
 		userGroupRepo:  userGroupRepo,
 		oidcUserRepo:   oidcUserRepo,
 		userFinder:     userFinder,
+		authSvc:        authSvc,
 	}
 }
 
@@ -74,6 +77,7 @@ type userUseCase struct {
 	userGroupRepo  usergroup.Repository
 	oidcUserRepo   oidcUserDomain.Repository
 	userFinder     UserFinder
+	authSvc        auth.Service
 }
 
 func (uc userUseCase) Me(ctx context.Context) (*user.User, error) {
@@ -231,9 +235,43 @@ func (uc userUseCase) Create(ctx context.Context, username, email, password stri
 	return u, nil
 }
 
+// callerId is who is asking, empty when nobody is - which VisibleOrgs answers
+// with an empty scope rather than an error, so a listing shows nothing instead
+// of everything.
+func callerId(ctx context.Context) string {
+	id, _ := contextx.GetUserID(ctx)
+	return id
+}
+
 func (uc userUseCase) List(ctx context.Context, params *ListUserQueryParams) ([]*user.User, int64, error) {
+	// A user is visible where they hold a place: a directory of everybody on the
+	// installation is not one tenant's to read.
+	//
+	// The consequence is that somebody who belongs to no group is visible only
+	// to the platform, which is where a brand-new account starts. That is the
+	// right way round - a tenant admin sees the people in their tenant - but it
+	// is the reason a new user does not appear in another tenant's picker.
+	scope, err := uc.authSvc.VisibleOrgs(ctx, callerId(ctx), contextx.GetOrgID(ctx))
+	if err != nil {
+		return nil, 0, err
+	}
+	if scope.Empty() {
+		return nil, 0, nil
+	}
+
 	// Start with a base query for users
 	b := uc.dialectWrapper.From("users")
+
+	if !scope.All {
+		visible := uc.dialectWrapper.From("user_groups").
+			Join(goqu.I("groups"), goqu.On(goqu.I("groups.id").Eq(goqu.I("user_groups.group_id")))).
+			Select(goqu.L("1")).
+			Where(goqu.Ex{
+				"user_groups.user_id": goqu.I("users.id"),
+				"groups.org_id":       scope.OrgIds,
+			})
+		b = b.Where(goqu.L("EXISTS ?", visible))
+	}
 
 	// Apply filters
 	if params.UserIds != nil {

@@ -8,6 +8,8 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
 )
 
 const countAccessRequests = `-- name: CountAccessRequests :one
@@ -17,6 +19,8 @@ WHERE ($1::uuid IS NULL OR requester_user_id = $1::uuid)
   AND ($2::uuid IS NULL OR subject_user_id = $2::uuid)
   AND ($3::uuid IS NULL OR group_id = $3::uuid)
   AND ($4::varchar IS NULL OR status = $4::varchar)
+  AND ($5::uuid[] IS NULL
+       OR group_id IN (SELECT id FROM "groups" WHERE org_id = ANY ($5::uuid[])))
 `
 
 type CountAccessRequestsParams struct {
@@ -24,6 +28,7 @@ type CountAccessRequestsParams struct {
 	SubjectUserID   sql.NullString
 	GroupID         sql.NullString
 	Status          sql.NullString
+	OrgIds          []string
 }
 
 func (q *Queries) CountAccessRequests(ctx context.Context, arg CountAccessRequestsParams) (int64, error) {
@@ -32,6 +37,7 @@ func (q *Queries) CountAccessRequests(ctx context.Context, arg CountAccessReques
 		arg.SubjectUserID,
 		arg.GroupID,
 		arg.Status,
+		pq.Array(arg.OrgIds),
 	)
 	var count int64
 	err := row.Scan(&count)
@@ -146,8 +152,10 @@ WHERE ($1::uuid IS NULL OR requester_user_id = $1::uuid)
   AND ($2::uuid IS NULL OR subject_user_id = $2::uuid)
   AND ($3::uuid IS NULL OR group_id = $3::uuid)
   AND ($4::varchar IS NULL OR status = $4::varchar)
+  AND ($5::uuid[] IS NULL
+       OR group_id IN (SELECT id FROM "groups" WHERE org_id = ANY ($5::uuid[])))
 ORDER BY created_at DESC
-LIMIT $6 OFFSET $5
+LIMIT $7 OFFSET $6
 `
 
 type ListAccessRequestsParams struct {
@@ -155,6 +163,7 @@ type ListAccessRequestsParams struct {
 	SubjectUserID   sql.NullString
 	GroupID         sql.NullString
 	Status          sql.NullString
+	OrgIds          []string
 	RowOffset       int32
 	RowLimit        int32
 }
@@ -169,6 +178,7 @@ func (q *Queries) ListAccessRequests(ctx context.Context, arg ListAccessRequests
 		arg.SubjectUserID,
 		arg.GroupID,
 		arg.Status,
+		pq.Array(arg.OrgIds),
 		arg.RowOffset,
 		arg.RowLimit,
 	)

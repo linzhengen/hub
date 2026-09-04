@@ -13,6 +13,11 @@ type ListParams struct {
 	SubjectUserId   string
 	GroupId         string
 	Status          Status
+	// OrgIds narrows to the requests whose group belongs to one of these
+	// organizations. nil is every organization, which is what the caller who
+	// may see every organization asks for; an empty slice would be nothing, and
+	// callers short-circuit rather than send one.
+	OrgIds []string
 }
 
 // Decision is what a decider settled a request with.

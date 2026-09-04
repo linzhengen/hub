@@ -27,6 +27,7 @@ func (h roleHandler) CreateRole(ctx context.Context, request *pbv1.CreateRoleReq
 	r, err := h.roleUseCase.Create(ctx, role.Factory(
 		request.Name,
 		request.Description,
+		request.GetOrgId(),
 	))
 	if err != nil {
 		return nil, err
@@ -55,6 +56,7 @@ func (h roleHandler) ListRole(ctx context.Context, request *pbv1.ListRoleRequest
 		Offset:   request.Offset,
 		RoleIds:  request.RoleIds,
 		RoleName: request.RoleName,
+		OrgId:    request.GetOrgId(),
 	}
 
 	// Only add permission_ids filter if it's not empty

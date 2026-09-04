@@ -33,6 +33,7 @@ type AccessRequestModel struct {
 type AuditLogModel struct {
 	ID          string
 	ActorUserID string
+	OrgID       string
 	Channel     string
 	AiSessionID string
 	Resource    string
@@ -82,6 +83,7 @@ type GroupModel struct {
 	Name        string
 	Description string
 	Status      string
+	OrgID       string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -93,6 +95,18 @@ type GroupRoleModel struct {
 	ExpiresAt sql.NullTime
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+// OrganizationModel represents a Organization in the database
+type OrganizationModel struct {
+	ID          string
+	Name        string
+	Slug        string
+	Kind        string
+	Description string
+	Status      string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 // PermissionModel represents a Permission in the database
@@ -134,6 +148,7 @@ type RoleModel struct {
 	ID          string
 	Name        string
 	Description string
+	OrgID       string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -156,6 +171,9 @@ type SelectAccessPathsModel struct {
 	Identifier   string
 	Verb         string
 	ExpiresAt    sql.NullTime
+	OrgID        string
+	OrgName      string
+	OrgKind      string
 }
 
 // SelectMembershipsModel represents a SelectMemberships in the database
@@ -177,6 +195,9 @@ type SelectUserAccessPathsModel struct {
 	Verb           string
 	GroupExpiresAt sql.NullTime
 	RoleExpiresAt  sql.NullTime
+	OrgID          string
+	OrgName        string
+	OrgKind        string
 }
 
 // SelectUserAuthorizedPolicesModel represents a SelectUserAuthorizedPolices in the database
@@ -186,6 +207,8 @@ type SelectUserAuthorizedPolicesModel struct {
 	Verb           string
 	GroupExpiresAt sql.NullTime
 	RoleExpiresAt  sql.NullTime
+	OrgID          string
+	OrgKind        string
 }
 
 // ServiceAccountModel represents a ServiceAccount in the database
@@ -226,18 +249,19 @@ type Querier interface {
 
 	AddChatSessionTokens(ctx context.Context, ID string, TokensUsed int64) error
 	AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error
-	CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string) (int64, error)
+	CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, OrgIds []string) (int64, error)
 	CountServiceAccounts(ctx context.Context) (int64, error)
 	CreateAccessRequest(ctx context.Context, ID string, RequesterUserID string, SubjectUserID string, GroupID string, Reason string, RequestedUntil sql.NullTime, Status string, Origin string, SessionID string) error
-	CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error)
+	CreateAuditLog(ctx context.Context, ActorUserID string, OrgID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error)
 	CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error)
 	CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error)
 	CreateChatToolProposal(ctx context.Context, SessionID string, ToolName string, Arguments json.RawMessage, Continuation []byte) (*ChatToolProposalModel, error)
-	CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string) error
+	CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string, OrgID string) error
 	CreateGroupRole(ctx context.Context, GroupID string, RoleID string, ExpiresAt sql.NullTime) error
+	CreateOrganization(ctx context.Context, ID string, Name string, Slug string, Kind string, Description string, Status string) error
 	CreatePermission(ctx context.Context, ID string, Verb string, ResourceID string, Description string) error
 	CreateResource(ctx context.Context, ID string, ParentID string, Name string, Identifier string, Type string, Path string, Component string, DisplayOrder int32, Description string, Metadata map[string]string, Status string) error
-	CreateRole(ctx context.Context, ID string, Name string, Description string) error
+	CreateRole(ctx context.Context, ID string, Name string, Description string, OrgID string) error
 	CreateServiceAccount(ctx context.Context, ID string, UserID string, Name string, Description string, ClientID string, KeycloakID string, CreatedByUserID string) error
 	CreateUser(ctx context.Context, ID string, Username string, Email string, Status string) error
 	CreateUserGroup(ctx context.Context, UserID string, GroupID string, ExpiresAt sql.NullTime) error
@@ -247,6 +271,7 @@ type Querier interface {
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
 	DeleteGroupRole(ctx context.Context, GroupID string, RoleID string) error
+	DeleteOrganization(ctx context.Context, id string) error
 	DeletePermission(ctx context.Context, id string) error
 	DeleteResource(ctx context.Context, id string) error
 	DeleteRole(ctx context.Context, id string) error
@@ -257,7 +282,7 @@ type Querier interface {
 	DeleteUserGroup(ctx context.Context, UserID string, GroupID string) error
 	IsPermissionInRole(ctx context.Context, RoleID string, PermissionID string) (bool, error)
 	IsUserInGroup(ctx context.Context, UserID string, GroupID string) (bool, error)
-	ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error)
+	ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, OrgIds []string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error)
 	ListServiceAccounts(ctx context.Context, RowOffset int32, RowLimit int32) ([]*ServiceAccountModel, error)
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, RoleID string, PermissionID string) error
@@ -271,6 +296,8 @@ type Querier interface {
 	SelectGroupForUpdate(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRoleModel, error)
 	SelectMembership(ctx context.Context) ([]*SelectMembershipsModel, error)
+	SelectOrganization(ctx context.Context, id string) (*OrganizationModel, error)
+	SelectOrganizationBySlug(ctx context.Context, slug string) (*OrganizationModel, error)
 	SelectPermissionById(ctx context.Context, id string) (*PermissionModel, error)
 	SelectPermissionByResourceId(ctx context.Context, resourceID string) ([]*PermissionModel, error)
 	SelectPermissionForUpdate(ctx context.Context, id string) (*PermissionModel, error)
@@ -288,7 +315,9 @@ type Querier interface {
 	SelectUserForUpdate(ctx context.Context, id string) (*UserModel, error)
 	SelectUserGroupByGroupId(ctx context.Context, groupID string) ([]*UserGroupModel, error)
 	SelectUserGroupByUserId(ctx context.Context, userID string) ([]*UserGroupModel, error)
+	SelectUserOrganization(ctx context.Context, userID string) ([]*OrganizationModel, error)
 	UpdateGroup(ctx context.Context, Name string, Description string, Status string, ID string) error
+	UpdateOrganization(ctx context.Context, Name string, Slug string, Description string, Status string, ID string) error
 	UpdatePermission(ctx context.Context, Verb string, ResourceID string, Description string, ID string) error
 	UpdateResource(ctx context.Context, ParentID string, Name string, Identifier string, Type string, Path string, Component string, DisplayOrder int32, Description string, Metadata map[string]string, Status string, ID string) error
 	UpdateRole(ctx context.Context, Name string, Description string, ID string) error
@@ -325,12 +354,13 @@ func (p *PostgreSQLQuerier) AddPermissionToRole(ctx context.Context, RoleID stri
 
 }
 
-func (p *PostgreSQLQuerier) CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string) (int64, error) {
+func (p *PostgreSQLQuerier) CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, OrgIds []string) (int64, error) {
 	row, err := p.q.CountAccessRequests(ctx, postgressqlc.CountAccessRequestsParams{
 		RequesterUserID: sql.NullString{String: RequesterUserID, Valid: RequesterUserID != ""},
 		SubjectUserID:   sql.NullString{String: SubjectUserID, Valid: SubjectUserID != ""},
 		GroupID:         sql.NullString{String: GroupID, Valid: GroupID != ""},
 		Status:          sql.NullString{String: Status, Valid: Status != ""},
+		OrgIds:          OrgIds,
 	})
 	if err != nil {
 		return 0, err
@@ -363,9 +393,10 @@ func (p *PostgreSQLQuerier) CreateAccessRequest(ctx context.Context, ID string, 
 
 }
 
-func (p *PostgreSQLQuerier) CreateAuditLog(ctx context.Context, ActorUserID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error) {
+func (p *PostgreSQLQuerier) CreateAuditLog(ctx context.Context, ActorUserID string, OrgID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error) {
 	row, err := p.q.CreateAuditLog(ctx, postgressqlc.CreateAuditLogParams{
 		ActorUserID: ActorUserID,
+		OrgID:       sql.NullString{String: OrgID, Valid: OrgID != ""},
 		Channel:     Channel,
 		AiSessionID: sql.NullString{String: AiSessionID, Valid: AiSessionID != ""},
 		Resource:    Resource,
@@ -383,6 +414,7 @@ func (p *PostgreSQLQuerier) CreateAuditLog(ctx context.Context, ActorUserID stri
 	return &AuditLogModel{
 		ID:          row.ID,
 		ActorUserID: row.ActorUserID,
+		OrgID:       row.OrgID.String,
 		Channel:     row.Channel,
 		AiSessionID: row.AiSessionID.String,
 		Resource:    row.Resource,
@@ -458,12 +490,13 @@ func (p *PostgreSQLQuerier) CreateChatToolProposal(ctx context.Context, SessionI
 
 }
 
-func (p *PostgreSQLQuerier) CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string) error {
+func (p *PostgreSQLQuerier) CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string, OrgID string) error {
 	return p.q.CreateGroup(ctx, postgressqlc.CreateGroupParams{
 		ID:          ID,
 		Name:        Name,
 		Status:      Status,
 		Description: Description,
+		OrgID:       OrgID,
 	})
 
 }
@@ -473,6 +506,18 @@ func (p *PostgreSQLQuerier) CreateGroupRole(ctx context.Context, GroupID string,
 		GroupID:   GroupID,
 		RoleID:    RoleID,
 		ExpiresAt: ExpiresAt,
+	})
+
+}
+
+func (p *PostgreSQLQuerier) CreateOrganization(ctx context.Context, ID string, Name string, Slug string, Kind string, Description string, Status string) error {
+	return p.q.CreateOrganization(ctx, postgressqlc.CreateOrganizationParams{
+		ID:          ID,
+		Name:        Name,
+		Slug:        Slug,
+		Kind:        Kind,
+		Description: Description,
+		Status:      Status,
 	})
 
 }
@@ -505,11 +550,12 @@ func (p *PostgreSQLQuerier) CreateResource(ctx context.Context, ID string, Paren
 
 }
 
-func (p *PostgreSQLQuerier) CreateRole(ctx context.Context, ID string, Name string, Description string) error {
+func (p *PostgreSQLQuerier) CreateRole(ctx context.Context, ID string, Name string, Description string, OrgID string) error {
 	return p.q.CreateRole(ctx, postgressqlc.CreateRoleParams{
 		ID:          ID,
 		Name:        Name,
 		Description: Description,
+		OrgID:       sql.NullString{String: OrgID, Valid: OrgID != ""},
 	})
 
 }
@@ -623,6 +669,11 @@ func (p *PostgreSQLQuerier) DeleteGroupRole(ctx context.Context, GroupID string,
 
 }
 
+func (p *PostgreSQLQuerier) DeleteOrganization(ctx context.Context, id string) error {
+	return p.q.DeleteOrganization(ctx, id)
+
+}
+
 func (p *PostgreSQLQuerier) DeletePermission(ctx context.Context, id string) error {
 	return p.q.DeletePermissions(ctx, id)
 
@@ -690,12 +741,13 @@ func (p *PostgreSQLQuerier) IsUserInGroup(ctx context.Context, UserID string, Gr
 
 }
 
-func (p *PostgreSQLQuerier) ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error) {
+func (p *PostgreSQLQuerier) ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, OrgIds []string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error) {
 	rows, err := p.q.ListAccessRequests(ctx, postgressqlc.ListAccessRequestsParams{
 		RequesterUserID: sql.NullString{String: RequesterUserID, Valid: RequesterUserID != ""},
 		SubjectUserID:   sql.NullString{String: SubjectUserID, Valid: SubjectUserID != ""},
 		GroupID:         sql.NullString{String: GroupID, Valid: GroupID != ""},
 		Status:          sql.NullString{String: Status, Valid: Status != ""},
+		OrgIds:          OrgIds,
 		RowOffset:       RowOffset,
 		RowLimit:        RowLimit,
 	})
@@ -780,6 +832,9 @@ func (p *PostgreSQLQuerier) SelectAccessPath(ctx context.Context) ([]*SelectAcce
 			Identifier:   row.Identifier,
 			Verb:         row.Verb,
 			ExpiresAt:    row.ExpiresAt,
+			OrgID:        row.OrgID,
+			OrgName:      row.OrgName,
+			OrgKind:      row.OrgKind,
 		}
 	}
 	return res, nil
@@ -900,6 +955,7 @@ func (p *PostgreSQLQuerier) SelectGroupById(ctx context.Context, id string) (*Gr
 		Name:        row.Name,
 		Description: row.Description,
 		Status:      row.Status,
+		OrgID:       row.OrgID,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
 	}, nil
@@ -916,6 +972,7 @@ func (p *PostgreSQLQuerier) SelectGroupForUpdate(ctx context.Context, id string)
 		Name:        row.Name,
 		Description: row.Description,
 		Status:      row.Status,
+		OrgID:       row.OrgID,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
 	}, nil
@@ -956,6 +1013,42 @@ func (p *PostgreSQLQuerier) SelectMembership(ctx context.Context) ([]*SelectMemb
 		}
 	}
 	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectOrganization(ctx context.Context, id string) (*OrganizationModel, error) {
+	row, err := p.q.SelectOrganization(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &OrganizationModel{
+		ID:          row.ID,
+		Name:        row.Name,
+		Slug:        row.Slug,
+		Kind:        row.Kind,
+		Description: row.Description,
+		Status:      row.Status,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectOrganizationBySlug(ctx context.Context, slug string) (*OrganizationModel, error) {
+	row, err := p.q.SelectOrganizationBySlug(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+	return &OrganizationModel{
+		ID:          row.ID,
+		Name:        row.Name,
+		Slug:        row.Slug,
+		Kind:        row.Kind,
+		Description: row.Description,
+		Status:      row.Status,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}, nil
 
 }
 
@@ -1110,6 +1203,7 @@ func (p *PostgreSQLQuerier) SelectRoleById(ctx context.Context, id string) (*Rol
 		ID:          row.ID,
 		Name:        row.Name,
 		Description: row.Description,
+		OrgID:       row.OrgID.String,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
 	}, nil
@@ -1125,6 +1219,7 @@ func (p *PostgreSQLQuerier) SelectRoleForUpdate(ctx context.Context, id string) 
 		ID:          row.ID,
 		Name:        row.Name,
 		Description: row.Description,
+		OrgID:       row.OrgID.String,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
 	}, nil
@@ -1185,6 +1280,9 @@ func (p *PostgreSQLQuerier) SelectUserAccessPath(ctx context.Context, id string)
 			Verb:           row.Verb,
 			GroupExpiresAt: row.GroupExpiresAt,
 			RoleExpiresAt:  row.RoleExpiresAt,
+			OrgID:          row.OrgID,
+			OrgName:        row.OrgName,
+			OrgKind:        row.OrgKind,
 		}
 	}
 	return res, nil
@@ -1204,6 +1302,8 @@ func (p *PostgreSQLQuerier) SelectUserAuthorizedPolicies(ctx context.Context, id
 			Verb:           row.Verb,
 			GroupExpiresAt: row.GroupExpiresAt,
 			RoleExpiresAt:  row.RoleExpiresAt,
+			OrgID:          row.OrgID,
+			OrgKind:        row.OrgKind,
 		}
 	}
 	return res, nil
@@ -1280,9 +1380,42 @@ func (p *PostgreSQLQuerier) SelectUserGroupByUserId(ctx context.Context, userID 
 
 }
 
+func (p *PostgreSQLQuerier) SelectUserOrganization(ctx context.Context, userID string) ([]*OrganizationModel, error) {
+	rows, err := p.q.SelectUserOrganizations(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*OrganizationModel, len(rows))
+	for i, row := range rows {
+		res[i] = &OrganizationModel{
+			ID:          row.ID,
+			Name:        row.Name,
+			Slug:        row.Slug,
+			Kind:        row.Kind,
+			Description: row.Description,
+			Status:      row.Status,
+			CreatedAt:   row.CreatedAt,
+			UpdatedAt:   row.UpdatedAt,
+		}
+	}
+	return res, nil
+
+}
+
 func (p *PostgreSQLQuerier) UpdateGroup(ctx context.Context, Name string, Description string, Status string, ID string) error {
 	return p.q.UpdateGroup(ctx, postgressqlc.UpdateGroupParams{
 		Name:        Name,
+		Description: Description,
+		Status:      Status,
+		ID:          ID,
+	})
+
+}
+
+func (p *PostgreSQLQuerier) UpdateOrganization(ctx context.Context, Name string, Slug string, Description string, Status string, ID string) error {
+	return p.q.UpdateOrganization(ctx, postgressqlc.UpdateOrganizationParams{
+		Name:        Name,
+		Slug:        Slug,
 		Description: Description,
 		Status:      Status,
 		ID:          ID,

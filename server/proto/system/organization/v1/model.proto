@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package system.organization.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/organization/v1";
+
+// Organization is the boundary a permission is held within.
+//
+// A group belongs to one, so every route from a user to a permission passes
+// through one, and an authorization decision can be about a place rather than
+// only about a verb.
+message Organization {
+  string id = 1;
+  string name = 2;
+  // The handle an operator types and a URL carries. Unique, because it names
+  // the tenant where a UUID would be unreadable.
+  string slug = 3;
+  OrganizationKind kind = 4;
+  string description = 5;
+  OrganizationStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// OrganizationKind says what sort of tenant this is.
+//
+// Nothing decides what is allowed from this field - that is what the permission
+// graph is for. It exists so a reader can tell a company from an individual,
+// and so that PLATFORM can carry the one cross-organization rule.
+//
+// PLATFORM operates this installation, and grants held through it are
+// answerable about every organization. BUSINESS is a company: many people and
+// groups it defines itself. PERSONAL is one person's own organization, because
+// an individual is not a special case anywhere in hub - they are a tenant of
+// one.
+//
+// The values carry no comments of their own, and must not. protoc-gen-openapiv2
+// folds per-value comments into one description for every query parameter of
+// this type, and emits it as a block scalar with an explicit indentation
+// indicator that its own continuation lines do not satisfy. The YAML is invalid
+// and nothing notices until openapi-typescript fails on it, several generator
+// steps later. Describing the values here reaches the same readers - the proto,
+// the CLI and the generated API reference - without going through that path.
+enum OrganizationKind {
+  ORGANIZATION_KIND_UNSPECIFIED = 0;
+  ORGANIZATION_KIND_PLATFORM = 1;
+  ORGANIZATION_KIND_BUSINESS = 2;
+  ORGANIZATION_KIND_PERSONAL = 3;
+}
+
+enum OrganizationStatus {
+  ORGANIZATION_STATUS_UNSPECIFIED = 0;
+  ORGANIZATION_STATUS_ACTIVE = 1;
+  ORGANIZATION_STATUS_INACTIVE = 2;
+}

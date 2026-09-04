@@ -483,3 +483,221 @@ func TestEarliest(t *testing.T) {
 	assert.Equal(t, &early, Earliest(&early, &late))
 	assert.Equal(t, &early, Earliest(&late, &early))
 }
+
+// TestEnforce_OrganizationScope covers the third term a decision now carries.
+//
+// The cases are written as a table because they are one rule seen from four
+// sides, and the rule is what matters: a grant answers about its own
+// organization, the platform's answers about all of them, and a request that
+// names none is asking the question every caller asked before organizations
+// existed.
+func TestEnforce_OrganizationScope(t *testing.T) {
+	const (
+		orgA = "11111111-1111-1111-1111-111111111111"
+		orgB = "22222222-2222-2222-2222-222222222222"
+	)
+
+	tests := []struct {
+		name    string
+		policy  Policy
+		reqOrg  string
+		allowed bool
+	}{
+		{
+			name:    "a grant held in an organization answers about that organization",
+			policy:  Policy{Object: "api.user.v1.UserService", Action: "ListUser", OrgId: orgA},
+			reqOrg:  orgA,
+			allowed: true,
+		},
+		{
+			name:    "and refuses the same question about another one",
+			policy:  Policy{Object: "api.user.v1.UserService", Action: "ListUser", OrgId: orgA},
+			reqOrg:  orgB,
+			allowed: false,
+		},
+		{
+			name:    "a platform grant answers about any organization",
+			policy:  Policy{Object: "api.*", Action: "*", OrgId: "platform", OrgWide: true},
+			reqOrg:  orgB,
+			allowed: true,
+		},
+		{
+			name:    "a request naming no organization is answered by any grant",
+			policy:  Policy{Object: "api.user.v1.UserService", Action: "ListUser", OrgId: orgA},
+			reqOrg:  "",
+			allowed: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(MockAuthRepository)
+			repo.On("FindUserAuthorizedPolicies", mock.Anything, "user-1").
+				Return([]Policy{tt.policy}, nil)
+
+			allowed, err := NewService(repo).Enforce(context.Background(), Request{
+				Subject: "user-1",
+				Object:  "api.user.v1.UserService",
+				Action:  "ListUser",
+				OrgId:   tt.reqOrg,
+			})
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.allowed, allowed)
+		})
+	}
+}
+
+// TestEnforce_OrganizationAndExpiryComposeIntoOneDecision guards the property
+// that makes the two narrowings safe together: a route is live only while every
+// edge of it is, so reaching the right organization does not rescue a lapsed
+// grant, and being unexpired does not reach the wrong organization.
+func TestEnforce_OrganizationAndExpiryComposeIntoOneDecision(t *testing.T) {
+	const orgA = "11111111-1111-1111-1111-111111111111"
+	now := time.Date(2026, 9, 4, 12, 0, 0, 0, time.UTC)
+	lapsed := now.Add(-time.Hour)
+
+	repo := new(MockAuthRepository)
+	repo.On("FindUserAuthorizedPolicies", mock.Anything, "user-1").
+		Return([]Policy{{
+			Object:    "api.user.v1.UserService",
+			Action:    "ListUser",
+			OrgId:     orgA,
+			ExpiresAt: &lapsed,
+		}}, nil)
+
+	svc := NewServiceWithClock(repo, func() time.Time { return now })
+
+	allowed, err := svc.Enforce(context.Background(), Request{
+		Subject: "user-1",
+		Object:  "api.user.v1.UserService",
+		Action:  "ListUser",
+		OrgId:   orgA,
+	})
+
+	assert.NoError(t, err)
+	assert.False(t, allowed, "the right organization does not revive a lapsed grant")
+}
+
+// TestExplainNamesTheOrganization checks that an explanation says where, not
+// only how. Once two tenants can hold a role of the same name, "they are in
+// group X which holds role Y" is not an answer unless X is placed.
+func TestExplainNamesTheOrganization(t *testing.T) {
+	const orgA = "11111111-1111-1111-1111-111111111111"
+
+	repo := new(MockAuthRepository)
+	repo.On("FindUserAccessPaths", mock.Anything, "user-1").
+		Return([]AccessPath{{
+			GroupId:   "group-1",
+			GroupName: "support",
+			RoleId:    "role-1",
+			RoleName:  "reader",
+			Object:    "api.user.v1.UserService",
+			Action:    "ListUser",
+			OrgId:     orgA,
+			OrgName:   "acme",
+		}}, nil)
+
+	paths, err := NewService(repo).Explain(context.Background(), Request{
+		Subject: "user-1",
+		Object:  "api.user.v1.UserService",
+		Action:  "ListUser",
+		OrgId:   orgA,
+	})
+
+	assert.NoError(t, err)
+	assert.Len(t, paths, 1)
+	assert.Equal(t, orgA, paths[0].OrgId)
+	assert.Equal(t, "acme", paths[0].OrgName)
+}
+
+// TestVisibleOrgs covers the question a listing asks: not "may they?" but "and
+// about whom?".
+func TestVisibleOrgs(t *testing.T) {
+	const (
+		orgA = "11111111-1111-1111-1111-111111111111"
+		orgB = "22222222-2222-2222-2222-222222222222"
+	)
+
+	platform := Policy{Object: "api.*", Action: "*", OrgId: "platform", OrgWide: true}
+	inA := Policy{Object: "api.*", Action: "*", OrgId: orgA}
+	inB := Policy{Object: "api.*", Action: "*", OrgId: orgB}
+
+	tests := []struct {
+		name     string
+		policies []Policy
+		asked    string
+		want     Scope
+	}{
+		{
+			name:     "a platform grant sees everything",
+			policies: []Policy{platform},
+			want:     Scope{All: true},
+		},
+		{
+			name:     "a tenant grant sees only that tenant",
+			policies: []Policy{inA},
+			want:     Scope{OrgIds: []string{orgA}},
+		},
+		{
+			name:     "two tenants are both visible, once each",
+			policies: []Policy{inA, inA, inB},
+			want:     Scope{OrgIds: []string{orgA, orgB}},
+		},
+		{
+			name:     "naming an organization narrows the platform's view to it",
+			policies: []Policy{platform},
+			asked:    orgB,
+			want:     Scope{OrgIds: []string{orgB}},
+		},
+		{
+			name:     "naming an organization the subject cannot reach admits nothing",
+			policies: []Policy{inA},
+			asked:    orgB,
+			want:     Scope{},
+		},
+		{
+			name:     "holding nothing admits nothing",
+			policies: nil,
+			want:     Scope{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := new(MockAuthRepository)
+			repo.On("FindUserAuthorizedPolicies", mock.Anything, "user-1").Return(tt.policies, nil)
+
+			scope, err := NewService(repo).VisibleOrgs(context.Background(), "user-1", tt.asked)
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want.All, scope.All)
+			assert.ElementsMatch(t, tt.want.OrgIds, scope.OrgIds)
+		})
+	}
+}
+
+// TestVisibleOrgsDropsALapsedGrant is the property that makes it safe to share a
+// cache with Enforce: the scope is decided against the clock, not against
+// whenever the policies were fetched.
+func TestVisibleOrgsDropsALapsedGrant(t *testing.T) {
+	const orgA = "11111111-1111-1111-1111-111111111111"
+	now := time.Date(2026, 9, 4, 12, 0, 0, 0, time.UTC)
+	lapsed := now.Add(-time.Hour)
+
+	repo := new(MockAuthRepository)
+	repo.On("FindUserAuthorizedPolicies", mock.Anything, "user-1").
+		Return([]Policy{{Object: "api.*", Action: "*", OrgId: orgA, ExpiresAt: &lapsed}}, nil)
+
+	svc := NewServiceWithClock(repo, func() time.Time { return now })
+	scope, err := svc.VisibleOrgs(context.Background(), "user-1", "")
+
+	assert.NoError(t, err)
+	assert.True(t, scope.Empty(), "a lapsed grant shows nothing, as it allows nothing")
+}
+
+func TestScopeEmpty(t *testing.T) {
+	assert.True(t, Scope{}.Empty())
+	assert.False(t, Scope{All: true}.Empty())
+	assert.False(t, Scope{OrgIds: []string{"x"}}.Empty())
+}

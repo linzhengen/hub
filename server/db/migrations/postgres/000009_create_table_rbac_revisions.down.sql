@@ -4,6 +4,7 @@ DROP TRIGGER IF EXISTS "bump_rbac_revision_on_role_permissions" ON "role_permiss
 DROP TRIGGER IF EXISTS "bump_rbac_revision_on_roles" ON "roles";
 DROP TRIGGER IF EXISTS "bump_rbac_revision_on_group_roles" ON "group_roles";
 DROP TRIGGER IF EXISTS "bump_rbac_revision_on_groups" ON "groups";
+DROP TRIGGER IF EXISTS "bump_rbac_revision_on_organizations" ON "organizations";
 DROP TRIGGER IF EXISTS "bump_rbac_revision_on_user_groups" ON "user_groups";
 DROP TRIGGER IF EXISTS "bump_rbac_revision_on_users" ON "users";
 

@@ -14,12 +14,14 @@ INSERT INTO "groups" (id,
                       name,
                       status,
                       description,
+                      org_id,
                       created_at,
                       updated_at)
 VALUES ($1,
         $2,
         $3,
         $4,
+        $5,
         now(),
         now())
 `
@@ -29,6 +31,7 @@ type CreateGroupParams struct {
 	Name        string
 	Status      string
 	Description string
+	OrgID       string
 }
 
 func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) error {
@@ -37,6 +40,7 @@ func (q *Queries) CreateGroup(ctx context.Context, arg CreateGroupParams) error 
 		arg.Name,
 		arg.Status,
 		arg.Description,
+		arg.OrgID,
 	)
 	return err
 }
@@ -53,7 +57,7 @@ func (q *Queries) DeleteGroup(ctx context.Context, id string) error {
 }
 
 const selectGroupById = `-- name: SelectGroupById :one
-SELECT id, name, description, status, created_at, updated_at
+SELECT id, name, description, status, org_id, created_at, updated_at
 FROM "groups"
 WHERE id = $1 LIMIT 1
 `
@@ -66,6 +70,7 @@ func (q *Queries) SelectGroupById(ctx context.Context, id string) (*Group, error
 		&i.Name,
 		&i.Description,
 		&i.Status,
+		&i.OrgID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -73,7 +78,7 @@ func (q *Queries) SelectGroupById(ctx context.Context, id string) (*Group, error
 }
 
 const selectGroupForUpdate = `-- name: SelectGroupForUpdate :one
-SELECT id, name, description, status, created_at, updated_at
+SELECT id, name, description, status, org_id, created_at, updated_at
 FROM "groups"
 WHERE id = $1 LIMIT 1 FOR
 UPDATE
@@ -87,6 +92,7 @@ func (q *Queries) SelectGroupForUpdate(ctx context.Context, id string) (*Group, 
 		&i.Name,
 		&i.Description,
 		&i.Status,
+		&i.OrgID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -109,6 +115,9 @@ type UpdateGroupParams struct {
 	ID          string
 }
 
+// org_id is not updatable. Moving a group to another organization would carry
+// every member's access across a tenant boundary in one statement, which is a
+// migration rather than an edit.
 func (q *Queries) UpdateGroup(ctx context.Context, arg UpdateGroupParams) error {
 	_, err := q.db.ExecContext(ctx, updateGroup,
 		arg.Name,

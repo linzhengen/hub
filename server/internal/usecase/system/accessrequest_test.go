@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/linzhengen/hub/server/internal/domain/access"
+	"github.com/linzhengen/hub/server/internal/domain/auth"
 	"github.com/linzhengen/hub/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
 )
@@ -124,8 +125,27 @@ func ctxAs(userId string) context.Context {
 	return contextx.WithUserID(context.Background(), userId)
 }
 
+// unscopedAuth stands in for the RBAC service. These tests are about who may
+// decide a request, not about which tenant's queue it appears in, so it reports
+// the widest possible scope; the narrowing itself is covered in the auth suite.
+type unscopedAuth struct{}
+
+func (unscopedAuth) Enforce(_ context.Context, _ auth.Request) (bool, error) { return true, nil }
+
+func (unscopedAuth) Explain(_ context.Context, _ auth.Request) ([]auth.AccessPath, error) {
+	return nil, nil
+}
+
+func (unscopedAuth) PrincipalsFor(_ context.Context, _ auth.Request) ([]auth.Principal, error) {
+	return nil, nil
+}
+
+func (unscopedAuth) VisibleOrgs(_ context.Context, _, _ string) (auth.Scope, error) {
+	return auth.Scope{All: true}, nil
+}
+
 func newUseCase(repo *fakeRequestRepo, groups *fakeUserGroupRepo) AccessRequestUseCase {
-	return NewAccessRequestUseCase(passthroughTrans{}, repo, groups)
+	return NewAccessRequestUseCase(passthroughTrans{}, repo, groups, unscopedAuth{})
 }
 
 // TestDecide_SelfApprovalIsRefused is the check the authorization interceptor

@@ -39,6 +39,7 @@ import (
 	_ "github.com/linzhengen/hub/server/pb/system/access/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/audit/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/group/v1"
+	_ "github.com/linzhengen/hub/server/pb/system/organization/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/permission/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/resource/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/role/v1"

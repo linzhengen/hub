@@ -11,6 +11,16 @@
 CREATE TABLE audit_logs (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     actor_user_id UUID        NOT NULL,
+    -- The organization the caller was acting in, NULL when they named none.
+    --
+    -- It carries no foreign key, for the same reason actor_user_id does not: the
+    -- record has to outlive the tenant it describes. "What did they do before we
+    -- offboarded them?" is exactly the question asked afterwards, and a cascade
+    -- would erase the answer.
+    --
+    -- It is also what narrows the log to one tenant. Without it, reading the
+    -- audit log is a way around every other boundary in the system.
+    org_id        UUID,
     channel       TEXT        NOT NULL CHECK (channel IN ('api', 'ai_chat')),
     -- The chat session the assistant was acting in, when channel is 'ai_chat'.
     -- It is what ties a change back to the conversation that asked for it.
@@ -36,3 +46,6 @@ CREATE INDEX idx_audit_logs_created_at ON audit_logs (created_at DESC);
 CREATE INDEX idx_audit_logs_actor ON audit_logs (actor_user_id, created_at DESC);
 CREATE INDEX idx_audit_logs_operation ON audit_logs (resource, action, created_at DESC);
 CREATE INDEX idx_audit_logs_target ON audit_logs (target_id, created_at DESC);
+-- Every read by a tenant is narrowed by this, so it leads the index rather than
+-- trailing it.
+CREATE INDEX idx_audit_logs_org ON audit_logs (org_id, created_at DESC);

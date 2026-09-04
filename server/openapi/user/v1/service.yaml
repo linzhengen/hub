@@ -121,6 +121,16 @@ components:
                     type: string
                 name:
                     type: string
+                orgId:
+                    description: |-
+                        The organization this group belongs to.
+
+                        It is the group that carries the boundary, because the group is the only
+                        edge that joins a user to a permission: placing it here places every route
+                        through it. A group does not move between organizations - that would carry
+                        its members' access across a tenant boundary in one statement - so this is
+                        set at creation and never updated.
+                    type: string
                 roles:
                     items:
                         $ref: '#/components/schemas/v1RoleGrant'

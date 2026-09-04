@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/linzhengen/hub/server/internal/domain/access"
+	"github.com/linzhengen/hub/server/internal/domain/auth"
 	"github.com/linzhengen/hub/server/internal/domain/contextx"
 	"github.com/linzhengen/hub/server/internal/domain/trans"
 	"github.com/linzhengen/hub/server/internal/domain/user/usergroup"
@@ -47,11 +48,13 @@ func NewAccessRequestUseCase(
 	transRepo trans.Repository,
 	requestRepo access.Repository,
 	userGroupRepo usergroup.Repository,
+	authSvc auth.Service,
 ) AccessRequestUseCase {
 	return &accessRequestUseCase{
 		transRepo:     transRepo,
 		requestRepo:   requestRepo,
 		userGroupRepo: userGroupRepo,
+		authSvc:       authSvc,
 	}
 }
 
@@ -59,6 +62,7 @@ type accessRequestUseCase struct {
 	transRepo     trans.Repository
 	requestRepo   access.Repository
 	userGroupRepo usergroup.Repository
+	authSvc       auth.Service
 }
 
 func (uc accessRequestUseCase) Create(
@@ -90,6 +94,19 @@ func (uc accessRequestUseCase) List(
 	ctx context.Context,
 	params access.ListParams,
 ) ([]*access.Request, int64, error) {
+	// A request names a user, a group and a reason somebody wrote, so an
+	// unnarrowed queue would show one tenant what another is asking for.
+	scope, err := visibleOrgs(ctx, uc.authSvc)
+	if err != nil {
+		return nil, 0, err
+	}
+	if scope.Empty() {
+		return nil, 0, nil
+	}
+	if !scope.All {
+		params.OrgIds = scope.OrgIds
+	}
+
 	page := pagination.New(params.Limit, params.Offset)
 	params.Limit = uint32(page.Limit())   //nolint:gosec // pagination bounds it
 	params.Offset = uint32(page.Offset()) //nolint:gosec // pagination bounds it

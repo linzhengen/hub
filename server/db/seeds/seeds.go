@@ -21,6 +21,10 @@ type Seed struct {
 		Name        string `yaml:"name"`
 		Status      string `yaml:"status"`
 		Description string `yaml:"description"`
+		// Empty falls back to the platform organization. The seed's groups are
+		// the operator's own, and a grant held through the platform reaches
+		// every tenant, so that is the right default rather than a placeholder.
+		OrgId string `yaml:"org_id"`
 	} `yaml:"groups"`
 	UserGroups []struct {
 		UserId  string `yaml:"user_id"`

@@ -72,11 +72,19 @@ func (Group_Status) EnumDescriptor() ([]byte, []int) {
 }
 
 type Group struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Status        Group_Status           `protobuf:"varint,4,opt,name=status,proto3,enum=system.group.v1.Group_Status" json:"status,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Status      Group_Status           `protobuf:"varint,4,opt,name=status,proto3,enum=system.group.v1.Group_Status" json:"status,omitempty"`
+	// The organization this group belongs to.
+	//
+	// It is the group that carries the boundary, because the group is the only
+	// edge that joins a user to a permission: placing it here places every route
+	// through it. A group does not move between organizations - that would carry
+	// its members' access across a tenant boundary in one statement - so this is
+	// set at creation and never updated.
+	OrgId         string                 `protobuf:"bytes,9,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Roles         []*RoleGrant           `protobuf:"bytes,8,rep,name=roles,proto3" json:"roles,omitempty"`
@@ -140,6 +148,13 @@ func (x *Group) GetStatus() Group_Status {
 		return x.Status
 	}
 	return Group_STATUS_UNSPECIFIED
+}
+
+func (x *Group) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
 }
 
 func (x *Group) GetCreatedAt() *timestamppb.Timestamp {
@@ -222,12 +237,13 @@ var File_system_group_v1_model_proto protoreflect.FileDescriptor
 
 const file_system_group_v1_model_proto_rawDesc = "" +
 	"\n" +
-	"\x1bsystem/group/v1/model.proto\x12\x0fsystem.group.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xfc\x02\n" +
+	"\x1bsystem/group/v1/model.proto\x12\x0fsystem.group.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x93\x03\n" +
 	"\x05Group\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
-	"\x06status\x18\x04 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x129\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x1d.system.group.v1.Group.StatusR\x06status\x12\x15\n" +
+	"\x06org_id\x18\t \x01(\tR\x05orgId\x129\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +

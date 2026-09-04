@@ -8,6 +8,7 @@ import (
 	"github.com/linzhengen/hub/server/db/seeds"
 	"github.com/linzhengen/hub/server/internal/domain/system/group"
 	"github.com/linzhengen/hub/server/internal/domain/system/group/grouprole"
+	"github.com/linzhengen/hub/server/internal/domain/system/organization"
 	"github.com/linzhengen/hub/server/internal/domain/system/permission"
 	"github.com/linzhengen/hub/server/internal/domain/system/resource"
 	"github.com/linzhengen/hub/server/internal/domain/system/role"
@@ -105,11 +106,16 @@ func (m seedUseCase) insert(ctx context.Context, data *seeds.Seed) error {
 		}
 	}
 	for _, v := range data.Groups {
+		orgId := v.OrgId
+		if orgId == "" {
+			orgId = organization.PlatformOrgId
+		}
 		if err := m.groupRepo.Create(ctx, &group.Group{
 			Id:          v.Id,
 			Name:        v.Name,
 			Status:      group.Status(v.Status),
 			Description: v.Description,
+			OrgId:       orgId,
 			UpdatedAt:   time.Now(),
 			CreatedAt:   time.Now(),
 		}); err != nil {

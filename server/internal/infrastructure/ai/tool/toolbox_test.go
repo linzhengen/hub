@@ -49,6 +49,10 @@ func (s authStub) PrincipalsFor(_ context.Context, _ auth.Request) ([]auth.Princ
 	return nil, nil
 }
 
+func (s authStub) VisibleOrgs(_ context.Context, _, _ string) (auth.Scope, error) {
+	return auth.Scope{All: true}, nil
+}
+
 // userServer is a stand-in for the real UserServiceServer, returning one user
 // with an email so the redaction can be observed.
 type userServer struct {

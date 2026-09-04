@@ -50,6 +50,12 @@ components:
                     type: string
                 name:
                     type: string
+                orgId:
+                    description: |-
+                        Which organization defines the role. Empty creates one this installation
+                        shares with every organization, which is a bigger thing to do than it
+                        looks: a shared role can be held by any tenant's groups.
+                    type: string
             type: object
         v1CreateRoleResponse:
             properties:
@@ -88,6 +94,14 @@ components:
                 id:
                     type: string
                 name:
+                    type: string
+                orgId:
+                    description: |-
+                        The organization that defines this role, empty for a role this
+                        installation provides to every organization.
+
+                        Both live in one table so that a group's grants are looked up the same way
+                        whichever kind it holds. `admin-role` from the seed is a shared one.
                     type: string
                 permissionIds:
                     items:
@@ -137,6 +151,15 @@ paths:
                     items:
                         type: string
                     type: array
+                - description: |-
+                    Narrow to the roles one organization defines. Absent lists every role,
+                    shared and organization-defined alike.
+
+                    optional, so the uuid rule is skipped when the filter is not used at all.
+                  in: query
+                  name: orgId
+                  schema:
+                    type: string
             responses:
                 "200":
                     content:

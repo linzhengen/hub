@@ -1,3 +1,4 @@
+import { getActiveOrgId } from '@/lib/active-org';
 import { clearTokens, getToken } from '@/lib/auth-token';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
@@ -33,6 +34,17 @@ export async function fetchApiResponse(endpoint: string, options: RequestInit = 
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
+
+  // Which organization the request is about. Sent here rather than added at
+  // each call site for the same reason the bearer token is: one place that can
+  // be got wrong instead of one per service.
+  //
+  // Absent when the user has not chosen one, which the server reads as "any
+  // organization I hold access in".
+  const activeOrgId = getActiveOrgId();
+  if (activeOrgId) {
+    headers['hub-org'] = activeOrgId;
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;

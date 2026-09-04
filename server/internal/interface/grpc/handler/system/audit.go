@@ -48,6 +48,7 @@ func auditDomainToPb(e *audit.Entry) *pbv1.AuditLog {
 	return &pbv1.AuditLog{
 		Id:          e.Id,
 		ActorUserId: e.ActorUserId,
+		OrgId:       e.OrgId,
 		Channel:     channelDomainToPb(e.Channel),
 		SessionId:   e.SessionId,
 		Resource:    e.Resource,

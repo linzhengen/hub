@@ -7,17 +7,20 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createRole = `-- name: CreateRole :exec
 INSERT INTO roles (id,
                     name,
                     description,
+                    org_id,
                     created_at,
                     updated_at)
 VALUES ($1,
         $2,
         $3,
+        $4,
         now(),
         now())
 `
@@ -26,10 +29,16 @@ type CreateRoleParams struct {
 	ID          string
 	Name        string
 	Description string
+	OrgID       sql.NullString
 }
 
 func (q *Queries) CreateRole(ctx context.Context, arg CreateRoleParams) error {
-	_, err := q.db.ExecContext(ctx, createRole, arg.ID, arg.Name, arg.Description)
+	_, err := q.db.ExecContext(ctx, createRole,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.OrgID,
+	)
 	return err
 }
 
@@ -45,7 +54,7 @@ func (q *Queries) DeleteRole(ctx context.Context, id string) error {
 }
 
 const selectRoleById = `-- name: SelectRoleById :one
-SELECT id, name, description, created_at, updated_at
+SELECT id, name, description, org_id, created_at, updated_at
 FROM roles
 WHERE id = $1 LIMIT 1
 `
@@ -57,6 +66,7 @@ func (q *Queries) SelectRoleById(ctx context.Context, id string) (*Role, error) 
 		&i.ID,
 		&i.Name,
 		&i.Description,
+		&i.OrgID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -64,7 +74,7 @@ func (q *Queries) SelectRoleById(ctx context.Context, id string) (*Role, error) 
 }
 
 const selectRoleForUpdate = `-- name: SelectRoleForUpdate :one
-SELECT id, name, description, created_at, updated_at
+SELECT id, name, description, org_id, created_at, updated_at
 FROM roles
 WHERE id = $1 LIMIT 1 FOR UPDATE
 `
@@ -76,6 +86,7 @@ func (q *Queries) SelectRoleForUpdate(ctx context.Context, id string) (*Role, er
 		&i.ID,
 		&i.Name,
 		&i.Description,
+		&i.OrgID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

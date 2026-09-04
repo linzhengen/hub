@@ -31,7 +31,11 @@ type Entry struct {
 	// ActorUserId is the person responsible, including when Channel is
 	// ChannelAIChat.
 	ActorUserId string
-	Channel     Channel
+	// OrgId is the organization the caller was acting in, empty when they named
+	// none. It is what narrows the log to one tenant; without it, reading the
+	// audit log would be a way around every other boundary.
+	OrgId   string
+	Channel Channel
 	// SessionId is the chat session the assistant was answering in. Empty for
 	// every other channel.
 	SessionId string

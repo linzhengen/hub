@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package system.organization.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "hub/annotations/v1/annotations.proto";
+import "system/organization/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/organization/v1";
+
+// OrganizationService manages the tenants of this installation.
+//
+// Creating an organization creates a place permissions can be held, and
+// deleting one takes every group in it away, so the whole service is
+// permission-gated and none of it is exposed to the assistant. It sits next to
+// the escalation list in spirit: changing the shape of the graph is deliberate
+// work a person does in a console.
+service OrganizationService {
+  rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/organizations"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Create an organization: a boundary that groups and permissions are held within."};
+  }
+  rpc GetOrganization(GetOrganizationRequest) returns (GetOrganizationResponse) {
+    option (google.api.http) = {get: "/api/v1/organizations/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Get a single organization by id."};
+  }
+  rpc ListOrganization(ListOrganizationRequest) returns (ListOrganizationResponse) {
+    option (google.api.http) = {get: "/api/v1/organizations"};
+    option (hub.annotations.v1.method_rule) = {summary: "List organizations, optionally narrowed by name, slug or kind."};
+  }
+  rpc UpdateOrganization(UpdateOrganizationRequest) returns (UpdateOrganizationResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/organizations/{id}"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Rename an organization or change its status. The kind cannot be changed."};
+  }
+  rpc DeleteOrganization(DeleteOrganizationRequest) returns (DeleteOrganizationResponse) {
+    option (google.api.http) = {delete: "/api/v1/organizations/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Delete an organization and every group in it. The platform organization cannot be deleted."};
+  }
+  // ListMyOrganizations answers "where am I?" for the caller.
+  //
+  // It is public in the same sense GetMe is: a signed-in user has to be able to
+  // find out which organizations they are in before they can be granted
+  // anything in one, and the answer is derived from their own memberships so it
+  // discloses nothing they could not already see.
+  rpc ListMyOrganizations(ListMyOrganizationsRequest) returns (ListMyOrganizationsResponse) {
+    option (google.api.http) = {get: "/api/v1/me/organizations"};
+    option (hub.annotations.v1.method_rule) = {
+      public: true
+      summary: "List the organizations the authenticated user belongs to."
+    };
+  }
+}
+
+message CreateOrganizationRequest {
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  // Lowercase letters, digits and hyphens. It travels in URLs and identifiers,
+  // so anything that would have to be escaped somewhere is refused here.
+  string slug = 2 [(buf.validate.field).string = {
+    min_len: 3
+    max_len: 64
+    pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+  }];
+  // PLATFORM is refused: there is one, and migration 000002 created it.
+  OrganizationKind kind = 3 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [
+      0,
+      1
+    ]
+  }];
+  string description = 4 [(buf.validate.field).string.max_len = 1024];
+}
+
+message CreateOrganizationResponse {
+  Organization organization = 1;
+}
+
+message GetOrganizationRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetOrganizationResponse {
+  Organization organization = 1;
+}
+
+message ListOrganizationRequest {
+  string name = 1 [(buf.validate.field).string.max_len = 255];
+  string slug = 2 [(buf.validate.field).string.max_len = 64];
+  OrganizationKind kind = 3 [(buf.validate.field).enum.defined_only = true];
+  uint32 limit = 4 [(buf.validate.field).uint32.lte = 200];
+  uint32 offset = 5;
+}
+
+message ListOrganizationResponse {
+  repeated Organization organizations = 1;
+  int64 total = 2;
+}
+
+message UpdateOrganizationRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  string slug = 3 [(buf.validate.field).string = {
+    min_len: 3
+    max_len: 64
+    pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+  }];
+  string description = 4 [(buf.validate.field).string.max_len = 1024];
+  OrganizationStatus status = 5 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+}
+
+message UpdateOrganizationResponse {
+  Organization organization = 1;
+}
+
+message DeleteOrganizationRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteOrganizationResponse {}
+
+message ListMyOrganizationsRequest {}
+
+message ListMyOrganizationsResponse {
+  repeated Organization organizations = 1;
+}

@@ -92,6 +92,13 @@ func TestOperationCarriesRestMappingAndRbacRule(t *testing.T) {
 // a request only adds a pending row that a different person has to approve -
 // DecideAccessRequest is not public, and refuses the requester - and cancelling
 // is refused to anyone who is not the requester.
+//
+// ListMyOrganizations is public for the same reason GetMe is, and answers the
+// same kind of question: a user has to be able to find out which organizations
+// they are in before they can hold anything in one, and a brand-new user holds
+// nothing anywhere. It is derived from the caller's own group memberships, so
+// it discloses nothing they could not already read, and it returns an empty
+// list rather than a 403 for somebody who belongs nowhere yet.
 func TestPublicOperations(t *testing.T) {
 	var public []string
 	for _, op := range apicatalog.Default().Operations() {
@@ -102,6 +109,7 @@ func TestPublicOperations(t *testing.T) {
 	assert.ElementsMatch(t, []string{
 		"/system.access.v1.AccessRequestService/CreateAccessRequest",
 		"/system.access.v1.AccessRequestService/CancelAccessRequest",
+		"/system.organization.v1.OrganizationService/ListMyOrganizations",
 		"/user.v1.UserService/GetMe",
 		"/user.v1.UserService/GetMeMenus",
 		"/user.v1.UserService/SendMeVerifyEmail",

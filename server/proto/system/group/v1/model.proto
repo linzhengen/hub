@@ -17,6 +17,14 @@ message Group {
   string name = 2;
   string description = 3;
   Status status = 4;
+  // The organization this group belongs to.
+  //
+  // It is the group that carries the boundary, because the group is the only
+  // edge that joins a user to a permission: placing it here places every route
+  // through it. A group does not move between organizations - that would carry
+  // its members' access across a tenant boundary in one statement - so this is
+  // set at creation and never updated.
+  string org_id = 9;
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
 

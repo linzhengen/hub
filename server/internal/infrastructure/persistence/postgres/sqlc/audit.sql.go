@@ -13,6 +13,7 @@ import (
 
 const createAuditLog = `-- name: CreateAuditLog :one
 INSERT INTO audit_logs (actor_user_id,
+                        org_id,
                         channel,
                         ai_session_id,
                         resource,
@@ -23,12 +24,13 @@ INSERT INTO audit_logs (actor_user_id,
                         error,
                         client,
                         approval_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-RETURNING id, actor_user_id, channel, ai_session_id, resource, action, target_id, arguments, succeeded, error, client, created_at, approval_id
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING id, actor_user_id, org_id, channel, ai_session_id, resource, action, target_id, arguments, succeeded, error, client, created_at, approval_id
 `
 
 type CreateAuditLogParams struct {
 	ActorUserID string
+	OrgID       sql.NullString
 	Channel     string
 	AiSessionID sql.NullString
 	Resource    string
@@ -44,6 +46,7 @@ type CreateAuditLogParams struct {
 func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (*AuditLog, error) {
 	row := q.db.QueryRowContext(ctx, createAuditLog,
 		arg.ActorUserID,
+		arg.OrgID,
 		arg.Channel,
 		arg.AiSessionID,
 		arg.Resource,
@@ -59,6 +62,7 @@ func (q *Queries) CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.ActorUserID,
+		&i.OrgID,
 		&i.Channel,
 		&i.AiSessionID,
 		&i.Resource,

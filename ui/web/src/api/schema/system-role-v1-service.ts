@@ -99,6 +99,12 @@ export interface components {
         v1CreateRoleRequest: {
             description?: string;
             name?: string;
+            /**
+             * @description Which organization defines the role. Empty creates one this installation
+             *     shares with every organization, which is a bigger thing to do than it
+             *     looks: a shared role can be held by any tenant's groups.
+             */
+            orgId?: string;
         };
         v1CreateRoleResponse: {
             role?: components["schemas"]["v1Role"];
@@ -121,6 +127,14 @@ export interface components {
             description?: string;
             id?: string;
             name?: string;
+            /**
+             * @description The organization that defines this role, empty for a role this
+             *     installation provides to every organization.
+             *
+             *     Both live in one table so that a group's grants are looked up the same way
+             *     whichever kind it holds. `admin-role` from the seed is a shared one.
+             */
+            orgId?: string;
             permissionIds?: string[];
             /** Format: date-time */
             updatedAt?: string;
@@ -145,6 +159,13 @@ export interface operations {
                 roleIds?: string[];
                 roleName?: string;
                 permissionIds?: string[];
+                /**
+                 * @description Narrow to the roles one organization defines. Absent lists every role,
+                 *     shared and organization-defined alike.
+                 *
+                 *     optional, so the uuid rule is skipped when the filter is not used at all.
+                 */
+                orgId?: string;
             };
             header?: never;
             path?: never;
