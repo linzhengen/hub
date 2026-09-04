@@ -17,14 +17,28 @@ Agent は持ち続ける。期限を SQL でなく `Enforce` が時刻で落と�
 ## やること
 
 - `auth.Request` に `OnBehalfOf []string`（`[親agent, …, 大元のユーザー]`）を足す。
-- `auth.Service.Enforce` を「チェーン上の全員が許可されていること」にする。
+- `auth.Service.Enforce` を「チェーン上の全員が許可されていて、
+  かつ各委譲のスコープに含まれること」にする。
   `Explain` も同じ規則を通す —— 答えと説明が食い違ってはいけない
   （`allows` が 1 つしかないのはそのため）。
 - interceptor が `hub-on-behalf-of` を読み、`delegations` を引いてチェーンを
   `contextx` に載せる。`hub-org` と同じ形（`requestedOrg` が雛形）。
+- **誰がこのヘッダを名乗れるかを、interceptor の規則として書く。**
+  `hub-org` と違って、これは「私は別人の権限で動く」という主張である。
+  - `agents` 行を持つ主体だけが名乗れる。人間の呼び出し元は無視ではなく**拒否**する ——
+    人が他人の代理を名乗れる穴は、委譲の仕組み全体を無意味にする
+  - 名乗った Agent 本人として認証されていること。他の Agent の代理チェーンは使えない
+  - チェーンは**組織をまたがない**。またぐ必要が出たら、それは
+    Keycloak Token Exchange を検討する段（メモ §4.4）であって、ここではない
 - チェーンの深さを `delegations.max_depth` で切る。
 - `audit_logs.channel` の CHECK に `'agent'` を足し、チェーンを記録する。
   承認者が「誰の代理で動いた Agent の行為か」を分かった上で判断できるように。
+- **チェーンは書き込み時に解決して記録する。**`audit_logs` は `actor_user_id` に
+  外部キーを持たない（監査行が主体と一緒に消えては監査にならない）ので、行は残るが
+  **指している先は消える** —— Agent を削除すると `users` も `agents` も消え、
+  古い監査行の actor はどこにも解決できない id になる。これは人を削除したときにも
+  起きる `audit_logs` 既存の性質だが、Agent は人よりずっと気軽に消されるので、
+  チェーンを join で復元する作りにはしないこと。
 - **`escalation` は主体の種類に関係なく効かせる。** どれだけ強い委譲を受けていても
   `AddPermissionsToRole` / `AddRolesToGroup` / `AddGroupsToUser` /
   `DecideAccessRequest` には触れない。委譲は escalation を通過する理由にならない。
@@ -34,4 +48,6 @@ Agent は持ち続ける。期限を SQL でなく `Enforce` が時刻で落と�
 - Agent が委譲元より広い権限を行使できない（委譲元の権限を落とすと即座に狭まる）。
 - チェーンが深くなるほど権限が広がることはない（単調減少のテスト）。
 - 期限切れ・失効済みの委譲では代理を名乗れない。
+- 人間の呼び出し元が `hub-on-behalf-of` を送っても代理にならない。
+- 委譲のスコープの外は、委譲元が許可されていても拒まれる。
 - 監査ログからチェーンを辿れる。

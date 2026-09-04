@@ -95,7 +95,7 @@ func (uc roleUseCase) Delete(ctx context.Context, roleId string) error {
 func (uc roleUseCase) List(ctx context.Context, params *ListRoleQueryParams) ([]*role.Role, int64, error) {
 	b := uc.dialectWrapper.From("roles")
 	if params.RoleIds != nil {
-		b = b.Where(goqu.Ex{"id": params.RoleIds})
+		b = b.Where(postgres.In("id", params.RoleIds))
 	}
 	if params.RoleName != "" {
 		b = b.Where(goqu.C("name").Like(fmt.Sprintf("%%%s%%", params.RoleName)))
@@ -107,9 +107,9 @@ func (uc roleUseCase) List(ctx context.Context, params *ListRoleQueryParams) ([]
 		// Create a subquery to check if the role belongs to any of the specified permissions
 		subquery := uc.dialectWrapper.From("role_permissions").
 			Select(goqu.L("1")).
+			Where(postgres.In("role_permissions.permission_id", params.PermissionIds)).
 			Where(goqu.Ex{
-				"role_permissions.role_id":       goqu.I("roles.id"),
-				"role_permissions.permission_id": params.PermissionIds,
+				"role_permissions.role_id": goqu.I("roles.id"),
 			})
 
 		// Use EXISTS with the subquery

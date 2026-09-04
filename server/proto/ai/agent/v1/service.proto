@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package ai.agent.v1;
+
+import "ai/agent/v1/model.proto";
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "hub/annotations/v1/annotations.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/ai/agent/v1";
+
+// AgentService registers the programs that act on the API.
+//
+// Every rpc here issues, rotates or destroys a credential, so none of it is
+// exposed to the assistant. Creating a machine identity is creating a way to
+// hold permissions with no person attached, which is the one thing the approval
+// flow exists to keep out of automation - and an agent, unlike a service
+// account, is a thing an assistant would have an obvious reason to want.
+service AgentService {
+  rpc CreateAgent(CreateAgentRequest) returns (CreateAgentResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/agents"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Register an agent and return its credentials, which are shown once."};
+  }
+  rpc GetAgent(GetAgentRequest) returns (GetAgentResponse) {
+    option (google.api.http) = {get: "/api/v1/agents/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Get a single agent by id."};
+  }
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
+    option (google.api.http) = {get: "/api/v1/agents"};
+    option (hub.annotations.v1.method_rule) = {summary: "List the registered agents the caller can reach."};
+  }
+  rpc RotateAgentSecret(RotateAgentSecretRequest) returns (RotateAgentSecretResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/agents/{id}/rotate-secret"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Issue a new secret for an agent and invalidate the old one."};
+  }
+  rpc DeleteAgent(DeleteAgentRequest) returns (DeleteAgentResponse) {
+    option (google.api.http) = {delete: "/api/v1/agents/{id}"};
+    option (hub.annotations.v1.method_rule) = {summary: "Remove an agent's identity, its credentials and its group memberships."};
+  }
+}
+
+message CreateAgentRequest {
+  // Lowercase letters, digits and hyphens. The name becomes a Keycloak client
+  // id and a username, so anything that would need escaping somewhere is
+  // refused here instead. It is unique across the installation, not within the
+  // organization, because Keycloak's client namespace is the realm.
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 3
+    max_len: 64
+    pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+  }];
+  // The tenant the agent belongs to.
+  string org_id = 2 [(buf.validate.field).string.uuid = true];
+  string description = 3 [(buf.validate.field).string.max_len = 1024];
+  // The agent that owns this one, absent for a root agent. It must be in the
+  // same organization. Recording it grants nothing: what a sub-agent may do is
+  // bounded by the delegation chain, which does not exist yet.
+  optional string parent_agent_id = 4 [(buf.validate.field).string.uuid = true];
+}
+
+message CreateAgentResponse {
+  Agent agent = 1;
+  // Shown once. There is no rpc that reads it back.
+  Credentials credentials = 2;
+}
+
+message GetAgentRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetAgentResponse {
+  Agent agent = 1;
+}
+
+message ListAgentsRequest {
+  uint32 limit = 1 [(buf.validate.field).uint32.lte = 200];
+  uint32 offset = 2;
+  // Narrow to one tenant. Absent is every organization the caller can reach,
+  // which is never every organization unless they hold a platform grant.
+  optional string org_id = 3 [(buf.validate.field).string.uuid = true];
+  // Narrow to one agent's children.
+  optional string parent_agent_id = 4 [(buf.validate.field).string.uuid = true];
+}
+
+message ListAgentsResponse {
+  repeated Agent agents = 1;
+  int64 total = 2;
+}
+
+message RotateAgentSecretRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message RotateAgentSecretResponse {
+  Credentials credentials = 1;
+}
+
+message DeleteAgentRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteAgentResponse {}

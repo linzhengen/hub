@@ -12,6 +12,7 @@ import (
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres"
 	"github.com/linzhengen/hub/server/internal/usecase/pagination"
+	"github.com/linzhengen/hub/server/internal/usecase/scope"
 
 	"github.com/linzhengen/hub/server/pkg/logger"
 )
@@ -55,17 +56,17 @@ func (uc auditUseCase) List(
 ) ([]*audit.Entry, int64, error) {
 	// The log is the one place every change in the installation is written
 	// down, so an unnarrowed read of it is a way around every other boundary.
-	scope, err := visibleOrgs(ctx, uc.authSvc)
+	visible, err := scope.VisibleOrgs(ctx, uc.authSvc)
 	if err != nil {
 		return nil, 0, err
 	}
-	if scope.Empty() {
+	if visible.Empty() {
 		return nil, 0, nil
 	}
 
 	b := uc.dialectWrapper.From("audit_logs")
-	if !scope.All {
-		b = b.Where(goqu.Ex{"org_id": scope.OrgIds})
+	if !visible.All {
+		b = b.Where(goqu.Ex{"org_id": visible.OrgIds})
 	}
 	if params.ActorUserId != "" {
 		b = b.Where(goqu.Ex{"actor_user_id": params.ActorUserId})

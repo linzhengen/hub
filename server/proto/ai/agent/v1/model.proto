@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package ai.agent.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/ai/agent/v1";
+
+// AuthMethod is how an agent proves it is its Keycloak client. Only
+// CLIENT_SECRET is issued today; PRIVATE_KEY_JWT is the migration away from a
+// shared secret, which Keycloak already supports.
+enum AuthMethod {
+  AUTH_METHOD_UNSPECIFIED = 0;
+  AUTH_METHOD_CLIENT_SECRET = 1;
+  AUTH_METHOD_PRIVATE_KEY_JWT = 2;
+}
+
+// Agent is one program's identity: an agent hub deploys, a sub-agent one of
+// those calls, an assistant wired to a set of tools.
+//
+// Authentication is still Keycloak's - an agent is a Keycloak client and gets a
+// token through the client credentials grant. This is the register that says
+// the client exists, which tenant it belongs to, what it is for and who set it
+// up.
+message Agent {
+  string id = 1;
+  // The tenant the agent belongs to.
+  string org_id = 2;
+  // The hub user the agent acts as. It is a row in `users` like any other,
+  // which is what lets an agent join groups, hold roles and appear in the audit
+  // log through the same machinery a person does.
+  string user_id = 3;
+  string name = 4;
+  // What the agent is for. This is what a public Agent Card will say, so it is
+  // meant to be read rather than kept as an internal note.
+  string description = 5;
+  // What an operator configures. Derived from the name, so two agents cannot
+  // claim the same client.
+  string client_id = 6;
+  AuthMethod auth_method = 7;
+  // The agent that owns this one, empty for a root agent. It records lineage;
+  // what a sub-agent may do is bounded by the delegation chain, not by this.
+  string parent_agent_id = 8;
+  // The human the agent answers to. An agent with no identifiable controller is
+  // the one nobody turns off.
+  string created_by_user_id = 9;
+  // When the current credential was issued. hub never stores the credential, so
+  // its age is the only thing that can be reported about it.
+  google.protobuf.Timestamp secret_rotated_at = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// Credentials are what an agent needs to authenticate.
+//
+// The secret is returned once, when it is issued, and never again: hub does not
+// store it and Keycloak cannot always show it back. Losing it means rotating
+// it, which is the right cost for a credential.
+message Credentials {
+  string client_id = 1;
+  string secret = 2;
+}

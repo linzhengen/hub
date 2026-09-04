@@ -98,7 +98,7 @@ func (uc resourceUseCase) Delete(ctx context.Context, resourceId string) error {
 func (uc resourceUseCase) List(ctx context.Context, params *ListResourceQueryParams) ([]*resource.Resource, int64, error) {
 	b := uc.dialectWrapper.From("resources")
 	if params.ResourceIds != nil {
-		b = b.Where(goqu.Ex{"id": params.ResourceIds})
+		b = b.Where(postgres.In("id", params.ResourceIds))
 	}
 	if params.ResourceName != "" {
 		b = b.Where(goqu.C("name").Like(fmt.Sprintf("%%%s%%", params.ResourceName)))

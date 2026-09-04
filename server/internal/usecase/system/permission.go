@@ -90,7 +90,7 @@ func (uc permissionUseCase) Delete(ctx context.Context, permissionId string) err
 func (uc permissionUseCase) List(ctx context.Context, params *ListPermissionQueryParams) ([]*permission.Permission, int64, error) {
 	b := uc.dialectWrapper.From("permissions")
 	if params.PermissionIds != nil {
-		b = b.Where(goqu.Ex{"id": params.PermissionIds})
+		b = b.Where(postgres.In("id", params.PermissionIds))
 	}
 	if params.PermissionName != "" {
 		b = b.Where(goqu.C("name").Like(fmt.Sprintf("%%%s%%", params.PermissionName)))

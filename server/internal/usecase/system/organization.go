@@ -17,6 +17,7 @@ import (
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence"
 	"github.com/linzhengen/hub/server/internal/infrastructure/persistence/postgres"
 	"github.com/linzhengen/hub/server/internal/usecase/pagination"
+	"github.com/linzhengen/hub/server/internal/usecase/scope"
 	"github.com/linzhengen/hub/server/pkg/logger"
 )
 
@@ -109,20 +110,20 @@ func (uc organizationUseCase) List(
 ) ([]*organization.Organization, int64, error) {
 	// Listing every tenant would tell one customer who the others are, which is
 	// the disclosure a boundary is for even when no other data crosses it.
-	scope, err := visibleOrgs(ctx, uc.authSvc)
+	visible, err := scope.VisibleOrgs(ctx, uc.authSvc)
 	if err != nil {
 		return nil, 0, err
 	}
-	if scope.Empty() {
+	if visible.Empty() {
 		return nil, 0, nil
 	}
 
 	b := uc.dialectWrapper.From("organizations")
-	if !scope.All {
-		b = b.Where(goqu.Ex{"id": scope.OrgIds})
+	if !visible.All {
+		b = b.Where(goqu.Ex{"id": visible.OrgIds})
 	}
 	if params.Ids != nil {
-		b = b.Where(goqu.Ex{"id": params.Ids})
+		b = b.Where(postgres.In("id", params.Ids))
 	}
 	if params.Name != "" {
 		b = b.Where(goqu.C("name").ILike(fmt.Sprintf("%%%s%%", params.Name)))

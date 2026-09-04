@@ -8,6 +8,20 @@ export interface ApiOperation {
   readonly pathParams: readonly string[];
 }
 
+/** Operations of ai.agent.v1.AgentService. */
+export const agentServiceOperations = {
+  /** Register an agent and return its credentials, which are shown once. */
+  createAgent: { method: 'POST', path: '/agents', pathParams: [] },
+  /** Remove an agent's identity, its credentials and its group memberships. */
+  deleteAgent: { method: 'DELETE', path: '/agents/{id}', pathParams: ['id'] },
+  /** Get a single agent by id. */
+  getAgent: { method: 'GET', path: '/agents/{id}', pathParams: ['id'] },
+  /** List the registered agents the caller can reach. */
+  listAgents: { method: 'GET', path: '/agents', pathParams: [] },
+  /** Issue a new secret for an agent and invalidate the old one. */
+  rotateAgentSecret: { method: 'POST', path: '/agents/{id}/rotate-secret', pathParams: ['id'] },
+} as const satisfies Record<string, ApiOperation>;
+
 /** Operations of ai.chat.v1.ChatService. */
 export const chatServiceOperations = {
   /** Approve or decline a change the assistant proposed, and stream the rest of the answer. */

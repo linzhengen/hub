@@ -29,6 +29,23 @@ type AccessRequestModel struct {
 	UpdatedAt       time.Time
 }
 
+// AgentModel represents a Agent in the database
+type AgentModel struct {
+	ID              string
+	OrgID           string
+	UserID          string
+	Name            string
+	Description     string
+	ClientID        string
+	KeycloakID      string
+	AuthMethod      string
+	SecretRotatedAt time.Time
+	ParentAgentID   string
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 // AuditLogModel represents a AuditLog in the database
 type AuditLogModel struct {
 	ID          string
@@ -250,8 +267,11 @@ type Querier interface {
 	AddChatSessionTokens(ctx context.Context, ID string, TokensUsed int64) error
 	AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error
 	CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, OrgIds []string) (int64, error)
+	CountAgentChildren(ctx context.Context, parentAgentID string) (int64, error)
+	CountAgents(ctx context.Context, OrgID string, ParentAgentID string, OrgIds []string) (int64, error)
 	CountServiceAccounts(ctx context.Context) (int64, error)
 	CreateAccessRequest(ctx context.Context, ID string, RequesterUserID string, SubjectUserID string, GroupID string, Reason string, RequestedUntil sql.NullTime, Status string, Origin string, SessionID string) error
+	CreateAgent(ctx context.Context, ID string, OrgID string, UserID string, Name string, Description string, ClientID string, KeycloakID string, AuthMethod string, ParentAgentID string, CreatedByUserID string) error
 	CreateAuditLog(ctx context.Context, ActorUserID string, OrgID string, Channel string, AiSessionID string, Resource string, Action string, TargetID string, Arguments json.RawMessage, Succeeded bool, Error string, Client string, ApprovalID string) (*AuditLogModel, error)
 	CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error)
 	CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error)
@@ -267,6 +287,7 @@ type Querier interface {
 	CreateUserGroup(ctx context.Context, UserID string, GroupID string, ExpiresAt sql.NullTime) error
 	DecideAccessRequest(ctx context.Context, Status string, DecidedByUserID string, DecidedAt sql.NullTime, DecisionComment string, ID string) (*AccessRequestModel, error)
 	DecideChatToolProposal(ctx context.Context, ID string, Status string) (*ChatToolProposalModel, error)
+	DeleteAgent(ctx context.Context, id string) error
 	DeleteChatSession(ctx context.Context, ID string, UserID string) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
@@ -283,11 +304,14 @@ type Querier interface {
 	IsPermissionInRole(ctx context.Context, RoleID string, PermissionID string) (bool, error)
 	IsUserInGroup(ctx context.Context, UserID string, GroupID string) (bool, error)
 	ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, OrgIds []string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error)
+	ListAgents(ctx context.Context, OrgID string, ParentAgentID string, OrgIds []string, RowOffset int32, RowLimit int32) ([]*AgentModel, error)
 	ListServiceAccounts(ctx context.Context, RowOffset int32, RowLimit int32) ([]*ServiceAccountModel, error)
+	RecordAgentSecretRotation(ctx context.Context, id string) error
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, RoleID string, PermissionID string) error
 	SelectAccessPath(ctx context.Context) ([]*SelectAccessPathsModel, error)
 	SelectAccessRequest(ctx context.Context, id string) (*AccessRequestModel, error)
+	SelectAgent(ctx context.Context, id string) (*AgentModel, error)
 	SelectChatMessagesBySessionId(ctx context.Context, SessionID string, UserID string) ([]*ChatMessageModel, error)
 	SelectChatSessionById(ctx context.Context, ID string, UserID string) (*ChatSessionModel, error)
 	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSessionModel, error)
@@ -369,6 +393,28 @@ func (p *PostgreSQLQuerier) CountAccessRequests(ctx context.Context, RequesterUs
 
 }
 
+func (p *PostgreSQLQuerier) CountAgentChildren(ctx context.Context, parentAgentID string) (int64, error) {
+	row, err := p.q.CountAgentChildren(ctx, parentAgentID)
+	if err != nil {
+		return 0, err
+	}
+	return row, nil
+
+}
+
+func (p *PostgreSQLQuerier) CountAgents(ctx context.Context, OrgID string, ParentAgentID string, OrgIds []string) (int64, error) {
+	row, err := p.q.CountAgents(ctx, postgressqlc.CountAgentsParams{
+		OrgID:         sql.NullString{String: OrgID, Valid: OrgID != ""},
+		ParentAgentID: sql.NullString{String: ParentAgentID, Valid: ParentAgentID != ""},
+		OrgIds:        OrgIds,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return row, nil
+
+}
+
 func (p *PostgreSQLQuerier) CountServiceAccounts(ctx context.Context) (int64, error) {
 	row, err := p.q.CountServiceAccounts(ctx)
 	if err != nil {
@@ -389,6 +435,22 @@ func (p *PostgreSQLQuerier) CreateAccessRequest(ctx context.Context, ID string, 
 		Status:          Status,
 		Origin:          Origin,
 		SessionID:       sql.NullString{String: SessionID, Valid: SessionID != ""},
+	})
+
+}
+
+func (p *PostgreSQLQuerier) CreateAgent(ctx context.Context, ID string, OrgID string, UserID string, Name string, Description string, ClientID string, KeycloakID string, AuthMethod string, ParentAgentID string, CreatedByUserID string) error {
+	return p.q.CreateAgent(ctx, postgressqlc.CreateAgentParams{
+		ID:              ID,
+		OrgID:           OrgID,
+		UserID:          UserID,
+		Name:            Name,
+		Description:     Description,
+		ClientID:        ClientID,
+		KeycloakID:      KeycloakID,
+		AuthMethod:      AuthMethod,
+		ParentAgentID:   sql.NullString{String: ParentAgentID, Valid: ParentAgentID != ""},
+		CreatedByUserID: CreatedByUserID,
 	})
 
 }
@@ -643,6 +705,11 @@ func (p *PostgreSQLQuerier) DecideChatToolProposal(ctx context.Context, ID strin
 
 }
 
+func (p *PostgreSQLQuerier) DeleteAgent(ctx context.Context, id string) error {
+	return p.q.DeleteAgent(ctx, id)
+
+}
+
 func (p *PostgreSQLQuerier) DeleteChatSession(ctx context.Context, ID string, UserID string) error {
 	return p.q.DeleteChatSession(ctx, postgressqlc.DeleteChatSessionParams{
 		ID:     ID,
@@ -777,6 +844,39 @@ func (p *PostgreSQLQuerier) ListAccessRequests(ctx context.Context, RequesterUse
 
 }
 
+func (p *PostgreSQLQuerier) ListAgents(ctx context.Context, OrgID string, ParentAgentID string, OrgIds []string, RowOffset int32, RowLimit int32) ([]*AgentModel, error) {
+	rows, err := p.q.ListAgents(ctx, postgressqlc.ListAgentsParams{
+		OrgID:         sql.NullString{String: OrgID, Valid: OrgID != ""},
+		ParentAgentID: sql.NullString{String: ParentAgentID, Valid: ParentAgentID != ""},
+		OrgIds:        OrgIds,
+		RowOffset:     RowOffset,
+		RowLimit:      RowLimit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*AgentModel, len(rows))
+	for i, row := range rows {
+		res[i] = &AgentModel{
+			ID:              row.ID,
+			OrgID:           row.OrgID,
+			UserID:          row.UserID,
+			Name:            row.Name,
+			Description:     row.Description,
+			ClientID:        row.ClientID,
+			KeycloakID:      row.KeycloakID,
+			AuthMethod:      row.AuthMethod,
+			SecretRotatedAt: row.SecretRotatedAt,
+			ParentAgentID:   row.ParentAgentID.String,
+			CreatedByUserID: row.CreatedByUserID,
+			CreatedAt:       row.CreatedAt,
+			UpdatedAt:       row.UpdatedAt,
+		}
+	}
+	return res, nil
+
+}
+
 func (p *PostgreSQLQuerier) ListServiceAccounts(ctx context.Context, RowOffset int32, RowLimit int32) ([]*ServiceAccountModel, error) {
 	rows, err := p.q.ListServiceAccounts(ctx, postgressqlc.ListServiceAccountsParams{
 		RowOffset: RowOffset,
@@ -800,6 +900,11 @@ func (p *PostgreSQLQuerier) ListServiceAccounts(ctx context.Context, RowOffset i
 		}
 	}
 	return res, nil
+
+}
+
+func (p *PostgreSQLQuerier) RecordAgentSecretRotation(ctx context.Context, id string) error {
+	return p.q.RecordAgentSecretRotation(ctx, id)
 
 }
 
@@ -859,6 +964,29 @@ func (p *PostgreSQLQuerier) SelectAccessRequest(ctx context.Context, id string) 
 		DecidedByUserID: row.DecidedByUserID.String,
 		DecidedAt:       row.DecidedAt,
 		DecisionComment: row.DecisionComment,
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       row.UpdatedAt,
+	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectAgent(ctx context.Context, id string) (*AgentModel, error) {
+	row, err := p.q.SelectAgent(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &AgentModel{
+		ID:              row.ID,
+		OrgID:           row.OrgID,
+		UserID:          row.UserID,
+		Name:            row.Name,
+		Description:     row.Description,
+		ClientID:        row.ClientID,
+		KeycloakID:      row.KeycloakID,
+		AuthMethod:      row.AuthMethod,
+		SecretRotatedAt: row.SecretRotatedAt,
+		ParentAgentID:   row.ParentAgentID.String,
+		CreatedByUserID: row.CreatedByUserID,
 		CreatedAt:       row.CreatedAt,
 		UpdatedAt:       row.UpdatedAt,
 	}, nil

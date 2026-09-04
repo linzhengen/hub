@@ -29,6 +29,22 @@ type AccessRequest struct {
 	UpdatedAt       time.Time
 }
 
+type Agent struct {
+	ID              string
+	OrgID           string
+	UserID          string
+	Name            string
+	Description     string
+	ClientID        string
+	KeycloakID      string
+	AuthMethod      string
+	SecretRotatedAt time.Time
+	ParentAgentID   sql.NullString
+	CreatedByUserID string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 type AuditLog struct {
 	ID          string
 	ActorUserID string

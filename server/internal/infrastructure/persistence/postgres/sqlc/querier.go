@@ -13,8 +13,15 @@ type Querier interface {
 	AddChatSessionTokens(ctx context.Context, arg AddChatSessionTokensParams) error
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
 	CountAccessRequests(ctx context.Context, arg CountAccessRequestsParams) (int64, error)
+	// An agent with children cannot be removed: deleting it would leave their
+	// credentials working with nothing in hub recording them. The count is asked
+	// before anything is touched rather than left to the foreign key to refuse
+	// half-way through the delete.
+	CountAgentChildren(ctx context.Context, parentAgentID string) (int64, error)
+	CountAgents(ctx context.Context, arg CountAgentsParams) (int64, error)
 	CountServiceAccounts(ctx context.Context) (int64, error)
 	CreateAccessRequest(ctx context.Context, arg CreateAccessRequestParams) error
+	CreateAgent(ctx context.Context, arg CreateAgentParams) error
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) (*AuditLog, error)
 	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (*ChatMessage, error)
 	CreateChatSession(ctx context.Context, arg CreateChatSessionParams) (*ChatSession, error)
@@ -34,6 +41,7 @@ type Querier interface {
 	// Deciding is conditional on the proposal still being pending, so two decisions
 	// racing cannot both run the change: the second updates no row.
 	DecideChatToolProposal(ctx context.Context, arg DecideChatToolProposalParams) (*ChatToolProposal, error)
+	DeleteAgent(ctx context.Context, id string) error
 	DeleteChatSession(ctx context.Context, arg DeleteChatSessionParams) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteGroupAllRole(ctx context.Context, groupID string) error
@@ -54,14 +62,22 @@ type Querier interface {
 	// and a group's history without three near-identical statements.
 	// Newest first: a queue is read from the top.
 	ListAccessRequests(ctx context.Context, arg ListAccessRequestsParams) ([]*AccessRequest, error)
+	// Every filter is optional and written as "unset or matching". org_ids is the
+	// caller's reach rather than a filter they asked for: NULL is a platform grant,
+	// which answers about every organization, and any other value is the set they
+	// hold a live grant in. Listing every agent would tell one customer which
+	// agents another runs.
+	ListAgents(ctx context.Context, arg ListAgentsParams) ([]*Agent, error)
 	// The listing is not filtered. A deployment has a handful of machines, not a
 	// directory of them, and "who created it" is a column to read rather than a
 	// question to ask the database.
 	ListServiceAccounts(ctx context.Context, arg ListServiceAccountsParams) ([]*ServiceAccount, error)
+	RecordAgentSecretRotation(ctx context.Context, id string) error
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, arg RemovePermissionFromRoleParams) error
 	SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRow, error)
 	SelectAccessRequest(ctx context.Context, id string) (*AccessRequest, error)
+	SelectAgent(ctx context.Context, id string) (*Agent, error)
 	SelectChatMessagesBySessionId(ctx context.Context, arg SelectChatMessagesBySessionIdParams) ([]*ChatMessage, error)
 	// Scoping every lookup by user_id keeps a session private to its owner even if
 	// a caller reaches the repository without going through the use case, which is

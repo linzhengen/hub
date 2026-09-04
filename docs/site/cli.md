@@ -30,7 +30,7 @@ Settings resolve in three layers, each overriding the one before it:
 ```bash
 hub config set --endpoint http://localhost:9090 \
   --oidc-issuer http://localhost:8080/realms/hub \
-  --oidc-client-id hub
+  --oidc-client-id hub-web
 
 hub config show     # what the CLI actually resolved; the token is masked
 hub config path     # where the file lives
@@ -39,7 +39,7 @@ hub config path     # where the file lives
 ```json
 {
   "endpoint": "http://localhost:9090",
-  "oidcClientId": "hub",
+  "oidcClientId": "hub-web",
   "oidcClientSecret": "",
   "oidcIssuer": "http://localhost:8080/realms/hub",
   "token": "***"

@@ -35,6 +35,7 @@ import (
 	// web client's operation table and its entry in the agent reference.
 	// TestDefaultCoversEveryService reads proto/ and fails when one is missing,
 	// so add the import here when you add a service.
+	_ "github.com/linzhengen/hub/server/pb/ai/agent/v1"
 	_ "github.com/linzhengen/hub/server/pb/ai/chat/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/access/v1"
 	_ "github.com/linzhengen/hub/server/pb/system/audit/v1"

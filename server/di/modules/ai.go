@@ -9,11 +9,12 @@ import (
 	"github.com/linzhengen/hub/server/internal/domain/auth"
 	"github.com/linzhengen/hub/server/internal/domain/trans"
 	"github.com/linzhengen/hub/server/internal/domain/user"
+	agentInfra "github.com/linzhengen/hub/server/internal/infrastructure/ai/agent"
 	chatInfra "github.com/linzhengen/hub/server/internal/infrastructure/ai/chat"
 	claudeInfra "github.com/linzhengen/hub/server/internal/infrastructure/ai/claude"
 	mockInfra "github.com/linzhengen/hub/server/internal/infrastructure/ai/mock"
 	toolInfra "github.com/linzhengen/hub/server/internal/infrastructure/ai/tool"
-	chatHandler "github.com/linzhengen/hub/server/internal/interface/grpc/handler/ai"
+	aiHandler "github.com/linzhengen/hub/server/internal/interface/grpc/handler/ai"
 	"github.com/linzhengen/hub/server/internal/interface/grpc/interceptor"
 	aiUseCase "github.com/linzhengen/hub/server/internal/usecase/ai"
 	pbaccessv1 "github.com/linzhengen/hub/server/pb/system/access/v1"
@@ -30,6 +31,7 @@ import (
 // ProvideAI registers AI feature dependencies.
 func ProvideAI(c *dig.Container) {
 	// infrastructure
+	must(c.Provide(agentInfra.New))
 	must(c.Provide(chatInfra.New))
 	must(c.Provide(provideToolBox))
 	must(c.Provide(func(cfg config.EnvConfig, tools chat.ToolBox) chat.Service {
@@ -40,9 +42,11 @@ func ProvideAI(c *dig.Container) {
 		return claudeInfra.New(cfg.APIKey, cfg.Model, tools)
 	}))
 	// usecase
+	must(c.Provide(aiUseCase.NewAgentUseCase))
 	must(c.Provide(aiUseCase.NewChatUseCase))
 	// interface (gRPC)
-	must(c.Provide(chatHandler.NewChatHandler))
+	must(c.Provide(aiHandler.NewAgentHandler))
+	must(c.Provide(aiHandler.NewChatHandler))
 }
 
 // provideToolBox gives the assistant the read side of the API.
