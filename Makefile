@@ -1,4 +1,4 @@
-.PHONY: install build cli dev tunnel migrate generate gen-go-artifacts pre-commit-install lint test
+.PHONY: install build cli dev tunnel migrate generate gen-go-artifacts pre-commit-install lint test adr adr-status adr-init
 
 # Code-generation tools are pinned: with @latest, `make gen` produced different
 # output depending on when `make init` last ran, and a one-line proto change
@@ -67,6 +67,28 @@ cli:
 
 lint:
 	cd server && golangci-lint run ./...
+
+# Decision records. The scripts have no dependencies, so node is all they need -
+# but every other workflow here has a make target, and one that has to be typed
+# as a path to a script inside a skill is one nobody runs.
+#
+#   make adr TITLE="Scope a permission to an organization"
+#   make adr TITLE="Choose an agent runtime" TEMPLATE=madr
+#   make adr-status ADR=docs/decisions/2026-09-04-....md STATUS=accepted
+TEMPLATE ?= brief
+ADR_SCRIPTS = .agents/skills/adr-skill/scripts
+
+adr:
+	@test -n "$(TITLE)" || (echo 'usage: make adr TITLE="Do the thing" [TEMPLATE=brief|simple|madr]' && exit 1)
+	@node $(ADR_SCRIPTS)/new_adr.js --title "$(TITLE)" --template "$(TEMPLATE)" --update-index
+
+adr-status:
+	@test -n "$(ADR)" -a -n "$(STATUS)" || (echo 'usage: make adr-status ADR=<path> STATUS=<accepted|rejected|deprecated>' && exit 1)
+	@node $(ADR_SCRIPTS)/set_adr_status.js "$(ADR)" --status "$(STATUS)"
+
+# Creates docs/decisions/, its index, and the first ADR. Run once.
+adr-init:
+	@node $(ADR_SCRIPTS)/bootstrap_adr.js
 
 test:
 	cd server && go test ./...
