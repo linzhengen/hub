@@ -103,8 +103,9 @@ subject になり、監査ログに actor として現れる。`Enforce` も `au
 > **Agent の実効権限 = Agent 自身の権限 ∩ 委譲元ユーザーの権限 ∩ その委譲のスコープ**
 
 3 項目は委譲そのものを狭める。ユーザーが「自分の権限を全部渡すか、何も渡さないか」しか
-選べないのは委譲ではないので、`delegations` 行がスコープを持つ。`NULL` は委譲元の全権
-（二項だった頃と同じ挙動）で、狭い委譲が普通・全権が例外である。
+選べないのは委譲ではないので、`delegations` 行がスコープを持つ。**全権の委譲は存在しない**
+—— スコープは `delegation_permissions` の行で、行が無い委譲は何も許さない。空を「全権」と
+読むと、挿入を落としたバグが最も広い委譲を黙って作る（fail-open）ためである。
 ADR: [Narrow a delegation with its own scope](../decisions/2026-09-04-narrow-a-delegation-with-its-own-scope.md)
 
 交差は**付与時ではなく判定時**に取る。
@@ -217,7 +218,7 @@ Agent がどれだけ強い委譲を受けていても、`AddPermissionsToRole` 
 |:--|:--|:--|:--|:--|
 | 1 | 組織 + スコープ付き Enforce | 穴 1・穴 2 を同時に埋める。全体の土台 | — | **完了** |
 | 2 | Agent Identity | `agents` 登録簿 + Keycloak client + `users` 行 | 1 | **完了** |
-| 3 | 委譲 | `delegations` + 代理チェーン付き `Enforce` + 監査 | 2 | 未着手 |
+| 3 | 委譲 | `delegations` + 代理チェーン付き `Enforce` + 監査 | 2 | 3a 完了 / 3b 未着手 |
 | 4 | Agent 構成 | MCP サーバー / Skill / サブ Agent の登録と紐付け | 2 | 未着手 |
 | 5 | Runtime 抽象 + Agent Engine デプロイ | `Runtime` interface + agentengine 実装 | 4 | 未着手 |
 | 6 | A2A 公開 | Agent Card / Extended Card / A2A エンドポイント | 3, 5 | 未着手 |

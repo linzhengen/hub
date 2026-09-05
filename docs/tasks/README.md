@@ -13,7 +13,7 @@
 |:--|:--|:--|:--|
 | 1 | 組織 + スコープ付き Enforce | — | **完了** |
 | 2 | [Agent Identity](02-agent-identity.md) | 1 | **完了** |
-| 3a | [委譲のモデルと API](03a-delegation-model.md) | 2 | 未着手 |
+| 3a | [委譲のモデルと API](03a-delegation-model.md) | 2 | **完了** |
 | 3b | [代理チェーンつきの認可](03b-delegation-enforcement.md) | 3a | 未着手 |
 | 4a | [MCP サーバーと Skill の登録簿](04a-mcp-and-skill-registry.md) | 2 | 未着手 |
 | 4b | [Agent の構成](04b-agent-composition.md) | 4a | 未着手 |

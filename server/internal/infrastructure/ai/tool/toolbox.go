@@ -100,17 +100,24 @@ var exposed = map[string]bool{
 // the approval would attest to nothing.
 var escalation = map[string]bool{
 	"/system.access.v1.AccessRequestService/DecideAccessRequest": true,
-	"/system.role.v1.RoleService/AddPermissionsToRole":           true,
-	"/system.role.v1.RoleService/RemovePermissionsFromRole":      true,
-	"/system.group.v1.GroupService/AddRolesToGroup":              true,
-	"/system.group.v1.GroupService/RemoveRolesFromGroup":         true,
-	"/user.v1.UserService/AddGroupsToUser":                       true,
-	"/user.v1.UserService/RemoveGroupsFromUser":                  true,
-	"/user.v1.UserService/DeleteUser":                            true,
-	"/system.group.v1.GroupService/DeleteGroup":                  true,
-	"/system.role.v1.RoleService/DeleteRole":                     true,
-	"/system.permission.v1.PermissionService/DeletePermission":   true,
-	"/system.resource.v1.ResourceService/DeleteResource":         true,
+	// A delegation lends a person's authority to a machine, which is the
+	// escalation this list exists for stated in one row. Revoking is here too:
+	// the model must not be talkable into switching an agent off any more than
+	// into switching one on, and text somebody else wrote is in a position to
+	// try either.
+	"/system.delegation.v1.DelegationService/CreateDelegation": true,
+	"/system.delegation.v1.DelegationService/RevokeDelegation": true,
+	"/system.role.v1.RoleService/AddPermissionsToRole":         true,
+	"/system.role.v1.RoleService/RemovePermissionsFromRole":    true,
+	"/system.group.v1.GroupService/AddRolesToGroup":            true,
+	"/system.group.v1.GroupService/RemoveRolesFromGroup":       true,
+	"/user.v1.UserService/AddGroupsToUser":                     true,
+	"/user.v1.UserService/RemoveGroupsFromUser":                true,
+	"/user.v1.UserService/DeleteUser":                          true,
+	"/system.group.v1.GroupService/DeleteGroup":                true,
+	"/system.role.v1.RoleService/DeleteRole":                   true,
+	"/system.permission.v1.PermissionService/DeletePermission": true,
+	"/system.resource.v1.ResourceService/DeleteResource":       true,
 }
 
 // hidden lists response fields the assistant never needs, removed from every

@@ -264,6 +264,52 @@ List recorded changes to users, groups, roles, permissions and resources, newest
 | `--since` | `since` | query | message |  |
 | `--until` | `until` | query | message |  |
 
+## system.delegation.v1.DelegationService
+
+### CreateDelegation
+
+Let an agent act on your behalf, for a set of permissions and a term.
+
+- command: `hub delegation create-delegation`
+- endpoint: `POST /api/v1/delegations`
+- rbac: `CreateDelegation` on `api.system.delegation.v1.DelegationService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--agent-id` | `agentId` | body | string | uuid |
+| `--reason` | `reason` | body | string | length 1..1024 |
+| `--expires-at` | `expiresAt` | body | message | required |
+| `--permission-ids` | `permissionIds` | body | repeated string | at least 1 item(s), each uuid |
+| `--max-depth` | `maxDepth` | body | uint32 | <= 8 |
+
+### ListDelegations
+
+List the delegations the caller can reach.
+
+- command: `hub delegation list-delegations`
+- endpoint: `GET /api/v1/delegations`
+- rbac: `ListDelegations` on `api.system.delegation.v1.DelegationService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--limit` | `limit` | query | uint32 | <= 200 |
+| `--offset` | `offset` | query | uint32 |  |
+| `--agent-id` | `agentId` | query | string | uuid |
+| `--principal-user-id` | `principalUserId` | query | string | uuid |
+| `--include-revoked` | `includeRevoked` | query | bool |  |
+
+### RevokeDelegation
+
+Withdraw a delegation. It stops within a second and the record is kept.
+
+- command: `hub delegation revoke-delegation`
+- endpoint: `POST /api/v1/delegations/{id}/revoke`
+- rbac: `RevokeDelegation` on `api.system.delegation.v1.DelegationService`
+
+| flag | field | in | type | rules |
+| --- | --- | --- | --- | --- |
+| `--id` | `id` | path | string | uuid |
+
 ## system.group.v1.GroupService
 
 ### AddRolesToGroup

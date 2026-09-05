@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	// Adding rather than setting, so two streams on one session both count.
 	AddChatSessionTokens(ctx context.Context, arg AddChatSessionTokensParams) error
+	AddPermissionToDelegation(ctx context.Context, arg AddPermissionToDelegationParams) error
 	AddPermissionToRole(ctx context.Context, arg AddPermissionToRoleParams) error
 	CountAccessRequests(ctx context.Context, arg CountAccessRequestsParams) (int64, error)
 	// An agent with children cannot be removed: deleting it would leave their
@@ -19,6 +20,7 @@ type Querier interface {
 	// half-way through the delete.
 	CountAgentChildren(ctx context.Context, parentAgentID string) (int64, error)
 	CountAgents(ctx context.Context, arg CountAgentsParams) (int64, error)
+	CountDelegations(ctx context.Context, arg CountDelegationsParams) (int64, error)
 	CountServiceAccounts(ctx context.Context) (int64, error)
 	CreateAccessRequest(ctx context.Context, arg CreateAccessRequestParams) error
 	CreateAgent(ctx context.Context, arg CreateAgentParams) error
@@ -26,6 +28,7 @@ type Querier interface {
 	CreateChatMessage(ctx context.Context, arg CreateChatMessageParams) (*ChatMessage, error)
 	CreateChatSession(ctx context.Context, arg CreateChatSessionParams) (*ChatSession, error)
 	CreateChatToolProposal(ctx context.Context, arg CreateChatToolProposalParams) (*ChatToolProposal, error)
+	CreateDelegation(ctx context.Context, arg CreateDelegationParams) error
 	CreateGroup(ctx context.Context, arg CreateGroupParams) error
 	CreateGroupRole(ctx context.Context, arg CreateGroupRoleParams) error
 	CreateOrganization(ctx context.Context, arg CreateOrganizationParams) error
@@ -68,6 +71,21 @@ type Querier interface {
 	// hold a live grant in. Listing every agent would tell one customer which
 	// agents another runs.
 	ListAgents(ctx context.Context, arg ListAgentsParams) ([]*Agent, error)
+	// Every filter is optional and written as "unset or matching". Two of them are
+	// not filters the caller asked for:
+	//
+	//   org_ids     the organizations the caller holds a live grant in. NULL is a
+	//               platform grant, which answers about every organization.
+	//   self_user_id the caller themselves, always visible whatever org_ids says -
+	//               a person must be able to see, and therefore revoke, what they
+	//               granted, even if the agent lives somewhere they cannot
+	//               otherwise read.
+	//
+	// `revoked_at` is filtered here because revoking is a write: the revision
+	// counter moves and caches drop. `expires_at` is deliberately *not* filtered -
+	// an expiry is the one change nobody writes, so a query that hid lapsed rows
+	// would let a warm cache keep serving one.
+	ListDelegations(ctx context.Context, arg ListDelegationsParams) ([]*Delegation, error)
 	// The listing is not filtered. A deployment has a handful of machines, not a
 	// directory of them, and "who created it" is a column to read rather than a
 	// question to ask the database.
@@ -75,6 +93,9 @@ type Querier interface {
 	RecordAgentSecretRotation(ctx context.Context, id string) error
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, arg RemovePermissionFromRoleParams) error
+	// Matching only a live row is what makes a repeated revocation not a second
+	// event: the second statement changes nothing and the caller is told so.
+	RevokeDelegation(ctx context.Context, id string) (int64, error)
 	SelectAccessPaths(ctx context.Context) ([]*SelectAccessPathsRow, error)
 	SelectAccessRequest(ctx context.Context, id string) (*AccessRequest, error)
 	SelectAgent(ctx context.Context, id string) (*Agent, error)
@@ -88,6 +109,8 @@ type Querier interface {
 	// Scoped by user_id through the session, for the same reason every other chat
 	// query is: a proposal belonging to someone else is absent, not refused.
 	SelectChatToolProposalById(ctx context.Context, arg SelectChatToolProposalByIdParams) (*ChatToolProposal, error)
+	SelectDelegation(ctx context.Context, id string) (*Delegation, error)
+	SelectDelegationPermissions(ctx context.Context, delegationID string) ([]*DelegationPermission, error)
 	SelectGroupById(ctx context.Context, id string) (*Group, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*Group, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRole, error)

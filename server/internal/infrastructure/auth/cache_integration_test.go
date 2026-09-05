@@ -198,3 +198,106 @@ func TestLiveOrganizationInvalidation(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, after, "deactivating an organization revokes the access held inside it")
 }
+
+const (
+	liveAgentUserId  = "0f000000-0000-0000-0000-000000000008"
+	liveAgentId      = "0f000000-0000-0000-0000-000000000009"
+	liveDelegationId = "0f000000-0000-0000-0000-00000000000a"
+)
+
+// TestLiveDelegationInvalidation is the same guarantee for the delegation
+// tables.
+//
+// Revocation is the whole reason a delegation is a row rather than a token: it
+// has to stop *now*, not when a token would have expired. That promise is worth
+// exactly as much as the trigger behind it, and a missing trigger fails
+// silently - the delegation keeps working for up to the full policy cache TTL,
+// and nothing anywhere says so.
+//
+// It asserts on the revision counter rather than on the policies returned,
+// because the authorization decision does not read these tables yet: this
+// change models delegation, the enforcement is the next one. **When the
+// decision starts reading them, strengthen this to assert that the policy set
+// itself changes**, the way the two tests above do - a counter that moves is
+// necessary and not sufficient.
+func TestLiveDelegationInvalidation(t *testing.T) {
+	dsn := os.Getenv("HUB_TEST_DSN")
+	if dsn == "" {
+		t.Skip("set HUB_TEST_DSN to run this against a migrated database")
+	}
+
+	ctx := context.Background()
+	db, err := sql.Open("postgres", dsn)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
+	require.NoError(t, db.PingContext(ctx))
+
+	seedRBACGraph(t, db)
+	seedAgent(t, db)
+
+	revision := func() int64 {
+		var n int64
+		require.NoError(t, db.QueryRowContext(ctx, `SELECT revision FROM rbac_revisions WHERE id = 1`).Scan(&n))
+		return n
+	}
+
+	// Granting a delegation.
+	before := revision()
+	_, err = db.ExecContext(ctx,
+		`INSERT INTO delegations (id, agent_id, principal_user_id, granted_by_user_id, org_id, reason, expires_at)
+		 VALUES ($1, $2, $3, $3, $4, 'live test', now() + interval '1 hour')`,
+		liveDelegationId, liveAgentId, liveUserId, liveOrganizationId)
+	require.NoError(t, err)
+	assert.Greater(t, revision(), before, "granting a delegation must invalidate cached policies")
+
+	// The permissions it carries are a second table, and a decision reads both.
+	before = revision()
+	_, err = db.ExecContext(ctx,
+		`INSERT INTO delegation_permissions (delegation_id, permission_id) VALUES ($1, $2)`,
+		liveDelegationId, livePermissionId)
+	require.NoError(t, err)
+	assert.Greater(t, revision(), before, "narrowing a delegation must invalidate cached policies")
+
+	// Revoking, which is the one that matters.
+	before = revision()
+	_, err = db.ExecContext(ctx,
+		`UPDATE delegations SET revoked_at = now() WHERE id = $1`, liveDelegationId)
+	require.NoError(t, err)
+	assert.Greater(t, revision(), before, "a revoked delegation must not be left live until the TTL expires")
+}
+
+// seedAgent adds an agent and the user it acts as, on top of seedRBACGraph.
+//
+// Its cleanup is registered after that one's and so runs before it, which
+// matters: `agents.created_by_user_id` is ON DELETE RESTRICT, so the agent has
+// to go before the user that registered it.
+func seedAgent(t *testing.T, db *sql.DB) {
+	t.Helper()
+	ctx := context.Background()
+
+	cleanup := func() {
+		for _, query := range []string{
+			`DELETE FROM delegations WHERE id = '` + liveDelegationId + `'`,
+			`DELETE FROM agents WHERE id = '` + liveAgentId + `'`,
+			`DELETE FROM users WHERE id = '` + liveAgentUserId + `'`,
+		} {
+			_, _ = db.ExecContext(ctx, query)
+		}
+	}
+	cleanup()
+	t.Cleanup(cleanup)
+
+	for _, s := range []struct {
+		query string
+		args  []any
+	}{
+		{`INSERT INTO users (id, username, email, status)
+		  VALUES ($1, 'live test agent', 'live-agent@test.invalid', 'Active')`, []any{liveAgentUserId}},
+		{`INSERT INTO agents (id, org_id, user_id, name, client_id, keycloak_id, created_by_user_id)
+		  VALUES ($1, $2, $3, 'live-test-agent', 'hub-agent-live-test-agent', 'kc-live-test', $4)`,
+			[]any{liveAgentId, liveOrganizationId, liveAgentUserId, liveUserId}},
+	} {
+		_, err := db.ExecContext(ctx, s.query, s.args...)
+		require.NoError(t, err, s.query)
+	}
+}

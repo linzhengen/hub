@@ -46,12 +46,18 @@ var audited = map[string]bool{
 	"/ai.agent.v1.AgentService/CreateAgent":       true,
 	"/ai.agent.v1.AgentService/RotateAgentSecret": true,
 	"/ai.agent.v1.AgentService/DeleteAgent":       true,
-	"/user.v1.UserService/CreateUser":             true,
-	"/user.v1.UserService/UpdateUser":             true,
-	"/user.v1.UserService/DeleteUser":             true,
-	"/user.v1.UserService/UpdateMe":               true,
-	"/user.v1.UserService/AddGroupsToUser":        true,
-	"/user.v1.UserService/RemoveGroupsFromUser":   true,
+	// A delegation is the one thing that lets a machine borrow a person's
+	// authority, so both ends of its life are recorded: granting it is the
+	// event an investigation works back to, and revoking it is what somebody
+	// will need to prove happened when they say they stopped it.
+	"/system.delegation.v1.DelegationService/CreateDelegation": true,
+	"/system.delegation.v1.DelegationService/RevokeDelegation": true,
+	"/user.v1.UserService/CreateUser":                          true,
+	"/user.v1.UserService/UpdateUser":                          true,
+	"/user.v1.UserService/DeleteUser":                          true,
+	"/user.v1.UserService/UpdateMe":                            true,
+	"/user.v1.UserService/AddGroupsToUser":                     true,
+	"/user.v1.UserService/RemoveGroupsFromUser":                true,
 	// An organization is the boundary a permission is held within, so creating,
 	// renaming, deactivating or deleting one changes what every grant inside it
 	// reaches. Deleting one takes every group in it with it, which is the

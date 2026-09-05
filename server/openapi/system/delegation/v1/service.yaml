@@ -1,0 +1,256 @@
+components:
+    schemas:
+        DelegationServiceRevokeDelegationBody:
+            type: object
+        protobufAny:
+            additionalProperties: {}
+            properties:
+                '@type':
+                    type: string
+            type: object
+        rpcStatus:
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                details:
+                    items:
+                        $ref: '#/components/schemas/protobufAny'
+                    type: array
+                message:
+                    type: string
+            type: object
+        v1CreateDelegationRequest:
+            description: |-
+                CreateDelegationRequest lends the caller's own authority, never anyone
+                else's: there is no principal field, so delegating on somebody's behalf is
+                not something the API can express.
+            properties:
+                agentId:
+                    type: string
+                expiresAt:
+                    description: |-
+                        When it stops. Required: an endless delegation is the exception and is not
+                        reachable from here.
+                    format: date-time
+                    type: string
+                maxDepth:
+                    description: |-
+                        How many agents may stand in the chain. 1 is the named agent and no
+                        further; absent is 1, so the narrowest chain is what a client that says
+                        nothing gets. The lower bound is not stated here on purpose - it would make
+                        the field mandatory, since an absent uint32 and a zero one are the same
+                        value over the wire, and "you must choose a depth" is a worse default than
+                        the safe one.
+                    format: int64
+                    type: integer
+                permissionIds:
+                    description: |-
+                        The permissions the agent may exercise on the caller's behalf. At least one
+                        is required - an empty set would have to mean either "nothing", which is a
+                        delegation not worth writing, or "everything", which is the widest grant in
+                        the system arriving by omission.
+                    items:
+                        type: string
+                    type: array
+                reason:
+                    description: |-
+                        Why this delegation exists. It is required because it is what an approver
+                        or an auditor reads first, and "" answers nothing.
+                    type: string
+            type: object
+        v1CreateDelegationResponse:
+            properties:
+                delegation:
+                    $ref: '#/components/schemas/v1Delegation'
+            type: object
+        v1Delegation:
+            description: |-
+                Delegation is one agent's permission to act on one person's behalf.
+
+                It is a row rather than a token, so it can be revoked now: the change moves
+                the RBAC revision counter and every policy cache drops what it holds within a
+                second. A token would have a residual lifetime instead.
+
+                The effective authority of an agent acting under a delegation is the agent's
+                own grants intersected with the principal's grants intersected with this
+                delegation, and the intersection is taken when the decision is made rather
+                than when the row is written.
+            properties:
+                agentId:
+                    description: The agent that may act.
+                    type: string
+                createdAt:
+                    format: date-time
+                    type: string
+                expiresAt:
+                    description: |-
+                        When the delegation stops. Absent means it does not, which the API does not
+                        offer: an endless delegation is the exception.
+                    format: date-time
+                    type: string
+                grantedByUserId:
+                    description: Who wrote the row. Today always the principal.
+                    type: string
+                id:
+                    type: string
+                maxDepth:
+                    description: |-
+                        How many agents may stand in the chain. 1 is the agent named here and no
+                        further.
+                    format: int64
+                    type: integer
+                orgId:
+                    description: The organization the delegation is answerable in, taken from the agent.
+                    type: string
+                permissionIds:
+                    description: |-
+                        What the delegation carries: a subset of the permissions the principal
+                        holds. Never empty - there is no "everything" delegation.
+                    items:
+                        type: string
+                    type: array
+                principalUserId:
+                    description: |-
+                        Whose authority is lent. Only this person can create the delegation, so an
+                        agent cannot be handed a stranger's authority by a third party.
+                    type: string
+                reason:
+                    description: Why it exists, in the words of the person who agreed to it.
+                    type: string
+                revokedAt:
+                    description: |-
+                        When it was withdrawn, absent while live. The row is kept rather than
+                        deleted, because "this agent could act for me until Tuesday" is what an
+                        investigation needs afterwards.
+                    format: date-time
+                    type: string
+                updatedAt:
+                    format: date-time
+                    type: string
+            type: object
+        v1ListDelegationsResponse:
+            properties:
+                delegations:
+                    items:
+                        $ref: '#/components/schemas/v1Delegation'
+                    type: array
+                total:
+                    format: int64
+                    type: string
+            type: object
+        v1RevokeDelegationResponse:
+            properties:
+                delegation:
+                    $ref: '#/components/schemas/v1Delegation'
+            type: object
+info:
+    title: system/delegation/v1/service.proto
+    version: version not set
+openapi: 3.0.3
+paths:
+    /api/v1/delegations:
+        get:
+            operationId: DelegationService_ListDelegations
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    format: int64
+                    type: integer
+                - in: query
+                  name: agentId
+                  schema:
+                    type: string
+                - in: query
+                  name: principalUserId
+                  schema:
+                    type: string
+                - description: |-
+                    Keep withdrawn delegations in the answer. They are left out by default: the
+                    usual question is what may act for me now.
+                  in: query
+                  name: includeRevoked
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1ListDelegationsResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - DelegationService
+        post:
+            operationId: DelegationService_CreateDelegation
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1CreateDelegationRequest'
+                description: |-
+                    CreateDelegationRequest lends the caller's own authority, never anyone
+                    else's: there is no principal field, so delegating on somebody's behalf is
+                    not something the API can express.
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1CreateDelegationResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - DelegationService
+    /api/v1/delegations/{id}/revoke:
+        post:
+            operationId: DelegationService_RevokeDelegation
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DelegationServiceRevokeDelegationBody'
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1RevokeDelegationResponse'
+                    description: A successful response.
+                default:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/rpcStatus'
+                    description: An unexpected error response.
+            tags:
+                - DelegationService
+tags:
+    - name: DelegationService

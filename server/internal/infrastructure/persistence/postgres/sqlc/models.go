@@ -89,6 +89,27 @@ type ChatToolProposal struct {
 	DecidedAt    sql.NullTime
 }
 
+type Delegation struct {
+	ID              string
+	AgentID         string
+	PrincipalUserID string
+	GrantedByUserID string
+	OrgID           string
+	Reason          string
+	MaxDepth        int16
+	ExpiresAt       sql.NullTime
+	RevokedAt       sql.NullTime
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
+type DelegationPermission struct {
+	DelegationID string
+	PermissionID string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
 type Group struct {
 	ID          string
 	Name        string
