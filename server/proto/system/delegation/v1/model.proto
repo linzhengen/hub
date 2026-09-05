@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package system.delegation.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/delegation/v1";
+
+// Delegation is one agent's permission to act on one person's behalf.
+//
+// It is a row rather than a token, so it can be revoked now: the change moves
+// the RBAC revision counter and every policy cache drops what it holds within a
+// second. A token would have a residual lifetime instead.
+//
+// The effective authority of an agent acting under a delegation is the agent's
+// own grants intersected with the principal's grants intersected with this
+// delegation, and the intersection is taken when the decision is made rather
+// than when the row is written.
+message Delegation {
+  string id = 1;
+  // The agent that may act.
+  string agent_id = 2;
+  // Whose authority is lent. Only this person can create the delegation, so an
+  // agent cannot be handed a stranger's authority by a third party.
+  string principal_user_id = 3;
+  // Who wrote the row. Today always the principal.
+  string granted_by_user_id = 4;
+  // The organization the delegation is answerable in, taken from the agent.
+  string org_id = 5;
+  // Why it exists, in the words of the person who agreed to it.
+  string reason = 6;
+  // What the delegation carries: a subset of the permissions the principal
+  // holds. Never empty - there is no "everything" delegation.
+  repeated string permission_ids = 7;
+  // How many agents may stand in the chain. 1 is the agent named here and no
+  // further.
+  uint32 max_depth = 8;
+  // When the delegation stops. Absent means it does not, which the API does not
+  // offer: an endless delegation is the exception.
+  google.protobuf.Timestamp expires_at = 9;
+  // When it was withdrawn, absent while live. The row is kept rather than
+  // deleted, because "this agent could act for me until Tuesday" is what an
+  // investigation needs afterwards.
+  google.protobuf.Timestamp revoked_at = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}

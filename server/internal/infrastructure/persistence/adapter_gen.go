@@ -94,6 +94,29 @@ type ChatToolProposalModel struct {
 	DecidedAt    sql.NullTime
 }
 
+// DelegationModel represents a Delegation in the database
+type DelegationModel struct {
+	ID              string
+	AgentID         string
+	PrincipalUserID string
+	GrantedByUserID string
+	OrgID           string
+	Reason          string
+	MaxDepth        int16
+	ExpiresAt       sql.NullTime
+	RevokedAt       sql.NullTime
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
+// DelegationPermissionModel represents a DelegationPermission in the database
+type DelegationPermissionModel struct {
+	DelegationID string
+	PermissionID string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
 // GroupModel represents a Group in the database
 type GroupModel struct {
 	ID          string
@@ -265,10 +288,12 @@ type Querier interface {
 	WithTx(tx *sql.Tx) Querier
 
 	AddChatSessionTokens(ctx context.Context, ID string, TokensUsed int64) error
+	AddPermissionToDelegation(ctx context.Context, DelegationID string, PermissionID string) error
 	AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error
 	CountAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, OrgIds []string) (int64, error)
 	CountAgentChildren(ctx context.Context, parentAgentID string) (int64, error)
 	CountAgents(ctx context.Context, OrgID string, ParentAgentID string, OrgIds []string) (int64, error)
+	CountDelegations(ctx context.Context, AgentID string, PrincipalUserID string, IncludeRevoked bool, OrgIds []string, SelfUserID string) (int64, error)
 	CountServiceAccounts(ctx context.Context) (int64, error)
 	CreateAccessRequest(ctx context.Context, ID string, RequesterUserID string, SubjectUserID string, GroupID string, Reason string, RequestedUntil sql.NullTime, Status string, Origin string, SessionID string) error
 	CreateAgent(ctx context.Context, ID string, OrgID string, UserID string, Name string, Description string, ClientID string, KeycloakID string, AuthMethod string, ParentAgentID string, CreatedByUserID string) error
@@ -276,6 +301,7 @@ type Querier interface {
 	CreateChatMessage(ctx context.Context, SessionID string, Role string, Content string) (*ChatMessageModel, error)
 	CreateChatSession(ctx context.Context, UserID string, Title string) (*ChatSessionModel, error)
 	CreateChatToolProposal(ctx context.Context, SessionID string, ToolName string, Arguments json.RawMessage, Continuation []byte) (*ChatToolProposalModel, error)
+	CreateDelegation(ctx context.Context, ID string, AgentID string, PrincipalUserID string, GrantedByUserID string, OrgID string, Reason string, MaxDepth int16, ExpiresAt sql.NullTime) error
 	CreateGroup(ctx context.Context, ID string, Name string, Status string, Description string, OrgID string) error
 	CreateGroupRole(ctx context.Context, GroupID string, RoleID string, ExpiresAt sql.NullTime) error
 	CreateOrganization(ctx context.Context, ID string, Name string, Slug string, Kind string, Description string, Status string) error
@@ -305,10 +331,12 @@ type Querier interface {
 	IsUserInGroup(ctx context.Context, UserID string, GroupID string) (bool, error)
 	ListAccessRequests(ctx context.Context, RequesterUserID string, SubjectUserID string, GroupID string, Status string, OrgIds []string, RowOffset int32, RowLimit int32) ([]*AccessRequestModel, error)
 	ListAgents(ctx context.Context, OrgID string, ParentAgentID string, OrgIds []string, RowOffset int32, RowLimit int32) ([]*AgentModel, error)
+	ListDelegations(ctx context.Context, AgentID string, PrincipalUserID string, IncludeRevoked bool, OrgIds []string, SelfUserID string, RowOffset int32, RowLimit int32) ([]*DelegationModel, error)
 	ListServiceAccounts(ctx context.Context, RowOffset int32, RowLimit int32) ([]*ServiceAccountModel, error)
 	RecordAgentSecretRotation(ctx context.Context, id string) error
 	RemoveAllUsersFromGroup(ctx context.Context, groupID string) error
 	RemovePermissionFromRole(ctx context.Context, RoleID string, PermissionID string) error
+	RevokeDelegation(ctx context.Context, id string) (int64, error)
 	SelectAccessPath(ctx context.Context) ([]*SelectAccessPathsModel, error)
 	SelectAccessRequest(ctx context.Context, id string) (*AccessRequestModel, error)
 	SelectAgent(ctx context.Context, id string) (*AgentModel, error)
@@ -316,6 +344,8 @@ type Querier interface {
 	SelectChatSessionById(ctx context.Context, ID string, UserID string) (*ChatSessionModel, error)
 	SelectChatSessionsByUserId(ctx context.Context, userID string) ([]*ChatSessionModel, error)
 	SelectChatToolProposalById(ctx context.Context, ID string, UserID string) (*ChatToolProposalModel, error)
+	SelectDelegation(ctx context.Context, id string) (*DelegationModel, error)
+	SelectDelegationPermission(ctx context.Context, delegationID string) ([]*DelegationPermissionModel, error)
 	SelectGroupById(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupForUpdate(ctx context.Context, id string) (*GroupModel, error)
 	SelectGroupRoleByGroupId(ctx context.Context, groupID string) ([]*GroupRoleModel, error)
@@ -370,6 +400,14 @@ func (p *PostgreSQLQuerier) AddChatSessionTokens(ctx context.Context, ID string,
 
 }
 
+func (p *PostgreSQLQuerier) AddPermissionToDelegation(ctx context.Context, DelegationID string, PermissionID string) error {
+	return p.q.AddPermissionToDelegation(ctx, postgressqlc.AddPermissionToDelegationParams{
+		DelegationID: DelegationID,
+		PermissionID: PermissionID,
+	})
+
+}
+
 func (p *PostgreSQLQuerier) AddPermissionToRole(ctx context.Context, RoleID string, PermissionID string) error {
 	return p.q.AddPermissionToRole(ctx, postgressqlc.AddPermissionToRoleParams{
 		RoleID:       RoleID,
@@ -407,6 +445,21 @@ func (p *PostgreSQLQuerier) CountAgents(ctx context.Context, OrgID string, Paren
 		OrgID:         sql.NullString{String: OrgID, Valid: OrgID != ""},
 		ParentAgentID: sql.NullString{String: ParentAgentID, Valid: ParentAgentID != ""},
 		OrgIds:        OrgIds,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return row, nil
+
+}
+
+func (p *PostgreSQLQuerier) CountDelegations(ctx context.Context, AgentID string, PrincipalUserID string, IncludeRevoked bool, OrgIds []string, SelfUserID string) (int64, error) {
+	row, err := p.q.CountDelegations(ctx, postgressqlc.CountDelegationsParams{
+		AgentID:         sql.NullString{String: AgentID, Valid: AgentID != ""},
+		PrincipalUserID: sql.NullString{String: PrincipalUserID, Valid: PrincipalUserID != ""},
+		IncludeRevoked:  IncludeRevoked,
+		OrgIds:          OrgIds,
+		SelfUserID:      sql.NullString{String: SelfUserID, Valid: SelfUserID != ""},
 	})
 	if err != nil {
 		return 0, err
@@ -549,6 +602,20 @@ func (p *PostgreSQLQuerier) CreateChatToolProposal(ctx context.Context, SessionI
 		CreatedAt:    row.CreatedAt,
 		DecidedAt:    row.DecidedAt,
 	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) CreateDelegation(ctx context.Context, ID string, AgentID string, PrincipalUserID string, GrantedByUserID string, OrgID string, Reason string, MaxDepth int16, ExpiresAt sql.NullTime) error {
+	return p.q.CreateDelegation(ctx, postgressqlc.CreateDelegationParams{
+		ID:              ID,
+		AgentID:         AgentID,
+		PrincipalUserID: PrincipalUserID,
+		GrantedByUserID: GrantedByUserID,
+		OrgID:           OrgID,
+		Reason:          Reason,
+		MaxDepth:        MaxDepth,
+		ExpiresAt:       ExpiresAt,
+	})
 
 }
 
@@ -877,6 +944,39 @@ func (p *PostgreSQLQuerier) ListAgents(ctx context.Context, OrgID string, Parent
 
 }
 
+func (p *PostgreSQLQuerier) ListDelegations(ctx context.Context, AgentID string, PrincipalUserID string, IncludeRevoked bool, OrgIds []string, SelfUserID string, RowOffset int32, RowLimit int32) ([]*DelegationModel, error) {
+	rows, err := p.q.ListDelegations(ctx, postgressqlc.ListDelegationsParams{
+		AgentID:         sql.NullString{String: AgentID, Valid: AgentID != ""},
+		PrincipalUserID: sql.NullString{String: PrincipalUserID, Valid: PrincipalUserID != ""},
+		IncludeRevoked:  IncludeRevoked,
+		OrgIds:          OrgIds,
+		SelfUserID:      sql.NullString{String: SelfUserID, Valid: SelfUserID != ""},
+		RowOffset:       RowOffset,
+		RowLimit:        RowLimit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*DelegationModel, len(rows))
+	for i, row := range rows {
+		res[i] = &DelegationModel{
+			ID:              row.ID,
+			AgentID:         row.AgentID,
+			PrincipalUserID: row.PrincipalUserID,
+			GrantedByUserID: row.GrantedByUserID,
+			OrgID:           row.OrgID,
+			Reason:          row.Reason,
+			MaxDepth:        row.MaxDepth,
+			ExpiresAt:       row.ExpiresAt,
+			RevokedAt:       row.RevokedAt,
+			CreatedAt:       row.CreatedAt,
+			UpdatedAt:       row.UpdatedAt,
+		}
+	}
+	return res, nil
+
+}
+
 func (p *PostgreSQLQuerier) ListServiceAccounts(ctx context.Context, RowOffset int32, RowLimit int32) ([]*ServiceAccountModel, error) {
 	rows, err := p.q.ListServiceAccounts(ctx, postgressqlc.ListServiceAccountsParams{
 		RowOffset: RowOffset,
@@ -918,6 +1018,15 @@ func (p *PostgreSQLQuerier) RemovePermissionFromRole(ctx context.Context, RoleID
 		RoleID:       RoleID,
 		PermissionID: PermissionID,
 	})
+
+}
+
+func (p *PostgreSQLQuerier) RevokeDelegation(ctx context.Context, id string) (int64, error) {
+	row, err := p.q.RevokeDelegation(ctx, id)
+	if err != nil {
+		return 0, err
+	}
+	return row, nil
 
 }
 
@@ -1070,6 +1179,45 @@ func (p *PostgreSQLQuerier) SelectChatToolProposalById(ctx context.Context, ID s
 		CreatedAt:    row.CreatedAt,
 		DecidedAt:    row.DecidedAt,
 	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectDelegation(ctx context.Context, id string) (*DelegationModel, error) {
+	row, err := p.q.SelectDelegation(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &DelegationModel{
+		ID:              row.ID,
+		AgentID:         row.AgentID,
+		PrincipalUserID: row.PrincipalUserID,
+		GrantedByUserID: row.GrantedByUserID,
+		OrgID:           row.OrgID,
+		Reason:          row.Reason,
+		MaxDepth:        row.MaxDepth,
+		ExpiresAt:       row.ExpiresAt,
+		RevokedAt:       row.RevokedAt,
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       row.UpdatedAt,
+	}, nil
+
+}
+
+func (p *PostgreSQLQuerier) SelectDelegationPermission(ctx context.Context, delegationID string) ([]*DelegationPermissionModel, error) {
+	rows, err := p.q.SelectDelegationPermissions(ctx, delegationID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*DelegationPermissionModel, len(rows))
+	for i, row := range rows {
+		res[i] = &DelegationPermissionModel{
+			DelegationID: row.DelegationID,
+			PermissionID: row.PermissionID,
+			CreatedAt:    row.CreatedAt,
+			UpdatedAt:    row.UpdatedAt,
+		}
+	}
+	return res, nil
 
 }
 

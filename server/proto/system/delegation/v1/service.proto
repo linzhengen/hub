@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package system.delegation.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "hub/annotations/v1/annotations.proto";
+import "system/delegation/v1/model.proto";
+
+option go_package = "github.com/linzhengen/hub/server/pb/system/delegation/v1";
+
+// DelegationService records which agent may act on whose behalf.
+//
+// Creating and revoking a delegation change who can do what, so neither is
+// reachable by the assistant. A delegation is the one thing that lets a machine
+// borrow a person's authority; a model talked into writing one by text
+// somebody else wrote would be exactly the escalation the approval flow exists
+// to prevent.
+service DelegationService {
+  rpc CreateDelegation(CreateDelegationRequest) returns (CreateDelegationResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/delegations"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Let an agent act on your behalf, for a set of permissions and a term."};
+  }
+  rpc ListDelegations(ListDelegationsRequest) returns (ListDelegationsResponse) {
+    option (google.api.http) = {get: "/api/v1/delegations"};
+    option (hub.annotations.v1.method_rule) = {summary: "List the delegations the caller can reach."};
+  }
+  rpc RevokeDelegation(RevokeDelegationRequest) returns (RevokeDelegationResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/delegations/{id}/revoke"
+      body: "*"
+    };
+    option (hub.annotations.v1.method_rule) = {summary: "Withdraw a delegation. It stops within a second and the record is kept."};
+  }
+}
+
+// CreateDelegationRequest lends the caller's own authority, never anyone
+// else's: there is no principal field, so delegating on somebody's behalf is
+// not something the API can express.
+message CreateDelegationRequest {
+  string agent_id = 1 [(buf.validate.field).string.uuid = true];
+  // Why this delegation exists. It is required because it is what an approver
+  // or an auditor reads first, and "" answers nothing.
+  string reason = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 1024
+  }];
+  // When it stops. Required: an endless delegation is the exception and is not
+  // reachable from here.
+  google.protobuf.Timestamp expires_at = 3 [(buf.validate.field).required = true];
+  // The permissions the agent may exercise on the caller's behalf. At least one
+  // is required - an empty set would have to mean either "nothing", which is a
+  // delegation not worth writing, or "everything", which is the widest grant in
+  // the system arriving by omission.
+  repeated string permission_ids = 4 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      string: {uuid: true}
+    }
+  }];
+  // How many agents may stand in the chain. 1 is the named agent and no
+  // further; absent is 1, so the narrowest chain is what a client that says
+  // nothing gets. The lower bound is not stated here on purpose - it would make
+  // the field mandatory, since an absent uint32 and a zero one are the same
+  // value over the wire, and "you must choose a depth" is a worse default than
+  // the safe one.
+  uint32 max_depth = 5 [(buf.validate.field).uint32.lte = 8];
+}
+
+message CreateDelegationResponse {
+  Delegation delegation = 1;
+}
+
+message ListDelegationsRequest {
+  uint32 limit = 1 [(buf.validate.field).uint32.lte = 200];
+  uint32 offset = 2;
+  optional string agent_id = 3 [(buf.validate.field).string.uuid = true];
+  optional string principal_user_id = 4 [(buf.validate.field).string.uuid = true];
+  // Keep withdrawn delegations in the answer. They are left out by default: the
+  // usual question is what may act for me now.
+  bool include_revoked = 5;
+}
+
+message ListDelegationsResponse {
+  repeated Delegation delegations = 1;
+  int64 total = 2;
+}
+
+message RevokeDelegationRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message RevokeDelegationResponse {
+  Delegation delegation = 1;
+}

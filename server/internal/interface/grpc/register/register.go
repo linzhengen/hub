@@ -19,6 +19,7 @@ import (
 	pbchatv1 "github.com/linzhengen/hub/server/pb/ai/chat/v1"
 	pbaccessv1 "github.com/linzhengen/hub/server/pb/system/access/v1"
 	pbauditv1 "github.com/linzhengen/hub/server/pb/system/audit/v1"
+	pbdelegationv1 "github.com/linzhengen/hub/server/pb/system/delegation/v1"
 	pbgroupv1 "github.com/linzhengen/hub/server/pb/system/group/v1"
 	pborganizationv1 "github.com/linzhengen/hub/server/pb/system/organization/v1"
 	pbpermissionv1 "github.com/linzhengen/hub/server/pb/system/permission/v1"
@@ -59,6 +60,7 @@ func New(
 	accessRequestServiceServer pbaccessv1.AccessRequestServiceServer,
 	serviceAccountServiceServer pbserviceaccountv1.ServiceAccountServiceServer,
 	agentServiceServer pbagentv1.AgentServiceServer,
+	delegationServiceServer pbdelegationv1.DelegationServiceServer,
 ) *grpc.Server {
 	store, err := memorystore.New(&memorystore.Config{
 		Tokens:   opts.APIRateLimit,
@@ -127,6 +129,7 @@ func New(
 	pbaccessv1.RegisterAccessRequestServiceServer(grpcServer, accessRequestServiceServer)
 	pbserviceaccountv1.RegisterServiceAccountServiceServer(grpcServer, serviceAccountServiceServer)
 	pbagentv1.RegisterAgentServiceServer(grpcServer, agentServiceServer)
+	pbdelegationv1.RegisterDelegationServiceServer(grpcServer, delegationServiceServer)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 	return grpcServer
 }

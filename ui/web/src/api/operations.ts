@@ -64,6 +64,16 @@ export const auditServiceOperations = {
   listAuditLog: { method: 'GET', path: '/audit-logs', pathParams: [] },
 } as const satisfies Record<string, ApiOperation>;
 
+/** Operations of system.delegation.v1.DelegationService. */
+export const delegationServiceOperations = {
+  /** Let an agent act on your behalf, for a set of permissions and a term. */
+  createDelegation: { method: 'POST', path: '/delegations', pathParams: [] },
+  /** List the delegations the caller can reach. */
+  listDelegations: { method: 'GET', path: '/delegations', pathParams: [] },
+  /** Withdraw a delegation. It stops within a second and the record is kept. */
+  revokeDelegation: { method: 'POST', path: '/delegations/{id}/revoke', pathParams: ['id'] },
+} as const satisfies Record<string, ApiOperation>;
+
 /** Operations of system.group.v1.GroupService. */
 export const groupServiceOperations = {
   /** Grant roles to a group, keeping the roles it already has. */
